@@ -16,7 +16,7 @@ const app = express();
 
 // Configure CORS
 const corsOptions = {
-  origin: "http://localhost:5173", // Replace with your frontend's URL
+  origin: `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}`, // Use FRONTEND_PORT from .env
   credentials: true, // Allow credentials (cookies, authorization headers, etc.)
 };
 app.use(cors(corsOptions));
@@ -36,5 +36,5 @@ app.use((req, res, next) => {
 
 app.use("/api/v1", rootRouter);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000; // Use PORT from .env
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

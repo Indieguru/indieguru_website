@@ -20,7 +20,7 @@ const generateRefreshToken = (user) => {
 passport.use('google-user', new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: 'http://localhost:3000/api/v1/user/auth/google/callback',
+  callbackURL: `${process.env.BACKEND_URL}:${process.env.PORT}/api/v1/user/auth/google/callback`, // Use PORT from .env
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const existingUser = await User.findOne({ gid: profile.id, authType: 'gmail' });
@@ -56,7 +56,7 @@ passport.use('google-user', new GoogleStrategy({
 passport.use('google-expert', new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: 'http://localhost:3000/api/v1/expert/auth/google/callback',
+  callbackURL: `${process.env.BACKEND_URL}:${process.env.PORT}/api/v1/expert/auth/google/callback`, // Use PORT from .env
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const existingUser = await Expert.findOne({ gid: profile.id, userType: 'expert' });

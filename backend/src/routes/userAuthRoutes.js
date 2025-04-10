@@ -210,7 +210,7 @@ router.get('/google/callback', passport.authenticate('google-user', { failureRed
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
     res.cookie('userId', userId, { httpOnly: true, secure: true });
 
-    res.redirect(`http://localhost:5173/dashboard`);
+    res.redirect(`${process.env.FRONTEND_URL}/dashboard`); // Use environment variable for frontend URL
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }
