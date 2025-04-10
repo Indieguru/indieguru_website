@@ -148,6 +148,7 @@ router.post('/request-otp', async (req, res) => {
     // otpStore.set(phone, otp); // Store OTP temporarily
     // setTimeout(() => otpStore.delete(phone), 300000); // OTP expires in 5 minutes
     res.status(200).json({ message: 'OTP sent successfully' });
+    console.log('OTP sent successfully');
   } catch (error) {
     console.error('Error sending OTP:', error);
     res.status(500).json({ message: 'Failed to send OTP', error });
@@ -171,8 +172,9 @@ router.post('/phone-auth', async (req, res) => {
     let user = await User.findOne({ phone });
     if (!user) {
       user = new User({
-        name: `User-${phone}`,
-        phone,
+        firstName: `User-${phone}`,
+        lastName: 'gyohyohioii',
+        phone:phone,
         authType: 'phone',
         phoneVerified: true,
       });
@@ -182,11 +184,15 @@ router.post('/phone-auth', async (req, res) => {
     const token = generateToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
     user.refreshToken = refreshToken;
+    const userId = user._id;
     await user.save();
     res.cookie('token', token, { httpOnly: true, secure: true });
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
+    res.cookie('userId', userId, { httpOnly: true, secure: true });
+
     res.status(200).json({ message: 'Authentication successful'});
   } catch (error) {
+    console.error('Error during phone authentication:', error);
     res.status(500).json({ message: 'Server error', error });
   }
 });
@@ -210,9 +216,9 @@ router.get('/google/callback', passport.authenticate('google-user', { failureRed
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
     res.cookie('userId', userId, { httpOnly: true, secure: true });
 
-    res.redirect(`${process.env.FRONTEND_URL}/dashboard`); // Use environment variable for frontend URL
+    return res.redirect(`${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/dashboard`); // Ensure return after res.redirect
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return res.status(500).json({ message: 'Server error', error }); // Ensure return after res.json
   }
 });
 

@@ -1,7 +1,8 @@
 import axios from "axios";
 
+console.log(`${import.meta.env.VITE_BACKEND_URL}:${import.meta.env.VITE_BACKEND_PORT}`)
 const axiosInstance = axios.create({
-    baseURL: `${import.meta.env.VITE_BACKEND_URL}:${import.meta.env.VITE_BACKEND_PORT}`, // Use environment variable for backend URL and port
+    baseURL: `${import.meta.env.VITE_BACKEND_URL}:${import.meta.env.VITE_BACKEND_PORT}/api/v1`, // Use environment variable for backend URL and port
     withCredentials: true,
 });
 

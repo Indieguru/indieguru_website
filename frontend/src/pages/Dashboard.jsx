@@ -27,10 +27,10 @@ function Dashboard() {
             await axiosInstance.post("/user/auth/refresh-token");
             await axiosInstance.get("/user/auth/check-auth");
           } catch {
-            navigate("/login");
+            navigate("/signup");
           }
         } else {
-          navigate("/login");
+          navigate("/signup");
         }
       }
     };
