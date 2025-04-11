@@ -20,6 +20,7 @@ const corsOptions = {
   // origin:"*",
   credentials: true, // Allow credentials (cookies, authorization headers, etc.)
 };
+console.log(corsOptions.origin);
 // app.use(cors());
 app.use(cors(corsOptions));
 
