@@ -19,11 +19,11 @@ const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER;
 // Generate JWT Token
 
 const generateToken = (user) => {
-  return jwt.sign({ id: user.id, userType: user.userType }, process.env.JWT_SECRET, { expiresIn: '1m' });
+  return jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1m' });
 };
 
 const generateRefreshToken = (user) => {
-  return jwt.sign({ id: user.id, userType: user.userType }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
 
 // Zod schemas for validation
@@ -89,7 +89,7 @@ router.post('/signup', async (req, res) => {
     });
 
     await user.save();
-    const token = generateToken(user._id);
+    const token = generateToken(user);
     const refreshToken = generateRefreshToken(user._id);
     user.refreshToken = refreshToken;
     await user.save();
@@ -181,8 +181,8 @@ router.post('/phone-auth', async (req, res) => {
       await user.save();
     }
 
-    const token = generateToken(user._id);
-    const refreshToken = generateRefreshToken(user._id);
+    const token = generateToken(user);
+    const refreshToken = generateRefreshToken(user);
     user.refreshToken = refreshToken;
     const userId = user._id;
     await user.save();

@@ -10,6 +10,7 @@ router.use('/auth', userAuthRoutes);
 
 router.get('/details', authMiddleware, async (req, res) => {
     try {
+        console.dir(req.user)
         if (!mongoose.Types.ObjectId.isValid(req.user.id)) {
             console.log('Invalid user ID format');
             return res.status(400).json({ message: 'Invalid user ID format' });
@@ -20,7 +21,7 @@ router.get('/details', authMiddleware, async (req, res) => {
             console.log('User not found');
             return res.status(401).json({ message: 'User does not exist' });
         }
-        console.log(user);
+        // console.log(user);
         res.status(200).json(user);
     } catch (error) {
         console.error('Error fetching user details:', error);
