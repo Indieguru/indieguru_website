@@ -16,7 +16,7 @@ const app = express();
 
 // Configure CORS
 const corsOptions = {
-  origin: `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}`, // Use FRONTEND_PORT from .env
+  origin: [`${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}`,`${process.env.FRONTEND_URL}`] ,// Use FRONTEND_PORT from .env
   // origin:"*",
   credentials: true, // Allow credentials (cookies, authorization headers, etc.)
 };

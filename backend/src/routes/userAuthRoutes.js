@@ -215,8 +215,12 @@ router.get('/google/callback', passport.authenticate('google-user', { failureRed
     res.cookie('token', token, { httpOnly: true, secure: true });
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
     res.cookie('userId', userId, { httpOnly: true, secure: true });
+    if(process.env.TYPE === 'development')
+    return res.redirect(`${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/dashboard`); 
+    else
+    return res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
 
-    return res.redirect(`${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/dashboard`); // Ensure return after res.redirect
+  // Ensure return after res.redirect
   } catch (error) {
     return res.status(500).json({ message: 'Server error', error }); // Ensure return after res.json
   }
