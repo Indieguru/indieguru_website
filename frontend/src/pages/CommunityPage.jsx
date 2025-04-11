@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowUp, Heart, MessageCircle, Share2, TrendingUp, Users, Briefcase, HelpCircle, MessageSquare } from 'lucide-react';
 import { Footer } from  "../components/layout/Footer"; // Import the Footer component
 import { Switch } from "@headlessui/react"; // Import a toggle switch component
-
+import Header from "../components/layout/Header";
 export default function CommunityPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("threads");
@@ -323,6 +323,7 @@ export default function CommunityPage() {
 
   return (
     <div className="w-screen mx-auto min-h-screen bg-[#fffaea]">
+        <Header />
       {/* Add styles for hiding scrollbar */}
       <style>{scrollbarStyles}</style>
       
