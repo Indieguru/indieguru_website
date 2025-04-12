@@ -16,25 +16,33 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
+        
+            {isAuthenticated ? (
+              <Link to="/dashboard" className="flex items-center">
+              <img src="/logo.png" alt="IndieGuru" className="h-8 w-8 object-contain" />
+              <span className="ml-2 text-lg font-semibold text-gray-900">IndieGuru</span>
+            </Link>
+            ) : (
             <Link to="/" className="flex items-center">
               <img src="/logo.png" alt="IndieGuru" className="h-8 w-8 object-contain" />
               <span className="ml-2 text-lg font-semibold text-gray-900">IndieGuru</span>
             </Link>
+            )}
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/blogpage" className="text-gray-600 hover:text-gray-900">Blogs</Link>
-            <Link to="/about" className="text-gray-600 hover:text-gray-900">About</Link>
+            {/* <Link to="/about" className="text-gray-600 hover:text-gray-900">About</Link> */}
             <Link to="/communitypage" className="text-gray-600 hover:text-gray-900">Community</Link>
-            <Link to="/contact" className="text-gray-600 hover:text-gray-900">Contact Us</Link>
+            {/* <Link to="/contact" className="text-gray-600 hover:text-gray-900">Contact Us</Link> */}
             {isAuthenticated ? (
-              <Link to="/profile" className="px-6 py-2 rounded-full border-2 border-primary text-primary hover:bg-primary hover:text-white transition-colors">
+              <Link to="/profile" className="px-6 py-2 rounded-full border-2 border-primary text-primary hover:bg-gray-200 hover:transition-colors">
                 Profile
               </Link>
             ) : (
               <Link to="/signup" className="px-6 py-2 rounded-full border-2 border-primary text-primary hover:bg-primary hover:text-white transition-colors">
-                Login
+                SignUp
               </Link>
             )}
           </div>

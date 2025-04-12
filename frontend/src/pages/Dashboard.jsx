@@ -12,6 +12,7 @@ import ReferSection from "../components/sections/ReferSection"
 import PreviousSessionsSection from "../components/sections/PreviousSessionsSection"
 import useUserStore from "../store/userStore";
 import axiosInstance from "../config/axios.config";
+import UpcomingCourses from '../components/sections/upcomingCourses';
 
 function Dashboard() {
   const { user, fetchUser } = useUserStore();
@@ -40,29 +41,47 @@ function Dashboard() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Header />
 
       <main className="max-w-7xl mt-28 mx-auto px-4 md:px-6">
         {/* Greeting Section */}
-        <section className="mb-8">
-          <h1 className="text-2xl font-semibold text-[#232636]">How are you {user.firstName}?</h1>
-          <p className="text-sm text-[#6d6e76]">Lorem ipsum dolor sit amet, consectetur ipsum adipiscing</p>
+        <section className="mb-8 p-4 border-l-4 border-indigo-500 bg-white rounded-lg shadow-sm animate-fade-in-down">
+          <h1 className="text-2xl font-semibold text-gray-800">Welcome back, {user.firstName}!</h1>
+          <p className="text-sm text-gray-600">Continue your learning journey where you left off</p>
         </section>
 
-        {/* Cards Section */}
+        {/* Cards Section with staggered animation */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <ProfileCard />
-          <InterestsCard />
-          <GoalsCard />
+          <div className="animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+            <ProfileCard />
+          </div>
+          <div className="animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+            <InterestsCard />
+          </div>
+          <div className="animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+            <GoalsCard />
+          </div>
         </section>
 
-        <ProgressSection />
-        <GurusSection />
-        <ExpertsSection />
-        <ReferSection />
-        <PreviousSessionsSection />
-
+        <div className="animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
+          <ProgressSection />
+        </div>
+        <div className="animate-fade-in-up" style={{ animationDelay: "0.5s" }}>
+          <GurusSection />
+        </div>
+        <div className="animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
+          <ExpertsSection />
+        </div>
+        <div className="animate-fade-in-up" style={{ animationDelay: "0.7s" }}>
+          <ReferSection />
+        </div>
+        <div className="animate-fade-in-up" style={{ animationDelay: "0.8s" }}>
+          <PreviousSessionsSection />
+        </div>
+        <div className="animate-fade-in-up" style={{ animationDelay: "0.8s" }}>
+          <UpcomingCourses />
+        </div>
       </main>
 
       <Footer />
@@ -71,4 +90,3 @@ function Dashboard() {
 }
 
 export default Dashboard
-

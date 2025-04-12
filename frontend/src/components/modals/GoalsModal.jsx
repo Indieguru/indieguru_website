@@ -81,7 +81,7 @@ function GoalsModal({ isOpen, onClose, currentGoals, onSave }) {
         <h4 className="text-sm font-medium text-[#232636] mb-2">Selected Goals</h4>
         <div className="flex flex-wrap gap-2 min-h-10">
           {selectedGoals.map((goal) => (
-            <span key={goal} className="px-3 py-1 bg-[#003265] text-white rounded-full text-xs flex items-center">
+            <span key={goal} className="px-3 py-1 bg-blue-800 text-white rounded-full text-xs flex items-center">
               {goal}
               <button onClick={() => toggleGoal({ name: goal })} className="ml-2 text-white hover:text-[#a3d7ff]">
                 ×
@@ -107,7 +107,7 @@ function GoalsModal({ isOpen, onClose, currentGoals, onSave }) {
                     onClick={() => toggleGoal(goal)}
                     className={`flex items-center justify-between px-3 py-2 rounded-md text-xs transition-colors ${
                       selectedGoals.includes(goal.name)
-                        ? "bg-[#003265] text-white"
+                        ? "bg-blue-800 text-white"
                         : "bg-[#f9fbff] text-[#232636] hover:bg-[#deefff]"
                     }`}
                   >
@@ -129,7 +129,7 @@ function GoalsModal({ isOpen, onClose, currentGoals, onSave }) {
         <Button onClick={onClose} className="border border-[#676767] text-[#676767] bg-white hover:bg-[#f5f5f5]">
           Cancel
         </Button>
-        <Button onClick={handleSave} className="bg-[#003265] text-white hover:bg-[#143d65]">
+        <Button onClick={handleSave} className="bg-blue-800 text-white hover:bg-[#143d65]">
           Save Goals
         </Button>
       </div>

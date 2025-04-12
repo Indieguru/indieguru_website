@@ -70,7 +70,7 @@ export default function EducationalPlatform() {
           </div>
           <div className="flex-1 text-center mt-4">
             <h1 className="text-[#003265] text-5xl font-bold mb-2">Upcoming sessions</h1>
-            <div className="w-48 h-1 bg-[#003265] mx-auto"></div>
+            <div className="w-48 h-1 bg-blue-800 mx-auto"></div>
           </div>
           <div className="w-28 h-auto mt-2">
             <img src="/hello--users-people-hello.png" alt="Video call illustration" className="object-contain w-full h-full" />
@@ -105,7 +105,7 @@ export default function EducationalPlatform() {
                       <span className="text-xl font-bold text-[#003265]">$ {course.price}</span>
                       <span className="ml-2 text-gray-400 line-through text-sm">$ {course.originalPrice}</span>
                     </div>
-                    <Button className="bg-[#003265] hover:bg-[#0a2540] text-white">Enroll Now</Button>
+                    <Button className="bg-blue-800 hover:bg-[#0a2540] text-white">Enroll Now</Button>
                   </div>
                 </div>
               </motion.div>

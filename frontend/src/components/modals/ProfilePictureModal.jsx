@@ -109,7 +109,7 @@ function ProfilePictureModal({ isOpen, onClose, currentPicture, onSave }) {
           </Button>
           <Button
             onClick={handleUpload}
-            className="bg-[#003265] text-white hover:bg-[#143d65] flex items-center gap-2"
+            className="bg-blue-800 text-white hover:bg-[#143d65] flex items-center gap-2"
             disabled={!selectedFile || uploading}
           >
             {uploading ? (

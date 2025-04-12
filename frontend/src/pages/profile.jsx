@@ -227,7 +227,7 @@ function Profile() {
                           className="w-full border-[#d8d8d8]"
                         />
                         <div className="flex gap-2 mt-2">
-                          <Button onClick={handleFieldSave} className="bg-[#003265] text-white hover:bg-[#143d65]">
+                          <Button onClick={handleFieldSave} className="bg-blue-800 text-white hover:bg-[#143d65]">
                             Save
                           </Button>
                           <Button onClick={handleFieldCancel} className="bg-gray-300 text-black hover:bg-gray-400">
@@ -265,7 +265,7 @@ function Profile() {
                           className="w-full border-[#d8d8d8]"
                         />
                         <div className="flex gap-2 mt-2">
-                          <Button onClick={handleFieldSave} className="bg-[#003265] text-white hover:bg-[#143d65]">
+                          <Button onClick={handleFieldSave} className="bg-blue-800 text-white hover:bg-[#143d65]">
                             Save
                           </Button>
                           <Button onClick={handleFieldCancel} className="bg-gray-300 text-black hover:bg-gray-400">
@@ -303,7 +303,7 @@ function Profile() {
                           className="w-full border-[#d8d8d8]"
                         />
                         <div className="flex gap-2 mt-2">
-                          <Button onClick={handleFieldSave} className="bg-[#003265] text-white hover:bg-[#143d65]">
+                          <Button onClick={handleFieldSave} className="bg-blue-800 text-white hover:bg-[#143d65]">
                             Save
                           </Button>
                           <Button onClick={handleFieldCancel} className="bg-gray-300 text-black hover:bg-gray-400">
@@ -342,7 +342,7 @@ function Profile() {
                           type="email"
                         />
                         <div className="flex gap-2 mt-2">
-                          <Button onClick={handleFieldSave} className="bg-[#003265] text-white hover:bg-[#143d65]">
+                          <Button onClick={handleFieldSave} className="bg-blue-800 text-white hover:bg-[#143d65]">
                             Save
                           </Button>
                           <Button onClick={handleFieldCancel} className="bg-gray-300 text-black hover:bg-gray-400">
@@ -384,7 +384,7 @@ function Profile() {
                           <option value="Other">Other</option>
                         </select>
                         <div className="flex gap-2 mt-2">
-                          <Button onClick={handleFieldSave} className="bg-[#003265] text-white hover:bg-[#143d65]">
+                          <Button onClick={handleFieldSave} className="bg-blue-800 text-white hover:bg-[#143d65]">
                             Save
                           </Button>
                           <Button onClick={handleFieldCancel} className="bg-gray-300 text-black hover:bg-gray-400">
@@ -536,7 +536,7 @@ function Profile() {
 
           <div className="flex flex-wrap gap-2 mb-4">
             {profileData.skills?.map((skill, index) => (
-              <span key={index} className="px-4 py-2 bg-[#003265] text-white rounded-md text-sm">
+              <span key={index} className="px-4 py-2 bg-blue-800 text-white rounded-md text-sm">
                 {skill}
               </span>
             ))}
@@ -551,7 +551,7 @@ function Profile() {
                 />
                 <Button
                   onClick={handleAddSkill}
-                  className="bg-[#003265] text-white hover:bg-[#143d65] h-10 w-10 p-0 flex items-center justify-center"
+                  className="bg-blue-800 text-white hover:bg-[#143d65] h-10 w-10 p-0 flex items-center justify-center"
                 >
                   <Plus size={16} />
                 </Button>
@@ -572,7 +572,7 @@ function Profile() {
 
           <div className="flex flex-wrap gap-2 mb-4">
             {profileData.goals?.map((goal, index) => (
-              <span key={index} className="px-4 py-2 bg-[#003265] text-white rounded-md text-sm">
+              <span key={index} className="px-4 py-2 bg-blue-800 text-white rounded-md text-sm">
                 {goal}
               </span>
             ))}
@@ -587,7 +587,7 @@ function Profile() {
                 />
                 <Button
                   onClick={handleAddGoal}
-                  className="bg-[#003265] text-white hover:bg-[#143d65] h-10 w-10 p-0 flex items-center justify-center"
+                  className="bg-blue-800 text-white hover:bg-[#143d65] h-10 w-10 p-0 flex items-center justify-center"
                 >
                   <Plus size={16} />
                 </Button>

@@ -81,7 +81,7 @@ function InterestsModal({ isOpen, onClose, currentInterests, onSave }) {
         <h4 className="text-sm font-medium text-[#232636] mb-2">Selected Interests</h4>
         <div className="flex flex-wrap gap-2 min-h-10">
           {selectedInterests.map((interest) => (
-            <span key={interest} className="px-3 py-1 bg-[#003265] text-white rounded-full text-xs flex items-center">
+            <span key={interest} className="px-3 py-1 bg-blue-800 text-white rounded-full text-xs flex items-center">
               {interest}
               <button
                 onClick={() => toggleInterest({ name: interest })}
@@ -110,7 +110,7 @@ function InterestsModal({ isOpen, onClose, currentInterests, onSave }) {
                     onClick={() => toggleInterest(interest)}
                     className={`flex items-center justify-between px-3 py-2 rounded-md text-xs transition-colors ${
                       selectedInterests.includes(interest.name)
-                        ? "bg-[#003265] text-white"
+                        ? "bg-blue-800 text-white"
                         : "bg-[#f9fbff] text-[#232636] hover:bg-[#deefff]"
                     }`}
                   >
@@ -132,7 +132,7 @@ function InterestsModal({ isOpen, onClose, currentInterests, onSave }) {
         <Button onClick={onClose} className="border border-[#676767] text-[#676767] bg-white hover:bg-[#f5f5f5]">
           Cancel
         </Button>
-        <Button onClick={handleSave} className="bg-[#003265] text-white hover:bg-[#143d65]">
+        <Button onClick={handleSave} className="bg-blue-800 text-white hover:bg-[#143d65]">
           Save Interests
         </Button>
       </div>

@@ -182,7 +182,7 @@ const TestimonialsSection = () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold text-[#003265] mb-2">Testimonials</h2>
-          <div className="w-48 h-1 bg-[#003265] mx-auto"></div>
+          <div className="w-48 h-1 bg-blue-800 mx-auto"></div>
         </div>
   
         <div className="relative bg-[#dfefff] rounded-2xl p-6 md:p-10 overflow-hidden">

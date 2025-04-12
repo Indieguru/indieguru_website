@@ -1,7 +1,7 @@
 import { Button } from "../ui/button";
 import { motion } from "framer-motion";
 
-function PreviousSessionsSection() {
+function UpcomingCourses() {
   const courses = [
     {
       id: 1,
@@ -47,7 +47,7 @@ function PreviousSessionsSection() {
 
   return (
     <motion.section
-      className="mb-12 p-6 rounded-xl shadow-md"
+      className="mb-12 p-6 bg-[#cceeed] rounded-xl shadow-md"
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -60,7 +60,7 @@ function PreviousSessionsSection() {
             <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" />
           </svg>
         </span>
-        <h2 className="text-2xl font-semibold text-[#003265]">Previous Sessions</h2>
+        <h2 className="text-2xl font-semibold text-[#003265]">Upcoming Courses</h2>
       </div>
       <p className="text-sm text-[#6d6e76] mb-6 ml-8">
         Review and continue your learning from past sessions. Revisit content, refresh your knowledge, or pick up where you left off.
@@ -87,7 +87,7 @@ function PreviousSessionsSection() {
                   <span className="ml-2 text-gray-400 line-through text-sm">$ {course.originalPrice}</span>
                 </div>
                 <Button className="bg-blue-800 hover:bg-[#0a2540] text-white text-xs px-3 py-2 h-8 rounded-md">
-                  Book Again
+                  Book
                 </Button>
               </div>
             </div>
@@ -98,4 +98,4 @@ function PreviousSessionsSection() {
   );
 }
 
-export default PreviousSessionsSection;
+export default UpcomingCourses;

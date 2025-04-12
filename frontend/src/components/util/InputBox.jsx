@@ -75,14 +75,14 @@ export default function InputBox({
                             {otpRequired && !otpSent && (
                                 <Button
                                     onClick={handleGetOtp}
-                                    className="bg-[#003265] text-white hover:bg-[#143d65]"
+                                    className="bg-blue-800 text-white hover:bg-[#143d65]"
                                 >
                                     Get OTP
                                 </Button>
                             )}
                             <Button
                                 onClick={handleOnSave}
-                                className="bg-[#003265] text-white hover:bg-[#143d65]"
+                                className="bg-blue-800 text-white hover:bg-[#143d65]"
                                 disabled={otpRequired && !otpSent} // Disable save if OTP is required but not sent
                             >
                                 Save

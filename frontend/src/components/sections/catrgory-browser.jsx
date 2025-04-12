@@ -58,7 +58,7 @@ const CategoryBrowser = () => {
         transition={{ duration: 0.5, delay: 0.2 }}
       >
         <h2 className="text-4xl md:text-5xl font-bold text-[#003265] mb-2">Browse by Category</h2>
-        <div className="w-48 h-1 bg-[#003265] mx-auto"></div>
+        <div className="w-48 h-1 bg-blue-800 mx-auto"></div>
       </motion.div>
 
       <motion.div
@@ -128,7 +128,7 @@ const CategoryBrowser = () => {
             Explore our selection of courses in this category. Click on any course to learn more and enroll.
           </p>
           <button
-            className="mt-4 px-6 py-2 bg-[#003265] text-white rounded-md hover:bg-[#0a2540] transition-colors"
+            className="mt-4 px-6 py-2 bg-blue-800 text-white rounded-md hover:bg-[#0a2540] transition-colors"
             onClick={() => console.log(`View all ${selectedCategory} courses`)}
           >
             View All Courses
