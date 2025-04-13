@@ -16,11 +16,15 @@ const generateToken = (user) => {
 const generateRefreshToken = (user) => {
   return jwt.sign({ id: user.id, userType: user.userType }, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
+const callbackURL = `${process.env.BACKEND_URL}:${process.env.PORT}/api/v1/user/auth/google/callback`; // Use PORT from .env
+if(process.env.TYPE === 'production') {
+  callbackURL = `${process.env.BACKEND_URL}/api/v1/user/auth/google/callback`; // Use PORT from .env
+}
 
 passport.use('google-user', new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: `${process.env.BACKEND_URL}:${process.env.PORT}/api/v1/user/auth/google/callback`, // Use PORT from .env
+  callbackURL: callbackURL, // Use PORT from .env
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const existingUser = await User.findOne({ gid: profile.id, authType: 'gmail' });

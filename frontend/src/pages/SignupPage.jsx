@@ -132,8 +132,10 @@ const LoginPage = () => {
 
   const handleGoogleSigninClick = () => {
     // window.location.href = `http://localhost:3000/api/v1/user/auth/google`;
-    if(import.meta.env.VITE_TYPE === "production") 
-    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/v1/user/auth/google`;
+    if(import.meta.env.VITE_TYPE === "production") {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      console.log(backendUrl)
+    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/v1/user/auth/google`;}
     else
     window.location.href = `${import.meta.env.VITE_BACKEND_URL}:${import.meta.env.VITE_BACKEND_PORT}/api/v1/user/auth/google`;
   }
