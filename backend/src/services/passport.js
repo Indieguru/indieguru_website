@@ -20,6 +20,7 @@ const callbackURL = `${process.env.BACKEND_URL}:${process.env.PORT}/api/v1/user/
 if(process.env.TYPE === 'production') {
   callbackURL = `${process.env.BACKEND_URL}/api/v1/user/auth/google/callback`; // Use PORT from .env
 }
+console.log('Callback URL:', callbackURL); // Log the callback URL for debugging
 
 passport.use('google-user', new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
