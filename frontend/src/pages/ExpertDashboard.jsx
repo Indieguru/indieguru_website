@@ -25,7 +25,7 @@ const expertData = {
 };
 
 function ExpertDashboard() {
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab] = useState("dashboard");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
