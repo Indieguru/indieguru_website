@@ -78,7 +78,7 @@ const LoginPage = () => {
         setShowOtpInput(true)
         setButtonText("Verify")
         setErrorMessage("") // Clear error message
-        setTimer(120) // Start 2-minute timer
+        setTimer(30) // Start 2-minute timer
         setResendActive(false) // Disable resend button
         axiosInstance.post("/user/auth/request-otp", { phone: phoneNumber, countryCode })
       } else {
