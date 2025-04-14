@@ -7,6 +7,7 @@ import User from '../models/User.js';
 import '../services/passport.js'; // Import Passport configuration
 import twilio from 'twilio';
 import authMiddleware from '../middlewares/authMiddleware.js';
+import cookieParser from 'cookie-parser';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
@@ -62,7 +63,7 @@ const verifyOtp = async (phone, otp) => {
 };
 
 // In-memory store for OTPs (replace with a more secure solution like Redis)
-const otpStore = new Map();
+router.use(cookieParser());
 
 // User Signup
 router.post('/signup', async (req, res) => {

@@ -103,7 +103,7 @@ const LoginPage = () => {
   }
 
   const handleResendOtp = () => {
-    setTimer(120) // Restart 2-minute timer
+    setTimer(30) // Restart 2-minute timer
     setResendActive(false) // Disable resend button
     axiosInstance.post("/user/auth/request-otp", { phone: phoneNumber, countryCode })
   }
