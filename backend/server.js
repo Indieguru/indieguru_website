@@ -25,6 +25,7 @@ const app = express();
 // app.use(cors(corsOptions));
 const corsOptions = {
   origin: [
+    'https://indie-guru-website-git-w-af47ff-anukuljain42-gmailcoms-projects.vercel.app',
     'https://indie-guru-website-git-main-anukuljain42-gmailcoms-projects.vercel.app',
     'https://indie-guru-website-b33gkuob2-anukuljain42-gmailcoms-projects.vercel.app',
     'https://indie-guru-website.vercel.app',
