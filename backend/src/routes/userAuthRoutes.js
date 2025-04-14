@@ -94,8 +94,8 @@ router.post('/signup', async (req, res) => {
     const refreshToken = generateRefreshToken(user._id);
     user.refreshToken = refreshToken;
     await user.save();
-    res.cookie('token', token, { httpOnly: true, secure: true });
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
+    res.cookie('token', token, { httpOnly: true, secure: true, sameSite: "none" });
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: "none" });
     res.status(201).json({ message: 'User registered successfully', token, refreshToken });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
@@ -121,8 +121,10 @@ router.post('/signin', async (req, res) => {
     const refreshToken = generateRefreshToken(user._id);
     user.refreshToken = refreshToken;
     await user.save();
-    res.cookie('token', token, { httpOnly: true, secure: true });
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
+    res.cookie('token', token, { httpOnly: true, secure: true, sameSite: "none" });
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true , sameSite: "none"
+
+    });
     res.status(200).json({ message: 'User signed in successfully', token, refreshToken });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
@@ -187,9 +189,9 @@ router.post('/phone-auth', async (req, res) => {
     user.refreshToken = refreshToken;
     const userId = user._id;
     await user.save();
-    res.cookie('token', token, { httpOnly: true, secure: true });
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
-    res.cookie('userId', userId, { httpOnly: true, secure: true });
+    res.cookie('token', token, { httpOnly: true, secure: true, sameSite: "none" });
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: "none" });
+    res.cookie('userId', userId, { httpOnly: true, secure: true , sameSite: "none"});
 
     res.status(200).json({ message: 'Authentication successful'});
   } catch (error) {
@@ -213,9 +215,9 @@ router.get('/google/callback', passport.authenticate('google-user', { failureRed
       await user.save();
     }
 
-    res.cookie('token', token, { httpOnly: true, secure: true });
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
-    res.cookie('userId', userId, { httpOnly: true, secure: true });
+    res.cookie('token', token, { httpOnly: true, secure: true, sameSite: "none" });
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: "none" });
+    res.cookie('userId', userId, { httpOnly: true, secure: true, sameSite: "none" });
     if(process.env.TYPE === 'development')
     return res.redirect(`${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/dashboard`); 
     else
