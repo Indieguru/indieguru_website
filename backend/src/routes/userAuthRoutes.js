@@ -226,31 +226,31 @@ router.get('/google/callback', passport.authenticate('google-user', { failureRed
   }
 });
 
-router.post('/refresh-token', async (req, res) => {
-  const { refreshToken } = req.cookies;
-  if (!refreshToken) {
-    return res.status(401).json({ message: 'Refresh token not provided.' });
-  }
+// router.post('/refresh-token', async (req, res) => {
+//   const { refreshToken } = req.cookies;
+//   if (!refreshToken) {
+//     return res.status(401).json({ message: 'Refresh token not provided.' });
+//   }
 
-  try {
-    const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
-    const user = await User.findById(decoded.id);
-    if (!user || user.refreshToken !== refreshToken) {
-      return res.status(403).json({ message: 'Invalid refresh token.' });
-    }
+//   try {
+//     const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+//     const user = await User.findById(decoded.id);
+//     if (!user || user.refreshToken !== refreshToken) {
+//       return res.status(403).json({ message: 'Invalid refresh token.' });
+//     }
 
-    const newToken = generateToken(user._id);
-    const newRefreshToken = generateRefreshToken(user._id);
-    user.refreshToken = newRefreshToken;
-    await user.save();
+//     const newToken = generateToken(user._id);
+//     const newRefreshToken = generateRefreshToken(user._id);
+//     user.refreshToken = newRefreshToken;
+//     await user.save();
 
-    res.cookie('token', newToken, { httpOnly: true, secure: true });
-    res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true });
-    res.status(200).json({message: 'Token refreshed successfully'});
-  } catch (err) {
-    res.status(403).json({ message: 'Invalid refresh token.' });
-  }
-});
+//     res.cookie('token', newToken, { httpOnly: true, secure: true });
+//     res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true });
+//     res.status(200).json({message: 'Token refreshed successfully'});
+//   } catch (err) {
+//     res.status(403).json({ message: 'Invalid refresh token.' });
+//   }
+// });
 
 router.get('/check-auth', authMiddleware,(req, res) => {
   res.status(200).json({ message: 'Authenticated'});
