@@ -1,20 +1,56 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
-import Dashboard from "./pages/Dashboard"
-import Profile from "./pages/profile"
-import SignupPage from "./pages/SignupPage"
-import BlogPage from './pages/BlogPage'; // Adjust the import path as necessary
-import CommunityPage from './pages/CommunityPage'; // Import CommunityPage
-import Landing from "./pages/Landing"
-import ExpertDashboard from "./pages/ExpertDashboard"
-import "./styles/globals.css"
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/profile";
+import SignupPage from "./pages/SignupPage";
+import BlogPage from './pages/BlogPage';
+import CommunityPage from './pages/CommunityPage';
+import Landing from "./pages/Landing";
+import ExpertDashboard from "./pages/ExpertDashboard";// Import the new UserDetails component
+import Loader from "./components/layout/Loader";
+import "./styles/globals.css";
+
+// RouteChangeTracker component to detect route changes
+const RouteChangeTracker = ({ setLoading }) => {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Show loader only for the student dashboard route
+    if (location.pathname === "/dashboard") {
+      setLoading(true);
+      const timer = setTimeout(() => {
+        setLoading(false);
+      }, 1200); // Adjust time as needed
+
+      return () => clearTimeout(timer);
+    } else {
+      setLoading(false);
+    }
+  }, [location.pathname, setLoading]);
+
+  return null;
+};
 
 function App() {
   // Add console log to verify routes are being registered
-  console.log("App component rendering with routes")
+  console.log("App component rendering with routes");
+  
+  const [loading, setLoading] = useState(true);
+
+  // Simulate initial app loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1500); // Initial app load shows loader a bit longer
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div>
       <Router>
+        <RouteChangeTracker setLoading={setLoading} />
+        {loading && <Loader />}
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/dashboard" element={<Dashboard />} />
@@ -22,12 +58,11 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/blogpage" element={<BlogPage />} />
           <Route path="/expert" element={<ExpertDashboard />} />
-          <Route path="/communitypage" element={<CommunityPage />} /> {/* Added CommunityPage route */}
-        </Routes>
+          <Route path="/communitypage" element={<CommunityPage />} />
+          </Routes>
       </Router>
     </div>
-  )
+  );
 }
 
-export default App
-
+export default App;
