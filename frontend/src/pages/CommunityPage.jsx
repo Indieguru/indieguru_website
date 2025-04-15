@@ -4,6 +4,7 @@ import { ArrowUp, Heart, MessageCircle, Share2, TrendingUp, Users, Briefcase, He
 import { Footer } from  "../components/layout/Footer"; // Import the Footer component
 import { Switch } from "@headlessui/react"; // Import a toggle switch component
 import Header from "../components/layout/Header";
+
 export default function CommunityPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("threads");
@@ -16,6 +17,15 @@ export default function CommunityPage() {
   const [newComment, setNewComment] = useState("");
   const [isSignedIn] = useState(false); // Mock state for user authentication
   const [postAnonymously, setPostAnonymously] = useState(false);
+  
+  // Animation states for page elements
+  const [pageLoaded, setPageLoaded] = useState(false);
+  const [headerVisible, setHeaderVisible] = useState(false);
+  const [bannerVisible, setBannerVisible] = useState(false);
+  const [tabsVisible, setTabsVisible] = useState(false);
+  const [contentVisible, setContentVisible] = useState(false);
+  const [podcastsVisible, setPodcastsVisible] = useState(false);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
 
   // Ref for the feed section
   const feedRef = useRef(null);
@@ -53,6 +63,25 @@ export default function CommunityPage() {
       setActiveBanner((prev) => (prev + 1) % banners.length);
     }, 5000); // Change banner every 5 seconds
     return () => clearInterval(interval);
+  }, []);
+
+  // Sequential animation for page elements
+  useEffect(() => {
+    // Set page as loaded
+    setPageLoaded(true);
+    
+    // Staggered animations with timing
+    const timers = [
+      setTimeout(() => setHeaderVisible(true), 100),
+      setTimeout(() => setBannerVisible(true), 300),
+      setTimeout(() => setPodcastsVisible(true), 600),
+      setTimeout(() => setTabsVisible(true), 800),
+      setTimeout(() => setContentVisible(true), 1000),
+      setTimeout(() => setSidebarVisible(true), 1200),
+    ];
+    
+    // Cleanup timers
+    return () => timers.forEach(timer => clearTimeout(timer));
   }, []);
 
   const tabs = [
@@ -319,16 +348,138 @@ export default function CommunityPage() {
       color: #232536;
       transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
     }
+    
+    /* Animation classes for page elements */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+    
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .fade-in {
+      opacity: 0;
+      animation: fadeIn 0.8s ease-out forwards;
+    }
+    
+    .fade-in-up {
+      opacity: 0;
+      animation: fadeInUp 0.8s ease-out forwards;
+    }
+    
+    .scale-in {
+      opacity: 0;
+      animation: scaleIn 0.6s ease-out forwards;
+    }
+    
+    .slide-in-left {
+      opacity: 0;
+      animation: slideInLeft 0.8s ease-out forwards;
+    }
+    
+    .slide-in-right {
+      opacity: 0;
+      animation: slideInRight 0.8s ease-out forwards;
+    }
+    
+    /* Staggered animation for post items */
+    .post-item {
+      opacity: 0;
+      transform: translateY(15px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    
+    .post-item.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
   `;
 
+  // Function to handle post item visibility
+  const [visiblePosts, setVisiblePosts] = useState(new Set());
+
+  useEffect(() => {
+    if (contentVisible) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const postId = entry.target.dataset.postId;
+              if (postId) {
+                setVisiblePosts(prev => new Set([...prev, postId]));
+              }
+            }
+          });
+        },
+        { threshold: 0.1 }
+      );
+      
+      // Observe all post items
+      document.querySelectorAll('.post-item').forEach(post => {
+        observer.observe(post);
+      });
+      
+      return () => observer.disconnect();
+    }
+  }, [contentVisible, activeTab]);
+
   return (
-    <div className="w-screen mx-auto min-h-screen bg-[#fffaea]">
-        <Header />
-      {/* Add styles for hiding scrollbar */}
+    <div className={`w-screen mx-auto min-h-screen bg-[#fffaea] ${pageLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}>
+      {/* Add styles for animations */}
       <style>{scrollbarStyles}</style>
       
+      <div className="">
+        <Header />
+      </div>
+      
       {/* Welcome Header with Single Banner */}
-      <section className="relative w-full h-[450px] overflow-hidden mt-[120px]">
+      <section className={`relative w-full h-[450px] overflow-hidden mt-[120px] ${bannerVisible ? 'scale-in' : ''}`}>
         {banners.map((banner, index) => (
           <div
             key={banner.id}
@@ -373,7 +524,7 @@ export default function CommunityPage() {
 
       {/* Create Post Form */}
       {showPostForm && (
-        <section className="max-w-7xl mx-auto px-4 mt-6">
+        <section className={`max-w-7xl mx-auto px-4 mt-6 scale-in`}>
           <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-xl font-bold text-[#232536] mb-4">Create a New Post</h3>
             {!isSignedIn && (
@@ -452,7 +603,7 @@ export default function CommunityPage() {
       )}
 
       {/* Podcast Series Section */}
-      <section className="max-w-7xl mx-auto px-4 mt-16 mb-8">
+      <section className={`max-w-7xl mx-auto px-4 mt-16 mb-8 ${podcastsVisible ? 'fade-in-up' : ''}`}>
         <h2 className="text-2xl font-bold text-[#232536] mb-4">Podcast Series</h2>
         <div className="overflow-hidden">
           <div
@@ -470,7 +621,16 @@ export default function CommunityPage() {
             }}
           >
             {[...randomFeeds, ...randomFeeds].map((podcast, index) => (
-              <div key={`${podcast.id}-${index}`} className="flex-none w-80 bg-white rounded-lg shadow-md overflow-hidden hover-shadow">
+              <div 
+                key={`${podcast.id}-${index}`} 
+                className={`flex-none w-80 bg-white rounded-lg shadow-md overflow-hidden hover-shadow transition-all`}
+                style={{
+                  animationDelay: `${index * 150}ms`,
+                  opacity: podcastsVisible ? 1 : 0,
+                  transform: podcastsVisible ? 'translateY(0)' : 'translateY(20px)',
+                  transition: 'opacity 0.5s ease, transform 0.5s ease'
+                }}
+              >
                 <div className="relative">
                   <img src={podcast.image} alt={podcast.title} className="w-full h-48 object-cover" />
                   {/* Play button overlay */}
@@ -489,10 +649,10 @@ export default function CommunityPage() {
       </section>
 
       {/* Community Tabs */}
-      <section className="max-w-7xl mx-auto px-4">
+      <section className={`max-w-7xl mx-auto px-4 ${tabsVisible ? 'slide-in-left' : ''}`}>
         <div className="bg-white rounded-lg p-4 mb-8 shadow-sm">
           <div className="flex overflow-x-auto gap-2 pb-2 no-scrollbar">
-            {tabs.map((tab) => (
+            {tabs.map((tab, index) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
@@ -501,6 +661,12 @@ export default function CommunityPage() {
                     ? "bg-[#ffd050] text-[#232536] font-medium"
                     : "bg-gray-100 text-[#6d6e76]"
                 }`}
+                style={{
+                  animationDelay: `${index * 100}ms`,
+                  opacity: tabsVisible ? 1 : 0,
+                  transform: tabsVisible ? 'translateX(0)' : 'translateX(-10px)',
+                  transition: 'opacity 0.5s ease, transform 0.5s ease'
+                }}
               >
                 {tab.icon}
                 {tab.name}
@@ -513,7 +679,7 @@ export default function CommunityPage() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Feed */}
-        <div className="lg:col-span-2">
+        <div className={`lg:col-span-2 ${contentVisible ? 'fade-in' : ''}`}>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-[#232536] text-2xl font-bold">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h2>
             <button
@@ -524,7 +690,7 @@ export default function CommunityPage() {
             </button>
           </div>
           {showPostForm && (
-            <section className="mb-6">
+            <section className="mb-6 scale-in">
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="text-xl font-bold text-[#232536] mb-4">Create a New Post</h3>
                 {!isSignedIn && (
@@ -583,8 +749,13 @@ export default function CommunityPage() {
               </div>
             </section>
           )}
-          {posts[activeTab]?.map((post) => (
-            <div key={post.id} className="bg-white rounded-lg shadow-sm mb-6 overflow-hidden">
+          {posts[activeTab]?.map((post, index) => (
+            <div 
+              key={post.id} 
+              className={`post-item bg-white rounded-lg shadow-sm mb-6 overflow-hidden ${visiblePosts.has(post.id.toString()) ? 'visible' : ''}`}
+              data-post-id={post.id}
+              style={{ transitionDelay: `${index * 150}ms` }}
+            >
               <div className="p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <img src={post.avatar || "/rectangle-2749.png"} alt={post.author} className="w-10 h-10 rounded-full" />
@@ -602,7 +773,7 @@ export default function CommunityPage() {
                   <img src={post.image} alt="Post image" className="w-full rounded-lg mb-4" />
                 )}
                 <div className="flex items-center gap-4 pt-2 border-t mt-4">
-                  <button
+                <button
                     className={`bg-white flex items-center gap-1 text-[#6d6e76] hover:text-[#00a9a5] ${
                       likedPosts.has(post.id) ? "text-red-500" : ""
                     }`}
@@ -650,7 +821,7 @@ export default function CommunityPage() {
 
                 {/* Comment Form */}
                 {showCommentForm === post.id && (
-                  <div className="mt-4 pt-4 border-t">
+                  <div className="mt-4 pt-4 border-t scale-in">
                     <div className="flex gap-3">
                       <img src="https://via.placeholder.com/40" alt="Your Avatar" className="w-8 h-8 rounded-full" />
                       <div className="flex-1">
@@ -685,16 +856,29 @@ export default function CommunityPage() {
         </div>
 
         {/* Sidebar */}
-        <div className="lg:col-span-1">
+        <div className={`lg:col-span-1 ${sidebarVisible ? 'slide-in-right' : ''}`}>
           {/* Trending Topics */}
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-6 transform transition-all duration-500" 
+               style={{ 
+                 opacity: sidebarVisible ? 1 : 0, 
+                 transform: sidebarVisible ? 'translateX(0)' : 'translateX(20px)'
+               }}>
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp className="w-5 h-5 text-[#232536]" />
               <h3 className="text-[#232536] font-bold">Trending Topics</h3>
             </div>
             <div className="space-y-4">
-              {trending.map((item) => (
-                <div key={item.id} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+              {trending.map((item, index) => (
+                <div 
+                  key={item.id} 
+                  className="border-b border-gray-100 pb-3 last:border-0 last:pb-0"
+                  style={{ 
+                    opacity: sidebarVisible ? 1 : 0, 
+                    transform: sidebarVisible ? 'translateY(0)' : 'translateY(10px)',
+                    transition: 'opacity 0.5s ease, transform 0.5s ease',
+                    transitionDelay: `${200 + index * 100}ms`
+                  }}
+                >
                   <h4 className="font-medium text-[#232536] hover:text-[#00a9a5] cursor-pointer">
                     {item.title}
                   </h4>
@@ -708,7 +892,14 @@ export default function CommunityPage() {
           </div>
 
           {/* Invite Friends */}
-          <div className="bg-[#ffd050] rounded-lg p-6 hover-shadow">
+          <div 
+            className="bg-[#ffd050] rounded-lg p-6 hover-shadow transform transition-all duration-500"
+            style={{ 
+              opacity: sidebarVisible ? 1 : 0, 
+              transform: sidebarVisible ? 'translateY(0)' : 'translateY(20px)',
+              transitionDelay: '400ms'
+            }}
+          >
             <h3 className="text-[#232536] font-bold mb-2">Grow Your Network</h3>
             <p className="text-[#232536] mb-4">Invite friends to join the IndieGuru community and grow together!</p>
             <button
@@ -721,8 +912,15 @@ export default function CommunityPage() {
         </div>
       </div>
 
+      {/* Page Entrance Animation */}
+      <div 
+        className={`fixed inset-0 bg-[#232536] z-50 pointer-events-none transition-opacity duration-1000 ${
+          pageLoaded ? 'opacity-0' : 'opacity-100'
+        }`}
+      ></div>
+
       {/* Footer */}
-      <div className="mt-12">
+      <div className="mt-12 opacity-0 animate-fadeIn" style={{ animation: 'fadeIn 1s ease-out 1.5s forwards' }}>
         <Footer />
       </div>
     </div>
