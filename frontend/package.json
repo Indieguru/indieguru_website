@@ -13,6 +13,7 @@
     "@headlessui/react": "^2.2.1",
     "axios": "^1.8.4",
     "chart.js": "^4.4.8",
+    "firebase": "^11.6.0",
     "framer-motion": "^12.6.3",
     "lucide-react": "^0.484.0",
     "react": "^19.0.0",
@@ -20,13 +21,8 @@
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.4.0",
     "tailwindcss": "^3.4.17",
-    "zustand": "^5.0.3",
     "zod": "^3.24.2",
-    "firebase": "^11.10.0",
-    "firebaseui": "^6.0.0",
-    "firebaseui-react": "^6.0.0",
-    "firebaseui-styled-components": "^6.0.0",
-    "react-firebase-hooks": "^5.1.0"
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
