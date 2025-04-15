@@ -144,7 +144,7 @@ const HeroSection = () => {
               <div className="min-h-24">
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 leading-tight">
                   <span className="block">{displayText}</span>
-                  <span className="text-blue-700 block mt-1">IndieGuru</span>
+                  <span className="text-blue-900 block mt-1">IndieGuru</span>
                 </h1>
               </div>
 
@@ -158,19 +158,19 @@ const HeroSection = () => {
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mt-4">
                 <Link
                   to="/appointment"
-                  className="bg-blue-900 hover:bg-blue-800 text-white px-6 py-3 rounded-lg text-sm font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center"
+                  className="bg-blue-900 hover:bg-blue-800 text-white px-8 rounded-lg text-base font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center"
                 >
                   <span>Take An Assessment</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </Link>
                 <Link
                   to="/experts"
-                  className="border-2 border-blue-700 text-blue-700 hover:bg-blue-50 px-6 py-3 rounded-lg text-sm font-semibold text-center transition-all duration-300 flex items-center justify-center"
+                  className="border-2 border-blue-700 text-blue-700 hover:bg-blue-50 px-8 py-4 rounded-lg text-base font-semibold text-center transition-all duration-300 flex items-center justify-center"
                 >
                   <span>Choose Your Expert</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
                 </Link>
