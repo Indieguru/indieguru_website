@@ -19,12 +19,12 @@ const Header = () => {
         
             {isAuthenticated ? (
               <Link to="/dashboard" className="flex items-center">
-              <img src="/logo.png" alt="IndieGuru" className="h-8 w-8 object-contain" />
+              <img src="/logo.png" alt="IndieGuru" className="h-8 w-8 object-contain rounded-full" />
               <span className="ml-2 text-lg font-semibold text-gray-900">IndieGuru</span>
             </Link>
             ) : (
             <Link to="/" className="flex items-center">
-              <img src="/logo.png" alt="IndieGuru" className="h-8 w-8 object-contain" />
+              <img src="/logo.png" alt="IndieGuru" className="h-8 w-8 object-contain rounded-full" />
               <span className="ml-2 text-lg font-semibold text-gray-900">IndieGuru</span>
             </Link>
             )}

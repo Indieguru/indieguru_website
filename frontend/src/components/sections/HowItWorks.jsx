@@ -94,7 +94,7 @@ const HowItWorks = () => {
       <img 
         src="/im-4.png" 
         alt="People vector" 
-        className={`absolute -bottom-14 left-10 w-64 transition-all duration-1000 delay-500 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}
+        className={`absolute hidden md:block -bottom-14 left-10 w-64 transition-all duration-1000 delay-500 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}
       />
       <img 
         src="/im-5.png" 

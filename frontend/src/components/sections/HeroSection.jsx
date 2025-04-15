@@ -95,7 +95,7 @@ const HeroSection = () => {
       </div>
 
       {/* Content Container */}
-      <div className="relative h-full w-full flex items-center pt-24 sm:pt-28 lg:pt-0">
+      <div className="relative h-full w-full flex items-center pt-8 sm:pt-28 lg:pt-0">
         <div className="w-full max-w-screen-xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left Column - Text Content */}
@@ -158,7 +158,7 @@ const HeroSection = () => {
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mt-4">
                 <Link
                   to="/appointment"
-                  className="bg-blue-900 hover:bg-blue-800 text-white px-8 rounded-lg text-base font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center"
+                  className="bg-blue-900 hover:bg-blue-800 text-white px-8 py-4 rounded-lg text-base font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center"
                 >
                   <span>Take An Assessment</span>
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -191,7 +191,7 @@ const HeroSection = () => {
 
             {/* Right Column - Image with improved positioning */}
             <div
-              className={`relative transition-all duration-1000 delay-500 ${
+              className={`relative hidden md:block transition-all duration-1000 delay-500 ${
                 isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
               }`}
             >

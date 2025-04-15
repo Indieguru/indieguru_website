@@ -65,14 +65,14 @@ export default function EducationalPlatform() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <div className="relative w-48 h-24">
+          <div className="relative hidden md:block w-48 h-24">
             <img src="/Group 237661.png" alt="Learn & Earn" className="object-contain w-full h-full" />
           </div>
           <div className="flex-1 text-center mt-4">
             <h1 className="text-[#003265] text-5xl font-bold mb-2">Upcoming sessions</h1>
             <div className="w-48 h-1 bg-blue-800 mx-auto"></div>
           </div>
-          <div className="w-28 h-auto mt-2">
+          <div className="w-28 h-auto hidden md:block mt-2">
             <img src="/hello--users-people-hello.png" alt="Video call illustration" className="object-contain w-full h-full" />
           </div>
         </motion.div>
