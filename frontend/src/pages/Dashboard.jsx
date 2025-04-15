@@ -25,7 +25,6 @@ function Dashboard() {
       } catch (error) {
         if (error.response.status === 401) {
           try {
-            await axiosInstance.post("/user/auth/refresh-token");
             await axiosInstance.get("/user/auth/check-auth");
           } catch {
             navigate("/signup");

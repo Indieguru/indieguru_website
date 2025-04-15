@@ -1,122 +1,161 @@
-"use client"
+"use client";
 
-import { useState, useEffect, use } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { ChevronDown } from "lucide-react"
-import axiosInstance from "../config/axios.config"
-import {useAuth} from "../hooks/useAuth"
-// import { useUser } from "./UserContext";
-
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ChevronDown } from "lucide-react";
+import axiosInstance from "../config/axios.config";
+import { useAuth } from "../hooks/useAuth";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { app, auth } from "../config/firebase.js"; // use your production Firebase config
 
 const LoginPage = () => {
-  const navigate = useNavigate()
-  const [phoneNumber, setPhoneNumber] = useState("")
-  const [otp, setOtp] = useState("") // State for OTP
-  const [showOtpInput, setShowOtpInput] = useState(false) // State to toggle OTP input
-  const [buttonText, setButtonText] = useState("Get OTP") // State for button text
-  const [countryCode, setCountryCode] = useState("+91")
-  const [showCountryDropdown, setShowCountryDropdown] = useState(false)
-  const [errorMessage, setErrorMessage] = useState("") // State for error message
-  const [timer, setTimer] = useState(0) // State for countdown timer
-  const [resendActive, setResendActive] = useState(false) // State for resend button
-  const { isAuthenticated } = useAuth() // Use the useAuth hook to check login status
-  const countryCodes = ["+91", "+1", "+44", "+61", "+81"]
-
+  const navigate = useNavigate();
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [otp, setOtp] = useState(""); // State for OTP
+  const [showOtpInput, setShowOtpInput] = useState(false); // Toggle OTP input
+  const [buttonText, setButtonText] = useState("Get OTP"); // Button text
+  const [countryCode, setCountryCode] = useState("+91");
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(""); // Error message
+  const [timer, setTimer] = useState(0); // Countdown timer
+  const [resendActive, setResendActive] = useState(false); // Resend button state
+  const { isAuthenticated } = useAuth(); // Custom hook for auth status
+  const countryCodes = ["+91", "+1", "+44", "+61", "+81"];
 
   useEffect(() => {
-    if(isAuthenticated){
-      navigate("/dashboard")
+    if (isAuthenticated) {
+      navigate("/dashboard");
     }
-  }, [isAuthenticated, navigate])
+  }, [isAuthenticated, navigate]);
 
   useEffect(() => {
-    let interval
+    let interval;
     if (timer > 0) {
       interval = setInterval(() => {
-        setTimer((prev) => prev - 1)
-      }, 1000)
+        setTimer((prev) => prev - 1);
+      }, 1000);
     } else if (timer === 0 && showOtpInput) {
-      setResendActive(true)
+      setResendActive(true);
     }
-    return () => clearInterval(interval)
-  }, [timer, showOtpInput])
+    return () => clearInterval(interval);
+  }, [timer, showOtpInput]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
     const userId = urlParams.get("id");
-
     if (token && userId) {
       console.log("JWT Token:", token);
       console.log("User ID:", userId);
       navigate(`/dashboard`);
-    } else if (!userId) {
     }
-  }, []);
+  }, [navigate]);
 
   const handlePhoneChange = (e) => {
-    const value = e.target.value.replace(/\D/g, "")
-    setPhoneNumber(value)
-    setErrorMessage("") // Clear error message on valid input
-  }
+    const value = e.target.value.replace(/\D/g, "");
+    setPhoneNumber(value);
+    setErrorMessage(""); // Clear error message on valid input
+  };
 
   const handleOtpChange = (e) => {
-    setOtp(e.target.value)
+    setOtp(e.target.value);
     if (e.target.value.length === 6) {
-      setErrorMessage("") // Clear error message on valid OTP
+      setErrorMessage(""); // Clear error message on valid OTP
     }
-  }
+  };
 
   const handleCountryCodeSelect = (code) => {
-    setCountryCode(code)
-    setShowCountryDropdown(false)
-  }
+    setCountryCode(code);
+    setShowCountryDropdown(false);
+  };
 
-  const handleButtonClick = async () => {
-    if (!showOtpInput) {
-      if (phoneNumber.length === 10) {
-        setShowOtpInput(true)
-        setButtonText("Verify")
-        setErrorMessage("") // Clear error message
-        setTimer(30) // Start 2-minute timer
-        setResendActive(false) // Disable resend button
-        axiosInstance.post("/user/auth/request-otp", { phone: phoneNumber, countryCode })
-      } else {
-        setErrorMessage("Please enter a valid 10-digit phone number")
+  // Sets up reCAPTCHA and calls onVerifiedCallback after it is solved.
+  const setUpRecaptcha = (onVerifiedCallback) => {
+    try {
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(
+          "recaptcha-container",
+          {
+            size: "invisible", // or "normal" if you want it to be visible
+            callback: (response) => {
+              onVerifiedCallback();
+            },
+            "expired-callback": () => {
+              setErrorMessage("reCAPTCHA expired. Please try again.");
+            },
+          },
+          auth
+        );
       }
-    } else {
-      if (otp.length !== 6) {
-        setErrorMessage("Please enter a valid 6-digit OTP")
-        return
-      }
-      try {
-        const response = await axiosInstance.post("/user/auth/phone-auth", { phone: phoneNumber, otp });
-        if(response.status === 200) 
-        navigate(`/dashboard`);
-        else {
-          setErrorMessage("Invalid OTP. Please try again.");
-        }
-      } catch {
-        setErrorMessage("Invalid OTP. Please try again.");
-      }
+      window.recaptchaVerifier.render(); // Ensure it gets rendered
+    } catch (error) {
+      setErrorMessage("Failed to initialize reCAPTCHA: " + error.message);
     }
-  }
+  };
+
+  // Handles sending OTP using Firebase Phone Auth.
+  const handleSendOtp = async () => {
+    setErrorMessage("");
+    if (phoneNumber.length !== 10) {
+      setErrorMessage("Please enter a valid 10-digit phone number");
+      return;
+    }
+    const fullPhone = countryCode + phoneNumber;
+    // Setup reCAPTCHA and wait for verification.
+    setUpRecaptcha(async () => {
+      try {
+        const appVerifier = window.recaptchaVerifier;
+        const confirmationResult = await signInWithPhoneNumber(auth, fullPhone, appVerifier);
+        window.confirmationResult = confirmationResult;
+        setShowOtpInput(true);
+        setButtonText("Verify");
+        setTimer(30);
+      } catch (err) {
+        setErrorMessage("Failed to send OTP: " + err.message);
+      }
+    });
+  };
+
+  // Handles OTP verification using Firebase's confirmation result.
+  const handleVerifyOtp = async () => {
+    try {
+      const result = await window.confirmationResult.confirm(otp);
+      const user = result.user;
+      // Optionally, get an ID token to send to your backend.
+      const idToken = await user.getIdToken();
+      await axiosInstance.post("/user/auth/firebase-login", {
+        phone: user.phoneNumber,
+        firebaseToken: idToken,
+      });
+      navigate("/dashboard");
+    } catch (err) {
+      setErrorMessage("Invalid OTP. Please try again.");
+    }
+  };
+
+  const handleButtonClick = () => {
+    if (!showOtpInput) {
+      handleSendOtp();
+    } else {
+      handleVerifyOtp();
+    }
+  };
 
   const handleResendOtp = () => {
-    setTimer(30) // Restart 2-minute timer
-    setResendActive(false) // Disable resend button
-    axiosInstance.post("/user/auth/request-otp", { phone: phoneNumber, countryCode })
-  }
+    setTimer(30); // Restart timer
+    setResendActive(false); // Disable resend button
+    // Optionally, re-trigger OTP sending.
+    handleSendOtp();
+  };
 
   const handleGoogleSigninClick = () => {
-    // window.location.href = `http://localhost:3000/api/v1/user/auth/google`;
-    if(import.meta.env.VITE_TYPE === "production") {
+    if (import.meta.env.VITE_TYPE === "production") {
       const backendUrl = import.meta.env.VITE_BACKEND_URL;
-      console.log(backendUrl)
-    window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/v1/user/auth/google`;}
-    else
-    window.location.href = `${import.meta.env.VITE_BACKEND_URL}:${import.meta.env.VITE_BACKEND_PORT}/api/v1/user/auth/google`;
-  }
+      window.location.href = `${backendUrl}/api/v1/user/auth/google`;
+    } else {
+      window.location.href = `${import.meta.env.VITE_BACKEND_URL}:${import.meta.env.VITE_BACKEND_PORT}/api/v1/user/auth/google`;
+    }
+  };
 
   return (
     <div className="max-w-[100vw] min-h-screen flex items-center justify-center p-20">
@@ -129,8 +168,8 @@ const LoginPage = () => {
             className="max-w-full h-auto"
             onError={(e) => {
               e.target.src =
-                "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IndieGuru_Beta-9L3tfVpLjDlq5LGymU2bYWXxPz33Ei.png"
-              e.target.onError = null
+                "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IndieGuru_Beta-9L3tfVpLjDlq5LGymU2bYWXxPz33Ei.png";
+              e.target.onError = null;
             }}
           />
         </div>
@@ -146,9 +185,7 @@ const LoginPage = () => {
                 <label htmlFor="phone" className="block text-lg font-medium text-[#0a2540]">
                   Phone Number
                 </label>
-                {errorMessage && (
-                  <p className="text-red-500 text-sm">{errorMessage}</p>
-                )}
+                {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
                 <div className="flex">
                   <div className="relative">
                     <button
@@ -159,7 +196,6 @@ const LoginPage = () => {
                       <span>{countryCode}</span>
                       <ChevronDown className="h-4 w-4 ml-1" />
                     </button>
-
                     {showCountryDropdown && (
                       <div className="absolute z-10 mt-1 w-24 bg-white shadow-lg rounded-md border border-gray-300">
                         {countryCodes.map((code) => (
@@ -255,14 +291,8 @@ const LoginPage = () => {
                 </svg>
                 <span>Sign In with Google</span>
               </button>
+              <div id="recaptcha-container"></div>
             </form>
-
-            {/* <p className="text-center mt-6">
-              Don't have an account?{" "}
-              <Link to="/signup" className="text-[#185899] font-medium hover:underline">
-                Sign Up
-              </Link>
-            </p> */}
 
             <p className="text-sm text-gray-600 mt-8 text-center">
               By proceeding, you agree to our{" "}
@@ -274,7 +304,7 @@ const LoginPage = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default LoginPage
+export default LoginPage;

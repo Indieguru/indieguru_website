@@ -8,7 +8,7 @@ import '../services/passport.js'; // Import Passport configuration
 import twilio from 'twilio';
 import authMiddleware from '../middlewares/authMiddleware.js';
 import cookieParser from 'cookie-parser';
-
+import admin from '../config/firebaseAdmin.js'; // Import Firebase Admin SDK
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'your_jwt_refresh_secret_key';
@@ -228,32 +228,46 @@ router.get('/google/callback', passport.authenticate('google-user', { failureRed
     return res.status(500).json({ message: 'Server error', error }); // Ensure return after res.json
   }
 });
+// 🔐 POST /verify-phone
+router.post('/firebase-login', async (req, res) => {
+  const { idToken } = req.body;
 
-// router.post('/refresh-token', async (req, res) => {
-//   const { refreshToken } = req.cookies;
-//   if (!refreshToken) {
-//     return res.status(401).json({ message: 'Refresh token not provided.' });
-//   }
+  if (!idToken) return res.status(400).json({ message: 'Missing ID token' });
 
-//   try {
-//     const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
-//     const user = await User.findById(decoded.id);
-//     if (!user || user.refreshToken !== refreshToken) {
-//       return res.status(403).json({ message: 'Invalid refresh token.' });
-//     }
+  try {
+    // Verify Firebase ID token (sent from client)
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const phone = decodedToken.phone_number;
 
-//     const newToken = generateToken(user._id);
-//     const newRefreshToken = generateRefreshToken(user._id);
-//     user.refreshToken = newRefreshToken;
-//     await user.save();
+    if (!phone) return res.status(400).json({ message: 'Invalid phone token' });
 
-//     res.cookie('token', newToken, { httpOnly: true, secure: true });
-//     res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true });
-//     res.status(200).json({message: 'Token refreshed successfully'});
-//   } catch (err) {
-//     res.status(403).json({ message: 'Invalid refresh token.' });
-//   }
-// });
+    let user = await User.findOne({ phone });
+    if (!user) {
+      user = new User({
+        firstName: 'User',
+        lastName: phone,
+        phone,
+        authType: 'phone',
+        phoneVerified: true,
+      });
+      await user.save();
+    }
+
+    // Create JWTs
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.cookie('token', token, { httpOnly: true, secure: true });
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
+
+    res.status(200).json({ message: 'Phone verified and user authenticated' });
+  } catch (error) {
+    console.error('Firebase verification error:', error);
+    res.status(401).json({ message: 'Invalid Firebase ID token' });
+  }
+});
 
 router.get('/check-auth', authMiddleware,(req, res) => {
   res.status(200).json({ message: 'Authenticated'});
