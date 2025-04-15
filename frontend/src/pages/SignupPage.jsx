@@ -78,7 +78,7 @@ const LoginPage = () => {
         setShowOtpInput(true)
         setButtonText("Verify")
         setErrorMessage("") // Clear error message
-        setTimer(120) // Start 2-minute timer
+        setTimer(30) // Start 2-minute timer
         setResendActive(false) // Disable resend button
         axiosInstance.post("/user/auth/request-otp", { phone: phoneNumber, countryCode })
       } else {
@@ -102,30 +102,8 @@ const LoginPage = () => {
     }
   }
 
-  const refreshAccessToken = async () => {
-    try {
-      const response = await axiosInstance.post("/user/auth/refresh-token");
-      const { token, refreshToken } = response.data;
-      document.cookie = `token=${token}; path=/; secure; HttpOnly`;
-      document.cookie = `refreshToken=${refreshToken}; path=/; secure; HttpOnly`;
-    } catch {
-      console.error("Failed to refresh token.");
-    }
-  }
-
-  axiosInstance.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-      if (error.response.status === 401) {
-        await refreshAccessToken();
-        return axiosInstance(error.config);
-      }
-      return Promise.reject(error);
-    }
-  );
-
   const handleResendOtp = () => {
-    setTimer(120) // Restart 2-minute timer
+    setTimer(30) // Restart 2-minute timer
     setResendActive(false) // Disable resend button
     axiosInstance.post("/user/auth/request-otp", { phone: phoneNumber, countryCode })
   }

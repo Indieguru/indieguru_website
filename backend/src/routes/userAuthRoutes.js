@@ -7,6 +7,7 @@ import User from '../models/User.js';
 import '../services/passport.js'; // Import Passport configuration
 import twilio from 'twilio';
 import authMiddleware from '../middlewares/authMiddleware.js';
+import cookieParser from 'cookie-parser';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
@@ -62,7 +63,7 @@ const verifyOtp = async (phone, otp) => {
 };
 
 // In-memory store for OTPs (replace with a more secure solution like Redis)
-const otpStore = new Map();
+router.use(cookieParser());
 
 // User Signup
 router.post('/signup', async (req, res) => {
@@ -93,8 +94,8 @@ router.post('/signup', async (req, res) => {
     const refreshToken = generateRefreshToken(user._id);
     user.refreshToken = refreshToken;
     await user.save();
-    res.cookie('token', token, { httpOnly: true, secure: true });
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
+    res.cookie('token', token, { httpOnly: true, secure: true, sameSite: "none" });
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: "none" });
     res.status(201).json({ message: 'User registered successfully', token, refreshToken });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
@@ -120,8 +121,10 @@ router.post('/signin', async (req, res) => {
     const refreshToken = generateRefreshToken(user._id);
     user.refreshToken = refreshToken;
     await user.save();
-    res.cookie('token', token, { httpOnly: true, secure: true });
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
+    res.cookie('token', token, { httpOnly: true, secure: true, sameSite: "none" });
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true , sameSite: "none"
+
+    });
     res.status(200).json({ message: 'User signed in successfully', token, refreshToken });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
@@ -186,9 +189,9 @@ router.post('/phone-auth', async (req, res) => {
     user.refreshToken = refreshToken;
     const userId = user._id;
     await user.save();
-    res.cookie('token', token, { httpOnly: true, secure: true });
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
-    res.cookie('userId', userId, { httpOnly: true, secure: true });
+    res.cookie('token', token, { httpOnly: true, secure: true, sameSite: "none" });
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: "none" });
+    res.cookie('userId', userId, { httpOnly: true, secure: true , sameSite: "none"});
 
     res.status(200).json({ message: 'Authentication successful'});
   } catch (error) {
@@ -212,9 +215,9 @@ router.get('/google/callback', passport.authenticate('google-user', { failureRed
       await user.save();
     }
 
-    res.cookie('token', token, { httpOnly: true, secure: true });
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
-    res.cookie('userId', userId, { httpOnly: true, secure: true });
+    res.cookie('token', token, { httpOnly: true, secure: true, sameSite: "none" });
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: "none" });
+    res.cookie('userId', userId, { httpOnly: true, secure: true, sameSite: "none" });
     if(process.env.TYPE === 'development')
     return res.redirect(`${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/dashboard`); 
     else
@@ -226,31 +229,31 @@ router.get('/google/callback', passport.authenticate('google-user', { failureRed
   }
 });
 
-router.post('/refresh-token', async (req, res) => {
-  const { refreshToken } = req.cookies;
-  if (!refreshToken) {
-    return res.status(401).json({ message: 'Refresh token not provided.' });
-  }
+// router.post('/refresh-token', async (req, res) => {
+//   const { refreshToken } = req.cookies;
+//   if (!refreshToken) {
+//     return res.status(401).json({ message: 'Refresh token not provided.' });
+//   }
 
-  try {
-    const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
-    const user = await User.findById(decoded.id);
-    if (!user || user.refreshToken !== refreshToken) {
-      return res.status(403).json({ message: 'Invalid refresh token.' });
-    }
+//   try {
+//     const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+//     const user = await User.findById(decoded.id);
+//     if (!user || user.refreshToken !== refreshToken) {
+//       return res.status(403).json({ message: 'Invalid refresh token.' });
+//     }
 
-    const newToken = generateToken(user._id);
-    const newRefreshToken = generateRefreshToken(user._id);
-    user.refreshToken = newRefreshToken;
-    await user.save();
+//     const newToken = generateToken(user._id);
+//     const newRefreshToken = generateRefreshToken(user._id);
+//     user.refreshToken = newRefreshToken;
+//     await user.save();
 
-    res.cookie('token', newToken, { httpOnly: true, secure: true });
-    res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true });
-    res.status(200).json({message: 'Token refreshed successfully'});
-  } catch (err) {
-    res.status(403).json({ message: 'Invalid refresh token.' });
-  }
-});
+//     res.cookie('token', newToken, { httpOnly: true, secure: true });
+//     res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true });
+//     res.status(200).json({message: 'Token refreshed successfully'});
+//   } catch (err) {
+//     res.status(403).json({ message: 'Invalid refresh token.' });
+//   }
+// });
 
 router.get('/check-auth', authMiddleware,(req, res) => {
   res.status(200).json({ message: 'Authenticated'});

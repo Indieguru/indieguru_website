@@ -15,21 +15,36 @@ connectDB(); // Connect to MongoDB
 const app = express();
 
 // Configure CORS
+// const corsOptions = {
+//   origin: ['https://indie-guru-website-git-main-anukuljain42-gmailcoms-projects.vercel.app/','https://indie-guru-website-b33gkuob2-anukuljain42-gmailcoms-projects.vercel.app','https://indie-guru-website.vercel.app',`${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}`,`${process.env.FRONTEND_URL}`] ,// Use FRONTEND_PORT from .env
+//   // origin:"*",
+//   credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+// };
+// console.log(corsOptions.origin);
+// // app.use(cors());
+// app.use(cors(corsOptions));
+app.use(cookieParser());
+app.use(express.json());
+app.use(passport.initialize());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 const corsOptions = {
-  origin: ['https://indie-guru-website-git-main-anukuljain42-gmailcoms-projects.vercel.app/','https://indie-guru-website-b33gkuob2-anukuljain42-gmailcoms-projects.vercel.app','https://indie-guru-website.vercel.app',`${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}`,`${process.env.FRONTEND_URL}`] ,// Use FRONTEND_PORT from .env
-  // origin:"*",
-  credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+  origin: [
+    `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}`,
+    `${process.env.FRONTEND_URL}`
+  ],
+  credentials: true,
 };
-console.log(corsOptions.origin);
-// app.use(cors());
+
 app.use(cors(corsOptions));
 
-app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser()); // Added cookie-parser middleware
+app.use("/api/v1", rootRouter);
+
+
+ // Added cookie-parser middleware
 
 // Initialize Passport
-app.use(passport.initialize());
+
 
 // Set Content-Security-Policy headers
 app.use((req, res, next) => {
@@ -37,7 +52,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/api/v1", rootRouter);
+
 
 const PORT = process.env.PORT || 5000; // Use PORT from .env
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

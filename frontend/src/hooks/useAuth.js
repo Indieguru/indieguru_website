@@ -10,7 +10,6 @@ export const useAuth = () => {
             setIsAuthenticated(true);
         } catch (error) {
             if (error.response.status === 401) {
-                await refreshAccessToken();
                 try {
                     await axiosInstance.get("/user/auth/check-auth");
                     setIsAuthenticated(true);
@@ -20,15 +19,6 @@ export const useAuth = () => {
             } else {
                 setIsAuthenticated(false);
             }
-        }
-    };
-
-    const refreshAccessToken = async () => {
-        try {
-            const response = await axiosInstance.post("/user/auth/refresh-token");
-           
-        } catch {
-            console.error("Failed to refresh token.");
         }
     };
 
