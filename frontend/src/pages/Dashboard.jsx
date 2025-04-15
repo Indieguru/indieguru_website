@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Header from "../components/layout/Header"
 import Footer from "../components/layout/Footer"
@@ -17,6 +17,7 @@ import UpcomingCourses from '../components/sections/upcomingCourses';
 function Dashboard() {
   const { user, fetchUser } = useUserStore();
   const navigate = useNavigate();
+  const [experts, setExperts] = useState([]); // State to manage experts
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -67,10 +68,10 @@ function Dashboard() {
           <ProgressSection />
         </div>
         <div className="animate-fade-in-up" style={{ animationDelay: "0.5s" }}>
-          <GurusSection />
+          <GurusSection setExperts={setExperts} /> {/* Pass setExperts to GurusSection */}
         </div>
         <div className="animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
-          <ExpertsSection />
+          <ExpertsSection experts={experts} /> {/* Pass experts to ExpertsSection */}
         </div>
         <div className="animate-fade-in-up" style={{ animationDelay: "0.7s" }}>
           <ReferSection />

@@ -1,8 +1,30 @@
-import { Button } from "../ui/button"
-import { Input } from "../ui/input"
-import { Search } from "lucide-react"
+import { useState, useEffect } from "react";
+import { Input } from "../ui/input";
+import { Search } from "lucide-react";
+import axiosInstance from "../../config/axios.config";
 
-function GurusSection() {
+function GurusSection({ setExperts }) {
+  const [searchText, setSearchText] = useState("");
+
+  const handleSearch = async (filter = "") => {
+    try {
+      const response = await axiosInstance.get("/expert/search", {
+        params: { filter }, // Fetch all experts if filter is empty
+      });
+      setExperts(response.data.data); // Pass the fetched experts to the parent component
+    } catch (error) {
+      console.error("Error fetching experts:", error.message);
+    }
+  };
+
+  useEffect(() => {
+    handleSearch(); // Fetch all experts on component mount
+  }, []);
+
+  useEffect(() => {
+    handleSearch(searchText); // Trigger search whenever searchText changes
+  }, [searchText]);
+
   return (
     <section className="mb-12 p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300">
       <div className="flex items-center mb-1">
@@ -21,27 +43,19 @@ function GurusSection() {
       </p>
 
       <div className="relative mb-6 transform transition-transform hover:scale-102 duration-300">
-        <Input placeholder="Search for skills, topics, or gurus..." className="pl-10 pr-4 py-2 border border-indigo-200 rounded-lg focus:border-indigo-400 focus:ring focus:ring-indigo-100 transition-all duration-300" />
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-indigo-400 w-4 h-4" />
-      </div>
-
-      <div className="flex flex-wrap gap-2 mb-8">
-        <Button className="bg-blue-800 hover:bg-indigo-700 text-white text-xs rounded-full px-4 py-1 h-8 shadow-sm transition-colors duration-300">All Programme</Button>
-        <Button variant="outline" className="text-[#003265] border-indigo-200 hover:bg-indigo-50 text-xs rounded-full px-4 py-1 h-8 transition-colors duration-300">
-          UI/UX Design
-        </Button>
-        <Button variant="outline" className="text-[#003265] border-indigo-200 hover:bg-indigo-50 text-xs rounded-full px-4 py-1 h-8 transition-colors duration-300">
-          Program Design
-        </Button>
-        <Button variant="outline" className="text-[#003265] border-indigo-200 hover:bg-indigo-50 text-xs rounded-full px-4 py-1 h-8 transition-colors duration-300">
-          Data Science
-        </Button>
-        <Button variant="outline" className="text-[#003265] border-indigo-200 hover:bg-indigo-50 text-xs rounded-full px-4 py-1 h-8 transition-colors duration-300">
-          Digital Marketing
-        </Button>
+        <Input
+          placeholder="Search for skills, topics, or gurus..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="pl-10 pr-4 py-2 border border-indigo-200 rounded-lg focus:border-indigo-400 focus:ring focus:ring-indigo-100 transition-all duration-300"
+        />
+        <Search
+          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-indigo-400 w-4 h-4 cursor-pointer"
+          onClick={() => handleSearch(searchText)}
+        />
       </div>
     </section>
-  )
+  );
 }
 
-export default GurusSection
+export default GurusSection;
