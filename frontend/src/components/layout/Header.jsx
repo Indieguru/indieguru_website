@@ -41,7 +41,7 @@ const Header = () => {
                 Profile
               </Link>
             ) : (
-              <Link to="/signup" className="px-6 py-2 rounded-full border-2 border-primary text-primary hover:bg-primary hover:text-white transition-colors">
+              <Link to="/signup" className="px-6 py-2 rounded-full border-2 border-primary bg-blue-900 text-white hover:bg-gray-400 hover:bg-gray-800 hover:text-white transition-colors">
                 SignUp
               </Link>
             )}
