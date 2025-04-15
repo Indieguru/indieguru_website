@@ -1,2 +1,3 @@
 .env
 node modules
+backend/src/config/firebase-service-key.json
