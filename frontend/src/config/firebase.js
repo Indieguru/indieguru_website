@@ -1,5 +1,3 @@
-// src/config/firebase.js
-// config/firebase.js
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
@@ -15,9 +13,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// ✅ Only for local development/testing
-if (import.meta.env.VITE_TYPE === "development") {
-  auth.appVerificationDisabledForTesting = true;
+if (import.meta.env.VITE_TYPE === "production") {
+  auth.settings.appVerificationDisabledForTesting = true;
 }
 
 export { app, auth };
