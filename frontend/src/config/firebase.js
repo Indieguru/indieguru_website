@@ -16,7 +16,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 // ✅ Only for local development/testing
-if (import.meta.env.MODE === "development") {
+if (import.meta.env.VITE_TYPE === "development") {
   auth.appVerificationDisabledForTesting = true;
 }
 
