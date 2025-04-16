@@ -1,8 +1,8 @@
 // src/config/firebase.js
+// config/firebase.js
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
-// Your production Firebase configuration values (ensure these are set via your .env or other secure means)
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -14,5 +14,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+
+// ✅ Only for local development/testing
+if (import.meta.env.MODE === "development") {
+  auth.appVerificationDisabledForTesting = true;
+}
 
 export { app, auth };
