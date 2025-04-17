@@ -11,9 +11,11 @@ import { Doughnut } from "react-chartjs-2"
 import "chart.js/auto"
 import useUserStore from "../store/userStore"
 import InputBox from "../components/util/InputBox"
+import { useNavigate } from "react-router-dom";
 
 function Profile() {
   const { user, fetchUser } = useUserStore()
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchUser()
@@ -193,6 +195,11 @@ function Profile() {
     }))
     setEditingField(null)
   }
+
+  const handleLogout = () => {
+    // Clear user session or token logic here
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen bg-white pt-24">
@@ -684,6 +691,9 @@ function Profile() {
             </div>
           </div>
         </Card>
+        <Button onClick={handleLogout} className="bg-red-600 text-white hover:bg-red-700 mt-4 px-6 py-2 rounded-md shadow-md">
+          Logout
+        </Button>
       </main>
 
       <Footer />

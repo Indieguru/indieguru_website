@@ -2,31 +2,32 @@
 
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, User, BookOpen } from "lucide-react";
 import axiosInstance from "../config/axios.config";
 import { useAuth } from "../hooks/useAuth";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
-import { app, auth } from "../config/firebase.js"; // use your production Firebase config
+import { app, auth } from "../config/firebase.js";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [otp, setOtp] = useState(""); // State for OTP
-  const [showOtpInput, setShowOtpInput] = useState(false); // Toggle OTP input
-  const [buttonText, setButtonText] = useState("Get OTP"); // Button text
+  const [otp, setOtp] = useState("");
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const [buttonText, setButtonText] = useState("Get OTP");
   const [countryCode, setCountryCode] = useState("+91");
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(""); // Error message
-  const [timer, setTimer] = useState(0); // Countdown timer
-  const [resendActive, setResendActive] = useState(false); // Resend button state
-  const { isAuthenticated } = useAuth(); // Custom hook for auth status
+  const [errorMessage, setErrorMessage] = useState("");
+  const [timer, setTimer] = useState(0);
+  const [resendActive, setResendActive] = useState(false);
+  const { isAuthenticated } = useAuth();
   const countryCodes = ["+91", "+1", "+44", "+61", "+81"];
+  const [userRole, setUserRole] = useState("student"); // Default role is student
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      userRole === "student" ? navigate("/dashboard") : navigate("/experts");
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, userRole]);
 
   useEffect(() => {
     let interval;
@@ -47,20 +48,20 @@ const LoginPage = () => {
     if (token && userId) {
       console.log("JWT Token:", token);
       console.log("User ID:", userId);
-      navigate(`/dashboard`);
+      userRole === "student" ? navigate("/dashboard") : navigate("/experts");
     }
-  }, [navigate]);
+  }, [navigate, userRole]);
 
   const handlePhoneChange = (e) => {
     const value = e.target.value.replace(/\D/g, "");
     setPhoneNumber(value);
-    setErrorMessage(""); // Clear error message on valid input
+    setErrorMessage("");
   };
 
   const handleOtpChange = (e) => {
     setOtp(e.target.value);
     if (e.target.value.length === 6) {
-      setErrorMessage(""); // Clear error message on valid OTP
+      setErrorMessage("");
     }
   };
 
@@ -69,14 +70,13 @@ const LoginPage = () => {
     setShowCountryDropdown(false);
   };
 
-  // Sets up reCAPTCHA and calls onVerifiedCallback after it is solved.
   const setUpRecaptcha = (onVerifiedCallback) => {
     try {
       if (!window.recaptchaVerifier) {
         window.recaptchaVerifier = new RecaptchaVerifier(
           "recaptcha-container",
           {
-            size: "invisible", // or "normal" if you want it to be visible
+            size: "invisible",
             callback: (response) => {
               onVerifiedCallback();
             },
@@ -87,13 +87,12 @@ const LoginPage = () => {
           auth
         );
       }
-      window.recaptchaVerifier.render(); // Ensure it gets rendered
+      window.recaptchaVerifier.render();
     } catch (error) {
       setErrorMessage("Failed to initialize reCAPTCHA: " + error.message);
     }
   };
 
-  // Handles sending OTP using Firebase Phone Auth.
   const handleSendOtp = async () => {
     setErrorMessage("");
     if (phoneNumber.length !== 10) {
@@ -101,7 +100,6 @@ const LoginPage = () => {
       return;
     }
     const fullPhone = countryCode + phoneNumber;
-    // Setup reCAPTCHA and wait for verification.
     setUpRecaptcha(async () => {
       try {
         const appVerifier = window.recaptchaVerifier;
@@ -116,18 +114,17 @@ const LoginPage = () => {
     });
   };
 
-  // Handles OTP verification using Firebase's confirmation result.
   const handleVerifyOtp = async () => {
     try {
       const result = await window.confirmationResult.confirm(otp);
       const user = result.user;
-      // Optionally, get an ID token to send to your backend.
       const idToken = await user.getIdToken();
       await axiosInstance.post("/user/auth/firebase-login", {
         phone: user.phoneNumber,
         firebaseToken: idToken,
+        role: userRole
       });
-      navigate("/dashboard");
+      userRole === "student" ? navigate("/dashboard") : navigate("/experts");
     } catch (err) {
       setErrorMessage("Invalid OTP. Please try again.");
     }
@@ -142,43 +139,81 @@ const LoginPage = () => {
   };
 
   const handleResendOtp = () => {
-    setTimer(30); // Restart timer
-    setResendActive(false); // Disable resend button
-    // Optionally, re-trigger OTP sending.
+    setTimer(30);
+    setResendActive(false);
     handleSendOtp();
   };
 
   const handleGoogleSigninClick = () => {
-    if (import.meta.env.VITE_TYPE === "production") {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL;
-      window.location.href = `${backendUrl}/api/v1/user/auth/google`;
-    } else {
-      window.location.href = `${import.meta.env.VITE_BACKEND_URL}:${import.meta.env.VITE_BACKEND_PORT}/api/v1/user/auth/google`;
-    }
+    const backendUrl = import.meta.env.VITE_TYPE === "production" 
+      ? import.meta.env.VITE_BACKEND_URL 
+      : `${import.meta.env.VITE_BACKEND_URL}:${import.meta.env.VITE_BACKEND_PORT}`;
+    
+    window.location.href = `${backendUrl}/api/v1/user/auth/google?role=${userRole}`;
+  };
+
+  const handleRoleChange = (role) => {
+    setUserRole(role);
   };
 
   return (
-    <div className="max-w-[100vw] min-h-screen flex items-center justify-center p-20">
-      <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+    <div className="max-w-[100vw] min-h-screen flex items-center justify-center p-4 mt-[-60px] md:p-8 lg:p-20 bg-gray-50 overflow-hidden">
+      <div className="w-full max-w-7xl shadow-xl rounded-3xl overflow-hidden grid grid-cols-1 lg:grid-cols-2 bg-white">
         {/* Left side - Illustration */}
-        <div className="hidden lg:flex justify-center items-center bg-white rounded-2xl p-8 h-full">
+        <div className="hidden lg:flex flex-col justify-center items-center bg-[#0a2540] p-12 h-full">
           <img
             src="/image.png"
             alt="Person logging in"
-            className="max-w-full h-auto"
+            className="max-w-full h-auto rounded-xl shadow-lg"
             onError={(e) => {
               e.target.src =
                 "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IndieGuru_Beta-9L3tfVpLjDlq5LGymU2bYWXxPz33Ei.png";
               e.target.onError = null;
             }}
           />
+          <h2 className="text-white text-2xl font-bold mt-8 text-center">Expand your knowledge and skills</h2>
+          <p className="text-blue-100 mt-4 text-center max-w-md">
+            Join our community of learners and experts today to start your
+            educational journey.
+          </p>
         </div>
 
         {/* Right side - Form */}
-        <div className="bg-white rounded-2xl p-6 sm:p-10 md:p-12">
+        <div className="bg-white p-6 sm:p-10 md:p-12">
           <div className="max-w-md mx-auto">
             <h1 className="text-3xl sm:text-4xl font-bold text-[#0a2540] mb-2">Welcome!</h1>
-            <p className="text-lg text-[#185899] mb-8">Sign in to continue your learning journey.</p>
+            <p className="text-lg text-[#185899] mb-8">Sign in to continue your journey.</p>
+
+            {/* Role Selection */}
+            <div className="mb-8">
+              <p className="text-lg font-medium text-[#0a2540] mb-3">I am logging in as:</p>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => handleRoleChange("student")}
+                  className={`flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                    userRole === "student"
+                      ? "border-[#185899] bg-blue-50 text-[#185899]"
+                      : "border-gray-200 hover:border-gray-300 text-gray-600"
+                  }`}
+                >
+                  <BookOpen size={20} />
+                  <span className="font-medium">Student</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleRoleChange("expert")}
+                  className={`flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                    userRole === "expert"
+                      ? "border-[#185899] bg-blue-50 text-[#185899]"
+                      : "border-gray-200 hover:border-gray-300 text-gray-600"
+                  }`}
+                >
+                  <User size={20} />
+                  <span className="font-medium">Expert</span>
+                </button>
+              </div>
+            </div>
 
             <form className="space-y-6">
               <div className="space-y-2">
@@ -190,7 +225,7 @@ const LoginPage = () => {
                   <div className="relative">
                     <button
                       type="button"
-                      className="flex items-center justify-between w-20 px-4 py-2 border-gray-300 rounded-l-md bg-white text-gray-700"
+                      className="flex items-center justify-between w-20 px-4 py-3 border border-gray-300 rounded-l-md bg-white text-gray-700"
                       onClick={() => setShowCountryDropdown(!showCountryDropdown)}
                     >
                       <span>{countryCode}</span>
@@ -217,7 +252,7 @@ const LoginPage = () => {
                     value={phoneNumber}
                     onChange={handlePhoneChange}
                     placeholder="Ex. 999xxxxxxx"
-                    className="flex-1 px-3 py-2 border bg-white border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-[#185899]"
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-[#185899] bg-white"
                   />
                 </div>
               </div>
@@ -232,30 +267,32 @@ const LoginPage = () => {
                     id="otp"
                     value={otp}
                     onChange={handleOtpChange}
-                    placeholder="Enter the OTP"
-                    className="w-full px-3 py-2 border bg-white border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#185899]"
+                    placeholder="Enter the 6-digit OTP"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#185899] bg-white"
                   />
-                  {timer > 0 && (
-                    <p className="text-sm text-gray-500">
-                      Resend OTP in {Math.floor(timer / 60)}:{String(timer % 60).padStart(2, "0")}
-                    </p>
-                  )}
-                  {resendActive && (
-                    <button
-                      type="button"
-                      onClick={handleResendOtp}
-                      className="text-[#185899] hover:underline"
-                    >
-                      Resend OTP
-                    </button>
-                  )}
+                  <div className="flex justify-between items-center">
+                    {timer > 0 && (
+                      <p className="text-sm text-gray-500">
+                        Resend OTP in {Math.floor(timer / 60)}:{String(timer % 60).padStart(2, "0")}
+                      </p>
+                    )}
+                    {resendActive && (
+                      <button
+                        type="button"
+                        onClick={handleResendOtp}
+                        className="text-[#185899] hover:underline"
+                      >
+                        Resend OTP
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
               <button
                 type="button"
                 onClick={handleButtonClick}
-                className="w-full bg-[#0a2540] text-white py-3 rounded-md hover:bg-[#0a2540]/90 transition-colors"
+                className="w-full bg-[#0a2540] text-white py-3 rounded-md hover:bg-[#185899] transition-colors font-medium"
               >
                 {buttonText}
               </button>
@@ -298,6 +335,10 @@ const LoginPage = () => {
               By proceeding, you agree to our{" "}
               <Link to="/terms" className="text-[#185899] hover:underline">
                 Terms & Conditions
+              </Link>{" "}
+              and{" "}
+              <Link to="/privacy" className="text-[#185899] hover:underline">
+                Privacy Policy
               </Link>
             </p>
           </div>
