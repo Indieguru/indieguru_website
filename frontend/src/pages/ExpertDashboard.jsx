@@ -90,7 +90,7 @@ function ExpertDashboard() {
                   Bookings
                 </Link>
                 <Link 
-                  to="/bookings"
+                  to="/payments"
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                     activeTab === "payments" ? "border-purple-700 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
