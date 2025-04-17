@@ -9,6 +9,8 @@ import Landing from "./pages/Landing";
 import ExpertDashboard from "./pages/ExpertDashboard";// Import the new UserDetails component
 import Loader from "./components/layout/Loader";
 import "./styles/globals.css";
+import BookingsPage from "./pages/BookingsPage";
+import ExpertPayments from "./pages/PaymentsPage";
 
 // RouteChangeTracker component to detect route changes
 const RouteChangeTracker = ({ setLoading }) => {
@@ -59,6 +61,9 @@ function App() {
           <Route path="/blogpage" element={<BlogPage />} />
           <Route path="/expert" element={<ExpertDashboard />} />
           <Route path="/communitypage" element={<CommunityPage />} />
+          <Route path="/bookings" element={<BookingsPage />} />
+          <Route path="/payments" element={<ExpertPayments />} />
+          {/* Add more routes as needed */}
           </Routes>
       </Router>
     </div>

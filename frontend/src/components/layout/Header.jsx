@@ -35,6 +35,7 @@ const Header = () => {
             <Link to="/blogpage" className="text-gray-600 hover:text-gray-900">Blogs</Link>
             {/* <Link to="/about" className="text-gray-600 hover:text-gray-900">About</Link> */}
             <Link to="/communitypage" className="text-gray-600 hover:text-gray-900">Community</Link>
+            <Link to="/bookings" className="text-gray-600 hover:text-gray-900">Bookings</Link>
             {/* <Link to="/contact" className="text-gray-600 hover:text-gray-900">Contact Us</Link> */}
             {isAuthenticated ? (
               <Link to="/profile" className="px-6 py-2 rounded-full border-2 border-primary text-primary hover:bg-gray-200 hover:transition-colors">
