@@ -9,14 +9,11 @@ import Landing from "./pages/Landing";
 import ExpertDashboard from "./pages/ExpertDashboard";// Import the new UserDetails component
 import Loader from "./components/layout/Loader";
 import "./styles/globals.css";
-<<<<<<< HEAD
 import BookingsPage from "./pages/BookingsPage";
 import ExpertPayments from "./pages/PaymentsPage";
-=======
 import EmailSignIn from './components/auth/EmailSignIn';
 import FinishSignUp from './pages/FinishSignUp';
 import FinishSignIn from './pages/FinishSignin';
->>>>>>> 8237f88 (new changes)
 
 // RouteChangeTracker component to detect route changes
 const RouteChangeTracker = ({ setLoading }) => {
@@ -67,17 +64,13 @@ function App() {
           <Route path="/blogpage" element={<BlogPage />} />
           <Route path="/expert" element={<ExpertDashboard />} />
           <Route path="/communitypage" element={<CommunityPage />} />
-<<<<<<< HEAD
           <Route path="/bookings" element={<BookingsPage />} />
           <Route path="/payments" element={<ExpertPayments />} />
           {/* Add more routes as needed */}
-          </Routes>
-=======
           <Route path="/email-signin" element={<EmailSignIn />} />
           <Route path="/finish-signup" element={<FinishSignUp />} />
           <Route path="/finishSignIn" element={<FinishSignIn />} />
         </Routes>
->>>>>>> 8237f88 (new changes)
       </Router>
     </div>
   );
