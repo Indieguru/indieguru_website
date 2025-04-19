@@ -53,14 +53,14 @@ function ExpertDashboard() {
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
-                <span className="text-2xl font-bold text-purple-800">IndieGuru</span>
-                <span className="ml-2 px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded-full">Expert</span>
+                <span className="text-2xl font-bold text-indigo-800">IndieGuru</span>
+                <span className="ml-2 px-2 py-1 text-xs bg-indigo-100 text-indigo-800 rounded-full">Expert</span>
               </div>
               <nav className="ml-8 flex space-x-8">
                 <Link 
                   to="/dashboard"
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    activeTab === "dashboard" ? "border-purple-700 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    activeTab === "dashboard" ? "border-indigo-700 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
                   Dashboard
@@ -155,13 +155,15 @@ function ExpertDashboard() {
                   <div className="text-sm text-gray-600">Active Streak</div>
                 </div>
               </div>
-              <div className="flex justify-between items-center">
-                <Link to="/profile" className="bg-indigo-700 hover:bg-indigo-700 text-white text-xs py-2 px-4 rounded flex items-center justify-center shadow-sm transition-colors duration-300">
-                  Edit Profile
-                </Link>
-                <Link to="/profile/settings" className="text-xs text-indigo-700 hover:text-purple-800 transition-colors duration-300">
-                  Share Profile
-                </Link>
+              <div className="mt-auto pt-4 border-t border-gray-100">
+                <div className="flex justify-between items-center">
+                  <Link to="/profile" className="bg-indigo-700 hover:bg-indigo-800 text-white text-xs py-2 px-4 rounded flex items-center justify-center shadow-sm transition-colors duration-300">
+                    Edit Profile
+                  </Link>
+                  <Link to="/profile/settings" className="text-xs text-indigo-700 hover:text-purple-800 transition-colors duration-300">
+                    Share Profile
+                  </Link>
+                </div>
               </div>
             </div>
 
@@ -179,20 +181,22 @@ function ExpertDashboard() {
               <p className="text-xs text-gray-600 mb-4">
                 Highlight your expertise to attract students interested in these areas. Your profile will appear in relevant searches.
               </p>
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="flex flex-wrap gap-2">
                 {expertData.expertise.map((skill, index) => (
                   <span key={index} className="text-xs bg-white border border-indigo-200 text-indigo-700 px-3 py-1 rounded-full hover:bg-indigo-50 transition-colors duration-300">
                     {skill}
                   </span>
                 ))}
               </div>
-              <div className="flex justify-between items-center">
-                <button className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
-                  Edit Expertise
-                </button>
-                <Link to="#" className="text-xs text-indigo-600 hover:text-indigo-800 transition-colors duration-300">
-                  Add New
-                </Link>
+              <div className="mt-auto pt-4 border-t border-gray-100">
+                <div className="flex justify-between items-center">
+                  <button className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
+                    Edit Expertise
+                  </button>
+                  <Link to="#" className="text-xs text-indigo-600 hover:text-indigo-800 transition-colors duration-300">
+                    Add New
+                  </Link>
+                </div>
               </div>
             </div>
 
@@ -209,7 +213,7 @@ function ExpertDashboard() {
               <p className="text-xs text-gray-600 mb-4">
                 Set your teaching objectives to help us suggest opportunities that align with your expertise and preferences.
               </p>
-              <div className="space-y-2 mb-4">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                   <span className="text-sm text-gray-700">One-on-One Sessions</span>
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -229,13 +233,15 @@ function ExpertDashboard() {
                   </span>
                 </div>
               </div>
-              <div className="flex justify-between items-center">
-                <button className="bg-green-600 hover:bg-green-700 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
-                  Update Goals
-                </button>
-                <Link to="#" className="text-xs text-green-600 hover:text-green-800 transition-colors duration-300">
-                  View Progress
-                </Link>
+              <div className="mt-auto pt-4 border-t border-gray-100">
+                <div className="flex justify-between items-center">
+                  <button className="bg-green-600 hover:bg-green-700 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
+                    Update Goals
+                  </button>
+                  <Link to="#" className="text-xs text-green-600 hover:text-green-800 transition-colors duration-300">
+                    View Progress
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

@@ -6,11 +6,12 @@ import SignupPage from "./pages/SignupPage";
 import BlogPage from './pages/BlogPage';
 import CommunityPage from './pages/CommunityPage';
 import Landing from "./pages/Landing";
-import ExpertDashboard from "./pages/ExpertDashboard";// Import the new UserDetails component
+import ExpertDashboard from "./pages/ExpertDashboard";
 import Loader from "./components/layout/Loader";
-import "./styles/globals.css";
 import BookingsPage from "./pages/BookingsPage";
 import ExpertPayments from "./pages/PaymentsPage";
+import NotFound from "./pages/NotFound";
+import "./styles/globals.css";
 
 // RouteChangeTracker component to detect route changes
 const RouteChangeTracker = ({ setLoading }) => {
@@ -63,8 +64,8 @@ function App() {
           <Route path="/communitypage" element={<CommunityPage />} />
           <Route path="/bookings" element={<BookingsPage />} />
           <Route path="/payments" element={<ExpertPayments />} />
-          {/* Add more routes as needed */}
-          </Routes>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </Router>
     </div>
   );
