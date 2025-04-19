@@ -12,6 +12,8 @@ import "chart.js/auto"
 import useUserStore from "../store/userStore"
 import InputBox from "../components/util/InputBox"
 import { useNavigate } from "react-router-dom";
+import { ErrorPopup } from "../components/ui/error-popup"
+import axiosInstance from "../config/axios.config"
 
 function Profile() {
   const { user, fetchUser } = useUserStore()
@@ -39,6 +41,8 @@ function Profile() {
   const [editedData, setEditedData] = useState({})
   const [newSkill, setNewSkill] = useState("")
   const [newGoal, setNewGoal] = useState("")
+  const [isEditingGoal, setIsEditingGoal] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
 
   useEffect(() => {
     setProfileData({
@@ -140,23 +144,81 @@ function Profile() {
 
   const handleAddSkill = () => {
     if (newSkill.trim() !== "") {
-      setEditedData((prev) => ({
-        ...prev,
-        skills: [...prev.skills, newSkill.trim()],
-      }))
-      setNewSkill("")
+      const skillToAdd = newSkill.trim();
+      if (profileData.skills.some(skill => skill.toLowerCase() === skillToAdd.toLowerCase())) {
+        setErrorMessage("This skill is already added!");
+        return;
+      }
+
+      axiosInstance
+        .put("/user/update", {
+          interests: [...profileData.skills, skillToAdd]
+        })
+        .then((res) => {
+          if (res.status === 200) {
+            fetchUser();
+            setProfileData((prev) => ({
+              ...prev,
+              skills: [...prev.skills, skillToAdd],
+            }));
+            setNewSkill("");
+            setIsEditing(false);
+          } else {
+            setErrorMessage("Failed to update. Please try again.");
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          setErrorMessage("Failed to update. Please try again.");
+        });
     }
-  }
+  };
 
   const handleAddGoal = () => {
     if (newGoal.trim() !== "") {
-      setEditedData((prev) => ({
-        ...prev,
-        goals: [...prev.goals, newGoal.trim()],
-      }))
-      setNewGoal("")
+      const goalToAdd = newGoal.trim();
+      if (profileData.goals.some(goal => goal.toLowerCase() === goalToAdd.toLowerCase())) {
+        setErrorMessage("This goal is already added!");
+        return;
+      }
+
+      axiosInstance
+        .put("/user/update", {
+          goals: [...profileData.goals, goalToAdd]
+        })
+        .then((res) => {
+          if (res.status === 200) {
+            fetchUser();
+            setProfileData((prev) => ({
+              ...prev,
+              goals: [...prev.goals, goalToAdd],
+            }));
+            setNewGoal("");
+            setIsEditingGoal(false);
+          } else {
+            setErrorMessage("Failed to update. Please try again.");
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          setErrorMessage("Failed to update. Please try again.");
+        });
     }
-  }
+  };
+
+  const handleCancelSkill = () => {
+    setNewSkill("");
+    setIsEditing(false);
+  };
+
+  const handleGoalClick = () => {
+    setIsEditingGoal(true);
+  };
+
+  const handleCancelGoal = () => {
+    setNewGoal("");
+    setIsEditingGoal(false);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -203,6 +265,7 @@ function Profile() {
 
   return (
     <div className="min-h-screen bg-white pt-24">
+      <ErrorPopup message={errorMessage} onClose={() => setErrorMessage("")} />
       <Header className="sticky top-0 z-50 bg-white shadow-md" />
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-8">
@@ -222,208 +285,33 @@ function Profile() {
 
             <div className="md:w-3/4">
               <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-[#232636] mb-1">First Name</label>
-                  <div className="relative group">
-                    {editingField === "firstName" ? (
-                      <div>
-                        <Input
-                          name="firstName"
-                          value={editedData.firstName}
-                          onChange={handleChange}
-                          className="w-full border-[#d8d8d8]"
-                        />
-                        <div className="flex gap-2 mt-2">
-                          <Button onClick={handleFieldSave} className="bg-blue-800 text-white hover:bg-[#143d65]">
-                            Save
-                          </Button>
-                          <Button onClick={handleFieldCancel} className="bg-gray-300 text-black hover:bg-gray-400">
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        <Input
-                          value={profileData.firstName}
-                          readOnly
-                          className="w-full border-[#d8d8d8] bg-[#f9fbff] pr-10"
-                        />
-                        <Button
-                          onClick={() => handleFieldEdit("firstName")}
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[#003265] bg-transparent hover:bg-[#f5f5f5] p-1"
-                        >
-                          <Pencil size={16} />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#232636] mb-1">Last Name</label>
-                  <div className="relative group">
-                    {editingField === "lastName" ? (
-                      <div>
-                        <Input
-                          name="lastName"
-                          value={editedData.lastName}
-                          onChange={handleChange}
-                          className="w-full border-[#d8d8d8]"
-                        />
-                        <div className="flex gap-2 mt-2">
-                          <Button onClick={handleFieldSave} className="bg-blue-800 text-white hover:bg-[#143d65]">
-                            Save
-                          </Button>
-                          <Button onClick={handleFieldCancel} className="bg-gray-300 text-black hover:bg-gray-400">
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        <Input
-                          value={profileData.lastName}
-                          readOnly
-                          className="w-full border-[#d8d8d8] bg-[#f9fbff] pr-10"
-                        />
-                        <Button
-                          onClick={() => handleFieldEdit("lastName")}
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[#003265] bg-transparent hover:bg-[#f5f5f5] p-1"
-                        >
-                          <Pencil size={16} />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#232636] mb-1">Contact No.</label>
-                  <div className="relative group">
-                    {editingField === "contactNo1" ? (
-                      <div>
-                        <Input
-                          name="contactNo1"
-                          value={editedData.contactNo1}
-                          onChange={handleChange}
-                          className="w-full border-[#d8d8d8]"
-                        />
-                        <div className="flex gap-2 mt-2">
-                          <Button onClick={handleFieldSave} className="bg-blue-800 text-white hover:bg-[#143d65]">
-                            Save
-                          </Button>
-                          <Button onClick={handleFieldCancel} className="bg-gray-300 text-black hover:bg-gray-400">
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        <Input
-                          value={profileData.contactNo1}
-                          readOnly
-                          className="w-full border-[#d8d8d8] bg-[#f9fbff] pr-10"
-                        />
-                        <Button
-                          onClick={() => handleFieldEdit("contactNo1")}
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[#003265] bg-transparent hover:bg-[#f5f5f5] p-1"
-                        >
-                          <Pencil size={16} />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#232636] mb-1">Email</label>
-                  <div className="relative group">
-                    {editingField === "email" ? (
-                      <div>
-                        <Input
-                          name="email"
-                          value={editedData.email}
-                          onChange={handleChange}
-                          className="w-full border-[#d8d8d8]"
-                          type="email"
-                        />
-                        <div className="flex gap-2 mt-2">
-                          <Button onClick={handleFieldSave} className="bg-blue-800 text-white hover:bg-[#143d65]">
-                            Save
-                          </Button>
-                          <Button onClick={handleFieldCancel} className="bg-gray-300 text-black hover:bg-gray-400">
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        <Input
-                          value={profileData.email}
-                          readOnly
-                          className="w-full border-[#d8d8d8] bg-[#f9fbff] pr-10"
-                        />
-                        <Button
-                          onClick={() => handleFieldEdit("email")}
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[#003265] bg-transparent hover:bg-[#f5f5f5] p-1"
-                        >
-                          <Pencil size={16} />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#232636] mb-1">Gender</label>
-                  <div className="relative group">
-                    {editingField === "gender" ? (
-                      <div>
-                        <select
-                          name="gender"
-                          value={editedData.gender}
-                          onChange={handleChange}
-                          className="w-full h-10 rounded-md border border-[#d8d8d8] bg-white px-3 py-2 text-sm"
-                        >
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
-                          <option value="Other">Other</option>
-                        </select>
-                        <div className="flex gap-2 mt-2">
-                          <Button onClick={handleFieldSave} className="bg-blue-800 text-white hover:bg-[#143d65]">
-                            Save
-                          </Button>
-                          <Button onClick={handleFieldCancel} className="bg-gray-300 text-black hover:bg-gray-400">
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        <Input
-                          value={profileData.gender}
-                          readOnly
-                          className="w-full border-[#d8d8d8] bg-[#f9fbff] pr-10"
-                        />
-                        <Button
-                          onClick={() => handleFieldEdit("gender")}
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[#003265] bg-transparent hover:bg-[#f5f5f5] p-1"
-                        >
-                          <Pencil size={16} />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </div>
+              <InputBox 
+                  field="First Name" 
+                  value={profileData.firstName} 
+                  otpRequired={false} 
+                />
                 <InputBox 
                   field="Last Name" 
                   value={profileData.lastName} 
                   otpRequired={false} 
                 />
-                <div>
-                  <p>Testing InputBox placement</p>
-                </div>
+
+                <InputBox 
+                  field="Contact No" 
+                  value={profileData.contactNo1} 
+                  otpRequired={false} 
+                />
+                <InputBox 
+                  field="Email" 
+                  value={profileData.email} 
+                  otpRequired={false} 
+                />
+                <InputBox 
+                  field="Gender" 
+                  value={profileData.gender} 
+                  otpRequired={false} 
+                />
+           
               </form>
             </div>
           </div>
@@ -464,7 +352,7 @@ function Profile() {
                 </div>
                 <span className="text-sm">Profile Level</span>
               </div>
-              <div className="text-2xl font-bold text-[#232636]">6/8</div>
+              <div className="text-2xl font-bold text-[#232636]">{profileData.completedSteps}/{profileData.totalSteps}</div>
             </div>
 
             <div>
@@ -548,27 +436,39 @@ function Profile() {
               </span>
             ))}
 
-            {isEditing && (
+            {isEditing ? (
               <div className="flex gap-2 items-center">
                 <Input
                   value={newSkill}
                   onChange={(e) => setNewSkill(e.target.value)}
-                  placeholder="Add new skill"
-                  className="border-[#d8d8d8]"
+                  placeholder="Enter skill"
+                  className="border-[#d8d8d8] w-48"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleAddSkill();
+                    }
+                  }}
                 />
                 <Button
                   onClick={handleAddSkill}
-                  className="bg-blue-800 text-white hover:bg-[#143d65] h-10 w-10 p-0 flex items-center justify-center"
+                  className="bg-blue-800 text-white hover:bg-[#143d65] px-4 py-2"
                 >
-                  <Plus size={16} />
+                  Save
+                </Button>
+                <Button
+                  onClick={handleCancelSkill}
+                  className="bg-gray-300 text-black hover:bg-gray-400 px-4 py-2"
+                >
+                  Cancel
                 </Button>
               </div>
-            )}
-
-            {!isEditing && (
-              <Button className="px-4 py-2 border border-[#d8d8d8] bg-white text-[#232636] hover:bg-[#f5f5f5] rounded-md text-sm flex items-center gap-1">
+            ) : (
+              <Button
+                onClick={() => setIsEditing(true)}
+                className="px-4 py-2 border border-[#d8d8d8] bg-white text-[#232636] hover:bg-[#f5f5f5] rounded-md text-sm flex items-center gap-1"
+              >
                 <Plus size={16} />
-                New Skill
+                Add Skill
               </Button>
             )}
           </div>
@@ -584,25 +484,37 @@ function Profile() {
               </span>
             ))}
 
-            {isEditing && (
+            {isEditingGoal ? (
               <div className="flex gap-2 items-center">
                 <Input
                   value={newGoal}
                   onChange={(e) => setNewGoal(e.target.value)}
                   placeholder="Add new goal"
-                  className="border-[#d8d8d8]"
+                  className="border-[#d8d8d8] w-48"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleAddGoal();
+                    }
+                  }}
                 />
                 <Button
                   onClick={handleAddGoal}
-                  className="bg-blue-800 text-white hover:bg-[#143d65] h-10 w-10 p-0 flex items-center justify-center"
+                  className="bg-blue-800 text-white hover:bg-[#143d65] px-4 py-2"
                 >
-                  <Plus size={16} />
+                  Save
+                </Button>
+                <Button
+                  onClick={handleCancelGoal}
+                  className="bg-gray-300 text-black hover:bg-gray-400 px-4 py-2"
+                >
+                  Cancel
                 </Button>
               </div>
-            )}
-
-            {!isEditing && (
-              <Button className="px-4 py-2 border border-[#d8d8d8] bg-white text-[#232636] hover:bg-[#f5f5f5] rounded-md text-sm flex items-center gap-1">
+            ) : (
+              <Button 
+                onClick={handleGoalClick}
+                className="px-4 py-2 border border-[#d8d8d8] bg-white text-[#232636] hover:bg-[#f5f5f5] rounded-md text-sm flex items-center gap-1"
+              >
                 <Plus size={16} />
                 New Goal
               </Button>

@@ -12,6 +12,9 @@ import BookingsPage from "./pages/BookingsPage";
 import ExpertPayments from "./pages/PaymentsPage";
 import NotFound from "./pages/NotFound";
 import "./styles/globals.css";
+import EmailSignIn from './components/auth/EmailSignIn';
+import FinishSignUp from './pages/FinishSignUp';
+import FinishSignIn from './pages/FinishSignin';
 
 // RouteChangeTracker component to detect route changes
 const RouteChangeTracker = ({ setLoading }) => {
@@ -65,6 +68,10 @@ function App() {
           <Route path="/bookings" element={<BookingsPage />} />
           <Route path="/payments" element={<ExpertPayments />} />
           <Route path="*" element={<NotFound />} />
+          {/* Add more routes as needed */}
+          <Route path="/email-signin" element={<EmailSignIn />} />
+          <Route path="/finish-signup" element={<FinishSignUp />} />
+          <Route path="/finishSignIn" element={<FinishSignIn />} />
         </Routes>
       </Router>
     </div>
