@@ -48,4 +48,18 @@ router.put('/update', authMiddleware, async (req, res) => {
     }
 });
 
+router.get('/check-email/:email', async (req, res) => {
+    try {
+        const email = req.params.email;
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: 'Email already exists' });
+        }
+        res.status(200).json({ message: 'Email available' });
+    } catch (error) {
+        console.error('Error checking email:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 export default router;
