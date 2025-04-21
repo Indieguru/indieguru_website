@@ -28,99 +28,9 @@ const generateRefreshToken = (user) => {
 };
 
 
-
-// // Send OTP using Twilio
-// const sendOtp = async (phone) => {
-//   await twilioClient.verify.v2.services(process.env.TWILIO_SERVICE_SID)
-//     .verifications
-//     .create({ to: `+91${phone}`, channel: 'sms'});
-//   // return otp;
-// };
-
-// const verifyOtp = async (phone, otp) => {
-//   const verificationCheck = await twilioClient.verify.v2.services(process.env.TWILIO_SERVICE_SID)
-//     .verificationChecks
-//     .create({ to: `+91${phone}`, code: otp });
-//   return verificationCheck.status === 'approved';
-// };
-
-// In-memory store for OTPs (replace with a more secure solution like Redis)
 router.use(cookieParser());
 
-// User Signup
 
-
-
-// // Request OTP
-// router.post('/request-otp', async (req, res) => {
-//   const {phone} = req.body;
-//   console.log(req.body);
-//   // if(!idi){
-//   //   console.log(idi);
-//   // }
-//   if (!phone) {
-//     // console.log(phone)
-//     return res.status(400).json({ message: 'Phone number is required' });
-//   }
-//   // if ( !/^\d{10}$/.test(phone)) {
-//   //   return res.status(400).json({ message: 'Invalid phone number' });
-//   // }
-
-//   try {
-//     const otp = await sendOtp(phone);
-//     // otpStore.set(phone, otp); // Store OTP temporarily
-//     // setTimeout(() => otpStore.delete(phone), 300000); // OTP expires in 5 minutes
-//     res.status(200).json({ message: 'OTP sent successfully' });
-//     console.log('OTP sent successfully');
-//   } catch (error) {
-//     console.error('Error sending OTP:', error);
-//     res.status(500).json({ message: 'Failed to send OTP', error });
-//   }
-// });
-
-// // Phone Signup/Signin
-// router.post('/phone-auth', async (req, res) => {
-//   const validation = otpSchema.safeParse(req.body);
-//   if (!validation.success) {
-//     return res.status(400).json({ message: 'Validation error', errors: validation.error.errors });
-//   }
-
-//   const { phone, otp } = req.body;
-//   const isValidOtp = await verifyOtp(phone, otp);
-//   if (!isValidOtp) {
-//     return res.status(400).json({ message: 'Invalid or expired OTP' });
-//   }
-
-//   try {
-//     let user = await User.findOne({ phone });
-//     if (!user) {
-//       user = new User({
-//         firstName: `User-${phone}`,
-//         lastName: 'gyohyohioii',
-//         phone:phone,
-//         authType: 'phone',
-//         phoneVerified: true,
-//       });
-//       await user.save();
-//     }
-
-//     const token = generateToken(user);
-//     const refreshToken = generateRefreshToken(user);
-//     user.refreshToken = refreshToken;
-//     const userId = user._id;
-//     await user.save();
-//     res.cookie('token', token, { httpOnly: true, secure: true, sameSite: "none" });
-//     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: "none" });
-//     res.cookie('userId', userId, { httpOnly: true, secure: true , sameSite: "none"});
-
-//     res.status(200).json({ message: 'Authentication successful'});
-//   } catch (error) {
-//     console.error('Error during phone authentication:', error);
-//     res.status(500).json({ message: 'Server error', error });
-//   }
-// });
-
-// Google OAuth Routes for User
 router.get('/google', passport.authenticate('google-user', { scope: ['profile', 'email'] }));
 
 router.get('/google/callback', passport.authenticate('google-user', { failureRedirect: '/login', session: false }), async (req, res) => {
