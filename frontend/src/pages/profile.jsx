@@ -11,17 +11,28 @@ import { Doughnut } from "react-chartjs-2"
 import "chart.js/auto"
 import useUserStore from "../store/userStore"
 import InputBox from "../components/util/InputBox"
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ErrorPopup } from "../components/ui/error-popup"
 import axiosInstance from "../config/axios.config"
 
 function Profile() {
   const { user, fetchUser } = useUserStore()
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     fetchUser()
   }, [])
+
+  useEffect(() => {
+    // Handle hash routing
+    if (location.hash) {
+      const element = document.getElementById(location.hash.slice(1));
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, [location]);
 
   const [profileData, setProfileData] = useState({
     firstName: "",
@@ -269,7 +280,7 @@ function Profile() {
       <Header className="sticky top-0 z-50 bg-white shadow-md" />
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-8">
-        <Card className="p-6 mb-8">
+        <Card id="basic-info" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
           <h2 className="text-2xl font-semibold text-[#232636] mb-6">Basic Information</h2>
 
           <div className="flex flex-col md:flex-row gap-6">
@@ -317,12 +328,12 @@ function Profile() {
           </div>
         </Card>
 
-        <Card className="p-6 mb-8">
+        <Card id="progress" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
           <h2 className="text-2xl font-semibold text-[#232636] mb-4">My Progress</h2>
 
           <div className="mb-4">
             <div className="h-2 w-full bg-[#f5f5f5] rounded-full overflow-hidden">
-              <div className="h-full bg-[#04c339]" style={{ width: `${completionPercentage}%` }}></div>
+              <div className="h-full bg-[#143d65]" style={{ width: `${completionPercentage}%` }}></div>
             </div>
             <div className="text-sm text-[#676767] mt-1">
               Profile completion: {profileData.completedSteps}/{profileData.totalSteps} steps completed
@@ -332,18 +343,18 @@ function Profile() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <div className="flex items-center gap-2 text-[#232636] mb-1">
-                <div className="text-[#04c339]">
+                <div className="text-[#143d65]">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                       d="M3 17L9 11L13 15L21 7"
-                      stroke="#04c339"
+                      stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
                     <path
                       d="M17 7H21V11"
-                      stroke="#04c339"
+                      stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -357,18 +368,18 @@ function Profile() {
 
             <div>
               <div className="flex items-center gap-2 text-[#232636] mb-1">
-                <div className="text-[#04c339]">
+                <div className="text-[#143d65]">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                       d="M3 17L9 11L13 15L21 7"
-                      stroke="#04c339"
+                      stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
                     <path
                       d="M17 7H21V11"
-                      stroke="#04c339"
+                      stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -382,18 +393,18 @@ function Profile() {
 
             <div>
               <div className="flex items-center gap-2 text-[#232636] mb-1">
-                <div className="text-[#04c339]">
+                <div className="text-[#143d65]">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                       d="M3 17L9 11L13 15L21 7"
-                      stroke="#04c339"
+                      stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
                     <path
                       d="M17 7H21V11"
-                      stroke="#04c339"
+                      stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -426,7 +437,7 @@ function Profile() {
           </div>
         </Card>
 
-        <Card className="p-6 mb-8">
+        <Card id="skills" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
           <h2 className="text-2xl font-semibold text-[#232636] mb-4">My Skills</h2>
 
           <div className="flex flex-wrap gap-2 mb-4">
@@ -474,7 +485,7 @@ function Profile() {
           </div>
         </Card>
 
-        <Card className="p-6 mb-8">
+        <Card id="goals" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
           <h2 className="text-2xl font-semibold text-[#232636] mb-4">My Goals</h2>
 
           <div className="flex flex-wrap gap-2 mb-4">
@@ -522,7 +533,7 @@ function Profile() {
           </div>
         </Card>
 
-        <Card className="p-6 mb-8">
+        <Card id="indie-score" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
           <h2 className="text-2xl font-semibold text-[#232636] mb-4">Indie Score</h2>
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
@@ -554,7 +565,7 @@ function Profile() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-4 rounded-lg border border-[#d8d8d8]">
+            <div className="bg-white p-4 rounded-lg border border-[#d8d8d8] shadow-md hover:shadow-lg transition-shadow duration-300">
               <h3 className="text-lg font-semibold text-[#232636] mb-4">Pie Chart</h3>
               <div className="h-64 relative">
                 <Doughnut data={chartData1} options={chartOptions} />
@@ -578,7 +589,7 @@ function Profile() {
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-lg border border-[#d8d8d8]">
+            <div className="bg-white p-4 rounded-lg border border-[#d8d8d8] shadow-md hover:shadow-lg transition-shadow duration-300">
               <h3 className="text-lg font-semibold text-[#232636] mb-4">Pie Chart</h3>
               <div className="h-64 relative">
                 <Doughnut data={chartData2} options={chartOptions} />

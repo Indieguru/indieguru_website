@@ -2,7 +2,7 @@ import { Button } from "../ui/button"
 
 function ReferSection() {
   return (
-    <section className="bg-yellow-500 rounded-lg p-6 mb-12 flex flex-col md:flex-row justify-between items-center shadow-md hover:shadow-lg transition-all duration-300 relative overflow-hidden">
+    <section className="bg-yellow-500 rounded-lg p-6 mb-12 flex flex-col md:flex-row justify-between items-center shadow-md relative overflow-hidden">
       {/* Decorative elements */}
       <div className="absolute top-0 left-0 w-full h-full">
         <div className="absolute top-6 left-6 w-12 h-12 rounded-full bg-white opacity-10"></div>

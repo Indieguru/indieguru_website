@@ -11,11 +11,13 @@ import Loader from "./components/layout/Loader";
 import BookingsPage from "./pages/BookingsPage";
 import ExpertPayments from "./pages/PaymentsPage";
 import NotFound from "./pages/NotFound";
+import AllCoursesPage from "./pages/AllCoursesPage";
 import "./styles/globals.css";
 import EmailSignIn from './components/auth/EmailSignIn';
 import FinishSignUp from './pages/FinishSignUp';
 import FinishSignIn from './pages/FinishSignin';
 import BlogPost from './pages/BlogPost';
+import BrowseExperts from "./pages/BrowseExperts";
 
 // RouteChangeTracker component to detect route changes
 const RouteChangeTracker = ({ setLoading }) => {
@@ -69,6 +71,9 @@ function App() {
           <Route path="/communitypage" element={<CommunityPage />} />
           <Route path="/bookings" element={<BookingsPage />} />
           <Route path="/payments" element={<ExpertPayments />} />
+          <Route path="/all-courses" element={<AllCoursesPage />} />
+          <Route path="/browse-experts" element={<BrowseExperts />} />
+          <Route path="/browse-experts/:category" element={<BrowseExperts />} />
           <Route path="*" element={<NotFound />} />
           {/* Add more routes as needed */}
           <Route path="/email-signin" element={<EmailSignIn />} />

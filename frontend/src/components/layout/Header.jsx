@@ -33,10 +33,12 @@ const Header = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/blogpage" className="text-gray-600 hover:text-gray-900">Blogs</Link>
-            {/* <Link to="/about" className="text-gray-600 hover:text-gray-900">About</Link> */}
             <Link to="/communitypage" className="text-gray-600 hover:text-gray-900">Community</Link>
-            <Link to="/bookings" className="text-gray-600 hover:text-gray-900">Bookings</Link>
-            {/* <Link to="/contact" className="text-gray-600 hover:text-gray-900">Contact Us</Link> */}
+            {isAuthenticated ? (
+              <Link to="/bookings" className="text-gray-600 hover:text-gray-900">Bookings</Link>
+            ) : (
+              <Link to="/all-courses" className="text-gray-600 hover:text-gray-900">All Courses</Link>
+            )}
             {isAuthenticated ? (
               <Link to="/profile" className="px-6 py-2 rounded-full border-2 border-primary text-primary hover:bg-gray-200 hover:transition-colors">
                 Profile
@@ -97,12 +99,21 @@ const Header = () => {
             >
               Community
             </Link>
-            <Link to="/contact" 
-              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
-              onClick={() => setIsOpen(false)}
-            >
-              Contact Us
-            </Link>
+            {isAuthenticated ? (
+              <Link to="/bookings"
+                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
+                onClick={() => setIsOpen(false)}
+              >
+                Bookings
+              </Link>
+            ) : (
+              <Link to="/all-courses"
+                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
+                onClick={() => setIsOpen(false)}
+              >
+                All Courses
+              </Link>
+            )}
             {isAuthenticated ? (
               <Link to="/profile" 
                 className="text-primary hover:bg-primary hover:text-white px-6 py-3 transition-colors"

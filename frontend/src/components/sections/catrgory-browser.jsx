@@ -1,12 +1,37 @@
 "use client"
 
-import { useState } from "react"
-// eslint-disable-next-line no-unused-vars
-import { motion } from "framer-motion"
+import { useState, useEffect, useRef } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { useNavigate } from "react-router-dom"
 
 const CategoryBrowser = () => {
-  const [hoveredCategory, setHoveredCategory] = useState(null)
-  const [selectedCategory, setSelectedCategory] = useState(null)
+  const navigate = useNavigate();
+  const [hoveredCategory, setHoveredCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    const sectionRefCurrent = sectionRef.current;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRefCurrent) {
+      observer.observe(sectionRefCurrent);
+    }
+
+    return () => {
+      if (sectionRefCurrent) {
+        observer.unobserve(sectionRefCurrent);
+      }
+    };
+  }, []);
 
   const categories = [
     {
@@ -41,102 +66,171 @@ const CategoryBrowser = () => {
 
   const handleCategoryClick = (categoryId) => {
     setSelectedCategory(categoryId === selectedCategory ? null : categoryId)
-    console.log(`Category selected: ${categoryId}`)
+    navigate(`/browse-experts/${categoryId}`)
   }
+
+  const containerVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut"
+      }
+    }
+  };
 
   return (
     <motion.div
-      className="max-w-[100vw] py-16 px-4  mx-auto"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      ref={sectionRef}
+      className="max-w-[100vw] py-16 px-4 mx-auto"
+      variants={containerVariants}
+      initial="hidden"
+      animate={isVisible ? "visible" : "hidden"}
     >
       <motion.div
         className="text-center mb-12"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
+        variants={itemVariants}
       >
-        <h2 className="text-4xl md:text-5xl font-bold text-[#003265] mb-2">Browse by Category</h2>
-        <div className="w-48 h-1 bg-blue-800 mx-auto"></div>
+        <motion.h2 
+          className="text-4xl md:text-5xl font-bold text-[#003265] mb-2"
+          initial={{ opacity: 0, y: 20 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          Browse by Category
+        </motion.h2>
+        <motion.div 
+          className="w-48 h-1 bg-blue-800 mx-auto"
+          initial={{ scaleX: 0 }}
+          animate={isVisible ? { scaleX: 1 } : {}}
+          transition={{ duration: 0.8, delay: 0.4 }}
+        />
       </motion.div>
 
       <motion.div
         className="relative overflow-hidden"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
+        variants={itemVariants}
       >
-        <div className="flex gap-6 snap-x snap-mandatory pb-4 px-4 overflow-x-scroll no-scrollbar"
-             style={{ scrollSnapType: 'x mandatory', scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div 
+          className="flex gap-6 snap-x snap-mandatory pb-4 px-4 overflow-x-scroll no-scrollbar"
+          style={{ 
+            scrollSnapType: 'x mandatory', 
+            scrollBehavior: 'smooth', 
+            WebkitOverflowScrolling: 'touch', 
+            scrollbarWidth: 'none', 
+            msOverflowStyle: 'none' 
+          }}
+        >
           {categories.concat(categories).map((category, index) => (
             <motion.div
               key={index}
               className="flex-none w-64 h-72 snap-center cursor-pointer"
-              whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
+              variants={itemVariants}
+              whileHover={{ 
+                scale: 1.05,
+                transition: { duration: 0.2 }
+              }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => handleCategoryClick(category.id)}
               onMouseEnter={() => setHoveredCategory(category.id)}
               onMouseLeave={() => setHoveredCategory(null)}
             >
-              <div
+              <motion.div
                 className={`w-64 h-72 rounded-xl overflow-hidden shadow-md transition-all duration-300 ${
                   selectedCategory === category.id ? "ring-4 ring-[#003265]" : ""
                 }`}
                 style={{ backgroundColor: category.color }}
+                animate={{
+                  scale: selectedCategory === category.id ? 1.05 : 1,
+                  boxShadow: hoveredCategory === category.id 
+                    ? "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+                    : "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)"
+                }}
+                transition={{ duration: 0.2 }}
               >
                 <div className="p-8 flex flex-col items-center">
-                  <div
+                  <motion.div
                     className="w-24 h-24 rounded-full flex items-center justify-center mb-6"
                     style={{ backgroundColor: `${category.iconColor}40` }}
+                    whileHover={{ rotate: [0, -10, 10, -10, 0] }}
+                    transition={{ duration: 0.5 }}
                   >
-                    <img
+                    <motion.img
                       src={category.iconPath}
                       alt={category.title}
                       className="w-12 h-12 object-contain"
+                      whileHover={{ scale: 1.1 }}
+                      transition={{ duration: 0.2 }}
                     />
-                  </div>
-                  <h3
+                  </motion.div>
+                  <motion.h3
                     className="text-xl md:text-2xl font-semibold text-center"
                     style={{
                       color: category.iconColor,
-                      opacity: hoveredCategory === category.id || selectedCategory === category.id ? 1 : 0.8,
+                      opacity: hoveredCategory === category.id ? 1 : 0.8
                     }}
                   >
                     {category.title}
-                  </h3>
+                  </motion.h3>
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
           ))}
         </div>
       </motion.div>
 
-      {selectedCategory && (
-        <motion.div
-          className="mt-8 p-6 bg-white rounded-lg shadow-md"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <h3 className="text-xl font-semibold text-[#003265] mb-4">
-            {categories.find((c) => c.id === selectedCategory)?.title} Courses
-          </h3>
-          <p className="text-gray-600">
-            Explore our selection of courses in this category. Click on any course to learn more and enroll.
-          </p>
-          <button
-            className="mt-4 px-6 py-2 bg-blue-800 text-white rounded-md hover:bg-[#0a2540] transition-colors"
-            onClick={() => console.log(`View all ${selectedCategory} courses`)}
+      <AnimatePresence>
+        {selectedCategory && (
+          <motion.div
+            className="mt-8 p-6 bg-white rounded-lg shadow-md"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
           >
-            View All Courses
-          </button>
-        </motion.div>
-      )}
+            <motion.h3 
+              className="text-xl font-semibold text-[#003265] mb-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              {categories.find((c) => c.id === selectedCategory)?.title} Courses
+            </motion.h3>
+            <motion.p 
+              className="text-gray-600"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              Explore our selection of courses in this category. Click on any course to learn more and enroll.
+            </motion.p>
+            <motion.button
+              className="mt-4 px-6 py-2 bg-blue-800 text-white rounded-md hover:bg-[#0a2540] transition-colors"
+              onClick={() => console.log(`View all ${selectedCategory} courses`)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              View All Courses
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
-  )
-}
+  );
+};
 
-export default CategoryBrowser
+export default CategoryBrowser;

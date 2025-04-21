@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const HowItWorks = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -29,6 +30,7 @@ const HowItWorks = () => {
   ];
 
   useEffect(() => {
+    const sectionRefCurrent = sectionRef.current;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -38,13 +40,13 @@ const HowItWorks = () => {
       { threshold: 0.1 }
     );
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
+    if (sectionRefCurrent) {
+      observer.observe(sectionRefCurrent);
     }
 
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
+      if (sectionRefCurrent) {
+        observer.unobserve(sectionRefCurrent);
       }
     };
   }, []);
@@ -57,145 +59,228 @@ const HowItWorks = () => {
 
   const currentStepData = steps[currentStep - 1];
 
+  const variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20 }
+  };
+
+  const stepVariants = {
+    active: { scale: 1.25, backgroundColor: '#003265', borderColor: 'rgba(0, 50, 101, 0.2)' },
+    completed: { scale: 1.25, backgroundColor: '#003265', borderColor: 'rgba(0, 50, 101, 0.2)' },
+    inactive: { scale: 1, backgroundColor: '#E5E7EB', borderColor: 'transparent' }
+  };
+
   return (
-    <div ref={sectionRef} className="max-w-[100vw] pb-40 relative min-h-screen py-12 overflow-hidden">
+    <div ref={sectionRef} className="max-w-[100vw] pb-40 relative min-h-screen py-12 overflow-hidden bg-gradient-to-b from-white to-blue-50/30">
       <style jsx>{`
         @keyframes oscillate {
-          0% { transform: translateX(0); }
-          50% { transform: translateX(10px); }
-          100% { transform: translateX(0); }
+          0% { transform: translateX(0) rotate(0); }
+          50% { transform: translateX(10px) rotate(2deg); }
+          100% { transform: translateX(0) rotate(0); }
         }
         .animate-oscillate {
-          animation: oscillate 3s ease-in-out infinite;
+          animation: oscillate 4s ease-in-out infinite;
+        }
+        @keyframes float {
+          0% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+          100% { transform: translateY(0); }
+        }
+        .animate-float {
+          animation: float 5s ease-in-out infinite;
         }
       `}</style>
 
       {/* Floating Vectors with Circles */}
-      <div className={`hidden md:block absolute top-32 left-10 transition-all duration-1000 delay-300 transform ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}`}>
+      <motion.div
+        initial={{ x: -100, opacity: 0 }}
+        animate={isVisible ? { x: 0, opacity: 1 } : {}}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="hidden md:block absolute top-32 left-10"
+      >
         <div className="relative w-40 h-40 flex items-center justify-center">
-          <div className="absolute inset-0 bg-blue-100/80 rounded-full"></div>
+          <motion.div 
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="absolute inset-0 bg-blue-100/80 rounded-full"
+          />
           <img 
             src="/im-1.png" 
             alt="Book vector" 
-            className="w-32 animate-oscillate relative z-10"
+            className="w-32 animate-oscillate relative z-10 hover:scale-110 transition-transform duration-300"
           />
         </div>
-      </div>
-      <div className={`absolute hidden md:block top-32 right-10 transition-all duration-1000 delay-300 transform ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}>
+      </motion.div>
+      <motion.div
+        initial={{ x: 100, opacity: 0 }}
+        animate={isVisible ? { x: 0, opacity: 1 } : {}}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="absolute hidden md:block top-32 right-10"
+      >
         <div className="relative w-40 h-40 flex items-center justify-center">
-          <div className="absolute inset-0 bg-blue-100/50 rounded-full"></div>
+          <motion.div 
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="absolute inset-0 bg-blue-100/50 rounded-full"
+          />
           <img 
             src="/im-2.png" 
             alt="Trophy vector" 
-            className="w-32 animate-oscillate relative z-10"
+            className="w-32 animate-oscillate relative z-10 hover:scale-110 transition-transform duration-300"
           />
         </div>
-      </div>
-      <img 
+      </motion.div>
+      <motion.img 
+        initial={{ y: 100, opacity: 0 }}
+        animate={isVisible ? { y: 0, opacity: 1 } : {}}
+        transition={{ duration: 0.8, ease: "easeOut" }}
         src="/im-4.png" 
         alt="People vector" 
-        className={`absolute hidden md:block -bottom-14 left-10 w-64 transition-all duration-1000 delay-500 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}
+        className="absolute hidden md:block -bottom-14 left-10 w-64"
       />
-      <img 
+      <motion.img 
+        initial={{ y: 100, opacity: 0 }}
+        animate={isVisible ? { y: 0, opacity: 1 } : {}}
+        transition={{ duration: 0.8, ease: "easeOut" }}
         src="/im-5.png" 
         alt="Smile vector" 
-        className={`hidden md:block absolute bottom-10 right-10 w-32 animate-oscillate transition-all duration-1000 delay-500 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}
+        className="hidden md:block absolute bottom-10 right-10 w-32 animate-oscillate"
       />
 
       {/* Main Content */}
       <div className="container mx-auto px-4">
-        <h2 className={`text-4xl font-bold text-center mb-16 mt-20 transition-all duration-1000 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+        <motion.h2 
+          initial={{ y: 30, opacity: 0 }}
+          animate={isVisible ? { y: 0, opacity: 1 } : {}}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="text-4xl font-bold text-center mb-16 mt-20"
+        >
           How IndieGuru works?
-          <span className="block w-32 h-1 bg-primary mx-auto mt-4"></span>
-        </h2>
+          <motion.span 
+            initial={{ width: 0 }}
+            animate={isVisible ? { width: "8rem" } : {}}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="block h-1 bg-primary mx-auto mt-4"
+          />
+        </motion.h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Left Side - Desktop Preview */}
-          <div className={`lg:col-span-5 transition-all duration-1000 delay-300 transform ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}`}>
-            <div className="sticky top-24">
+          <motion.div 
+            initial={{ x: -100, opacity: 0 }}
+            animate={isVisible ? { x: 0, opacity: 1 } : {}}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="lg:col-span-5"
+          >
+            <div className="sticky top-24 hover:scale-105 transition-transform duration-500">
               <img 
-                src={`/Desktop.png`}
+                src="/Desktop.png"
                 alt="Desktop preview"
-                className="w-full rounded-lg shadow-xl"
+                className="w-full rounded-lg shadow-xl hover:shadow-2xl transition-shadow duration-300"
               />
             </div>
-          </div>
+          </motion.div>
 
           {/* Center - Step Path */}
-          <div className={`lg:col-span-2 hidden lg:flex flex-col items-center justify-center sticky top-24 h-[calc(80vh-12rem)] transition-all duration-1000 delay-500 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}>
+          <div className="lg:col-span-2 hidden lg:flex flex-col items-center justify-center sticky top-24 h-[calc(80vh-12rem)]">
             <div className="relative h-full w-0.5 bg-gray-200">
               {steps.map((step, index) => (
-                <div
+                <motion.div
                   key={step.number}
+                  initial="inactive"
+                  animate={
+                    currentStep === step.number
+                      ? "active"
+                      : currentStep > step.number
+                      ? "completed"
+                      : "inactive"
+                  }
+                  variants={stepVariants}
+                  transition={{ duration: 0.3 }}
                   onClick={() => handleStepChange(step.number)}
                   style={{
                     top: `${(index * 100) / (steps.length - 1)}%`
                   }}
-                  className={`absolute w-4 h-4 rounded-full -left-1.5 transition-all duration-300 transform -translate-y-1/2 cursor-pointer ${
-                    currentStep === step.number
-                      ? 'bg-black border-4 border-black/20 scale-125'
-                      : currentStep > step.number
-                      ? 'bg-primary border-4 border-primary/20 scale-125'
-                      : 'bg-gray-200 scale-100'
-                  }`}
+                  className={`absolute w-4 h-4 rounded-full -left-1.5 transform -translate-y-1/2 cursor-pointer border-4
+                    hover:scale-125 transition-all duration-300 ease-out`}
+                  whileHover={{ scale: 1.3 }}
+                  whileTap={{ scale: 0.95 }}
                 />
               ))}
-              <div
-                className="absolute w-0.5 bg-primary transition-all duration-300"
-                style={{
-                  height: `${((currentStep - 1) / (steps.length - 1)) * 100}%`,
+              <motion.div
+                className="absolute w-0.5 bg-primary"
+                initial={{ height: "0%" }}
+                animate={{ 
+                  height: `${((currentStep - 1) / (steps.length - 1)) * 100}%` 
                 }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
               />
             </div>
           </div>
 
           {/* Right Side - Current Step */}
-          <div className={`lg:col-span-5 transition-all duration-1000 delay-700 transform ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}`}>
+          <div className="lg:col-span-5">
             <div className="sticky top-24">
-              <div 
-                key={currentStepData.number}
-                className="flex items-start gap-6"
-              >
-                <div className="flex-shrink-0">
-                  <img 
-                    src="/im-3.png" 
-                    alt="Step icon" 
-                    className="w-10"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-primary mb-3">{currentStepData.title}</h3>
-                  <p className="text-gray-600 text-lg mb-8">{currentStepData.description}</p>
-                  
-                  {/* Navigation Buttons */}
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => handleStepChange(currentStep - 1)}
-                      className={`flex items-center gap-1 border-none bg-transparent focus:outline-none ${
-                        currentStep > 1
-                          ? 'text-primary'
-                          : 'text-gray-400 cursor-not-allowed'
-                      }`}
-                      disabled={currentStep <= 1}
-                    >
-                      ←
-                      <span>Previous</span>
-                    </button>
-                    <button
-                      onClick={() => handleStepChange(currentStep + 1)}
-                      className={`flex items-center gap-1 border-none bg-transparent focus:outline-none ${
-                        currentStep < steps.length
-                          ? 'text-primary'
-                          : 'text-gray-400 cursor-not-allowed'
-                      }`}
-                      disabled={currentStep >= steps.length}
-                    >
-                      <span>Next</span>
-                      →
-                    </button>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentStepData.number}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={variants}
+                  transition={{ duration: 0.5 }}
+                  className="flex items-start gap-6"
+                >
+                  <motion.div 
+                    className="flex-shrink-0"
+                    whileHover={{ rotate: [0, -10, 10, -10, 0] }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <img 
+                      src="/im-3.png" 
+                      alt="Step icon" 
+                      className="w-10 animate-float"
+                    />
+                  </motion.div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-primary mb-3">{currentStepData.title}</h3>
+                    <p className="text-gray-600 text-lg mb-8">{currentStepData.description}</p>
+                    
+                    {/* Navigation Buttons */}
+                    <div className="flex items-center gap-4">
+                      <motion.button
+                        whileHover={{ x: -5 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleStepChange(currentStep - 1)}
+                        className={`flex items-center gap-1 border-none bg-transparent focus:outline-none transition-colors duration-300 ${
+                          currentStep > 1
+                            ? 'text-primary hover:text-blue-700'
+                            : 'text-gray-400 cursor-not-allowed'
+                        }`}
+                        disabled={currentStep <= 1}
+                      >
+                        ←
+                        <span>Previous</span>
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ x: 5 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleStepChange(currentStep + 1)}
+                        className={`flex items-center gap-1 border-none bg-transparent focus:outline-none transition-colors duration-300 ${
+                          currentStep < steps.length
+                            ? 'text-primary hover:text-blue-700'
+                            : 'text-gray-400 cursor-not-allowed'
+                        }`}
+                        disabled={currentStep >= steps.length}
+                      >
+                        <span>Next</span>
+                        →
+                      </motion.button>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </motion.div>
+              </AnimatePresence>
             </div>
           </div>
         </div>
