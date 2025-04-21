@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { ArrowUp, ArrowDown, MessageSquare } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Footer from "../components/layout/Footer";
 import Header from "../components/layout/Header"; // Import Header
 
 export default function IndieGuru() {
+  const navigate = useNavigate();
   // State for animation
   const [isLoaded, setIsLoaded] = useState(false);
   
@@ -28,7 +30,9 @@ export default function IndieGuru() {
       downvotes: 0,
       userVote: null, // 'up' or 'down'
       comments: [],
-      showCommentForm: false
+      showCommentForm: false,
+      author: "John Doe",
+      date: "May 23, 2022"
     },
     {
       id: 2,
@@ -40,7 +44,9 @@ export default function IndieGuru() {
       downvotes: 0,
       userVote: null,
       comments: [],
-      showCommentForm: false
+      showCommentForm: false,
+      author: "Sarah Smith",
+      date: "May 24, 2022"
     },
     {
       id: 3,
@@ -161,6 +167,11 @@ export default function IndieGuru() {
     alert("Thank you for your interest in joining our team!");
   };
 
+  // Handle blog click
+  const handleBlogClick = (postId) => {
+    navigate(`/blog/${postId}`);
+  };
+
   return (
     <div className="min-h-screen bg-[#fffaea] overflow-x-hidden">
       <Header /> {/* Keep Header as is */}
@@ -184,12 +195,12 @@ export default function IndieGuru() {
             </p>
             <button 
               className="bg-[#ffd050] text-[#232536] px-6 py-3 font-medium inline-flex hover:bg-[#f5c43e] transition-colors transform hover:scale-105 duration-200"
-              onClick={() => alert("Loading full article...")}
+              onClick={() => handleBlogClick(1)}
             >
               Read More &gt;
             </button>
           </div>
-          <div className="overflow-hidden rounded-xl shadow-lg">
+          <div className="overflow-hidden rounded-xl shadow-lg cursor-pointer" onClick={() => handleBlogClick(1)}>
             <img 
               src="/rectangle-2749-1.png" 
               alt="Featured post image" 
@@ -215,8 +226,9 @@ export default function IndieGuru() {
           {posts.map((post, idx) => (
             <div 
               key={post.id} 
-              className={`transform transition-all duration-700 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} grid md:grid-cols-[300px_1fr] gap-6 mb-8 pb-8 border-b border-[#6d6e76]/10 hover:shadow-md p-4 rounded-lg transition-shadow duration-300`}
+              className={`transform transition-all duration-700 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} grid md:grid-cols-[300px_1fr] gap-6 mb-8 pb-8 border-b border-[#6d6e76]/10 hover:shadow-md p-4 rounded-lg transition-shadow duration-300 cursor-pointer`}
               style={{ transitionDelay: `${300 + idx * 100}ms` }}
+              onClick={() => handleBlogClick(post.id)}
             >
               <div className="overflow-hidden rounded-lg shadow-md">
                 <img 
@@ -238,7 +250,7 @@ export default function IndieGuru() {
                 <div className="flex items-center gap-4 pt-2">
                   <button 
                     className="bg-white border border-[#6d6e76]/30 text-[#6d6e76] px-4 py-2 rounded-md text-sm flex items-center gap-2 hover:bg-gray-50 transition-colors shadow-sm hover:shadow"
-                    onClick={() => toggleCommentForm(post.id)}
+                    onClick={(e) => { e.stopPropagation(); toggleCommentForm(post.id); }}
                   >
                     <MessageSquare className="w-4 h-4" />
                     {post.comments.length > 0 ? `Comments (${post.comments.length})` : "Add a Comment"}
@@ -246,14 +258,14 @@ export default function IndieGuru() {
                   <div className="flex items-center gap-2">
                     <button 
                       className={`border ${post.userVote === 'up' ? 'bg-green-50 border-green-200' : 'bg-white'} border-[#6d6e76]/30 p-2 rounded-md hover:bg-gray-50 transition-colors shadow-sm hover:shadow`}
-                      onClick={() => handleVote(post.id, 'up')}
+                      onClick={(e) => { e.stopPropagation(); handleVote(post.id, 'up'); }}
                     >
                       <ArrowUp className={`w-4 h-4 ${post.userVote === 'up' ? 'text-green-600' : 'text-[#6d6e76]'}`} />
                     </button>
                     <span className="font-medium">{post.upvotes}</span>
                     <button 
                       className={`border ${post.userVote === 'down' ? 'bg-red-50 border-red-200' : 'bg-white'} border-[#6d6e76]/30 p-2 rounded-md hover:bg-gray-50 transition-colors shadow-sm hover:shadow`}
-                      onClick={() => handleVote(post.id, 'down')}
+                      onClick={(e) => { e.stopPropagation(); handleVote(post.id, 'down'); }}
                     >
                       <ArrowDown className={`w-4 h-4 ${post.userVote === 'down' ? 'text-red-600' : 'text-[#6d6e76]'}`} />
                     </button>

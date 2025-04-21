@@ -121,7 +121,7 @@ function ExpertDashboard() {
         <section className="mb-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Profile Completion Card */}
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-[0.1px] border-gray-300">
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-[0.1px] border-gray-300 flex flex-col">
               <h2 className="text-lg font-semibold text-indigo-700 mb-4 flex items-center">
                 <span className="mr-2">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -155,7 +155,8 @@ function ExpertDashboard() {
                   <div className="text-sm text-gray-600">Active Streak</div>
                 </div>
               </div>
-              <div className="mt-auto pt-4 border-t border-gray-100">
+              <div className="flex-grow"></div>
+              <div className="border-t border-gray-100 pt-4">
                 <div className="flex justify-between items-center">
                   <Link to="/profile" className="bg-indigo-700 hover:bg-indigo-800 text-white text-xs py-2 px-4 rounded flex items-center justify-center shadow-sm transition-colors duration-300">
                     Edit Profile
@@ -168,7 +169,7 @@ function ExpertDashboard() {
             </div>
 
             {/* Key Expertise Areas Card */}
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-[0.1px] border-gray-300">
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-[0.1px] border-gray-300 flex flex-col">
               <h2 className="text-lg font-semibold text-indigo-700 mb-4 flex items-center">
                 <span className="mr-2">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -188,7 +189,8 @@ function ExpertDashboard() {
                   </span>
                 ))}
               </div>
-              <div className="mt-auto pt-4 border-t border-gray-100">
+              <div className="flex-grow"></div>
+              <div className="border-t border-gray-100 pt-4">
                 <div className="flex justify-between items-center">
                   <button className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
                     Edit Expertise
@@ -201,7 +203,7 @@ function ExpertDashboard() {
             </div>
 
             {/* Expert Goals Card */}
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-[0.1px] border-gray-300">
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-[0.1px] border-gray-300 flex flex-col">
               <h2 className="text-lg font-semibold text-green-600 mb-4 flex items-center">
                 <span className="mr-2">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -233,7 +235,8 @@ function ExpertDashboard() {
                   </span>
                 </div>
               </div>
-              <div className="mt-auto pt-4 border-t border-gray-100">
+              <div className="flex-grow"></div>
+              <div className="border-t border-gray-100 pt-4">
                 <div className="flex justify-between items-center">
                   <button className="bg-green-600 hover:bg-green-700 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
                     Update Goals
@@ -262,7 +265,7 @@ function ExpertDashboard() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Upload Course */}
-            <div className="bg-blue-50 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-[0.5px] border-gray-300">
+            <div className="bg-blue-50 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-[0.5px] border-gray-300 flex flex-col h-full">
               <div className="flex flex-col items-center">
                 <div className="bg-blue-100 p-3 rounded-full mb-3">
                   <svg className="w-8 h-8 text-blue-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
@@ -272,7 +275,10 @@ function ExpertDashboard() {
                 <h3 className="text-lg font-semibold text-blue-800 mb-1">Upload Course</h3>
                 <p className="text-xs text-center text-blue-600 mb-3">Create and publish your own course</p>
                 <div className="text-2xl font-bold text-blue-600 mb-2">3</div>
-                <p className="text-xs text-blue-500 mb-4">Courses Published</p>
+                <p className="text-xs text-blue-500">Courses Published</p>
+              </div>
+              <div className="flex-grow"></div>
+              <div className="mt-4 pt-4 border-t border-blue-100">
                 <button className="w-full bg-blue-800 hover:bg-yellow-600 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
                   Create New
                 </button>
@@ -280,7 +286,7 @@ function ExpertDashboard() {
             </div>
 
             {/* Conduct Cohort */}
-            <div className="bg-blue-50 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-[0.5px] border-gray-300">
+            <div className="bg-blue-50 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-[0.5px] border-gray-300 flex flex-col h-full">
               <div className="flex flex-col items-center">
                 <div className="bg-blue-100 p-3 rounded-full mb-3">
                   <svg className="w-8 h-8 text-blue-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
@@ -290,7 +296,10 @@ function ExpertDashboard() {
                 <h3 className="text-lg font-semibold text-blue-800 mb-1">Conduct Cohort</h3>
                 <p className="text-xs text-center text-blue-600 mb-3">Lead a group learning experience</p>
                 <div className="text-2xl font-bold text-blue-600 mb-2">1</div>
-                <p className="text-xs text-blue-500 mb-4">Active Cohorts</p>
+                <p className="text-xs text-blue-500">Active Cohorts</p>
+              </div>
+              <div className="flex-grow"></div>
+              <div className="mt-4 pt-4 border-t border-blue-100">
                 <button className="w-full bg-blue-800 hover:bg-yellow-600 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
                   Plan Cohort
                 </button>
@@ -298,7 +307,7 @@ function ExpertDashboard() {
             </div>
 
             {/* Write Blog */}
-            <div className="bg-blue-50 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-[0.5px] border-gray-300">
+            <div className="bg-blue-50 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-[0.5px] border-gray-300 flex flex-col h-full">
               <div className="flex flex-col items-center">
                 <div className="bg-blue-100 p-3 rounded-full mb-3">
                   <svg className="w-8 h-8 text-blue-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
@@ -308,7 +317,10 @@ function ExpertDashboard() {
                 <h3 className="text-lg font-semibold text-blue-800 mb-1">Write Blog</h3>
                 <p className="text-xs text-center text-blue-600 mb-3">Share your knowledge and insights</p>
                 <div className="text-2xl font-bold text-blue-600 mb-2">7</div>
-                <p className="text-xs text-blue-500 mb-4">Blogs Published</p>
+                <p className="text-xs text-blue-500">Blogs Published</p>
+              </div>
+              <div className="flex-grow"></div>
+              <div className="mt-4 pt-4 border-t border-blue-100">
                 <button className="w-full bg-blue-800 hover:bg-yellow-600 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
                   New Article
                 </button>
@@ -316,7 +328,7 @@ function ExpertDashboard() {
             </div>
 
             {/* Community Discussion */}
-            <div className="bg-blue-50 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-[0.5px] border-gray-300">
+            <div className="bg-blue-50 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-[0.5px] border-gray-300 flex flex-col h-full">
               <div className="flex flex-col items-center">
                 <div className="bg-blue-100 p-3 rounded-full mb-3">
                   <svg className="w-8 h-8 text-blue-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
@@ -326,7 +338,10 @@ function ExpertDashboard() {
                 <h3 className="text-lg font-semibold text-blue-800 mb-1">Discuss</h3>
                 <p className="text-xs text-center text-blue-600 mb-3">Engage with the community</p>
                 <div className="text-2xl font-bold text-blue-600 mb-2">18</div>
-                <p className="text-xs text-blue-500 mb-4">Discussions Started</p>
+                <p className="text-xs text-blue-500">Discussions Started</p>
+              </div>
+              <div className="flex-grow"></div>
+              <div className="mt-4 pt-4 border-t border-blue-100">
                 <button className="w-full bg-blue-800 hover:bg-yellow-600 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
                   Start Thread
                 </button>
@@ -334,7 +349,7 @@ function ExpertDashboard() {
             </div>
 
             {/* 1-on-1 Sessions */}
-            <div className="bg-blue-50 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-[0.5px] border-gray-300">
+            <div className="bg-blue-50 p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-[0.5px] border-gray-300 flex flex-col h-full">
               <div className="flex flex-col items-center">
                 <div className="bg-blue-100 p-3 rounded-full mb-3">
                   <svg className="w-8 h-8 text-blue-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
@@ -344,7 +359,10 @@ function ExpertDashboard() {
                 <h3 className="text-lg font-semibold text-blue-800 mb-1">1-on-1 Sessions</h3>
                 <p className="text-xs text-center text-blue-600 mb-3">Personalized mentoring</p>
                 <div className="text-2xl font-bold text-blue-600 mb-2">24</div>
-                <p className="text-xs text-blue-500 mb-4">Sessions Conducted</p>
+                <p className="text-xs text-blue-500">Sessions Conducted</p>
+              </div>
+              <div className="flex-grow"></div>
+              <div className="mt-4 pt-4 border-t border-blue-100">
                 <button className="w-full bg-blue-800 hover:bg-yellow-600 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
                   Manage Calendar
                 </button>

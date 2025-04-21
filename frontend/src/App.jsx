@@ -15,6 +15,7 @@ import "./styles/globals.css";
 import EmailSignIn from './components/auth/EmailSignIn';
 import FinishSignUp from './pages/FinishSignUp';
 import FinishSignIn from './pages/FinishSignin';
+import BlogPost from './pages/BlogPost';
 
 // RouteChangeTracker component to detect route changes
 const RouteChangeTracker = ({ setLoading }) => {
@@ -63,6 +64,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/blogpage" element={<BlogPage />} />
+          <Route path="/blog/:id" element={<BlogPost />} />
           <Route path="/expert" element={<ExpertDashboard />} />
           <Route path="/communitypage" element={<CommunityPage />} />
           <Route path="/bookings" element={<BookingsPage />} />

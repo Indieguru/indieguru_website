@@ -132,7 +132,9 @@ const HowItWorks = () => {
                     top: `${(index * 100) / (steps.length - 1)}%`
                   }}
                   className={`absolute w-4 h-4 rounded-full -left-1.5 transition-all duration-300 transform -translate-y-1/2 cursor-pointer ${
-                    currentStep >= step.number
+                    currentStep === step.number
+                      ? 'bg-black border-4 border-black/20 scale-125'
+                      : currentStep > step.number
                       ? 'bg-primary border-4 border-primary/20 scale-125'
                       : 'bg-gray-200 scale-100'
                   }`}
