@@ -18,6 +18,7 @@ import FinishSignUp from './pages/FinishSignUp';
 import FinishSignIn from './pages/FinishSignin';
 import BlogPost from './pages/BlogPost';
 import BrowseExperts from "./pages/BrowseExperts";
+import AssessmentPage from "./pages/AssessmentPage";
 
 // RouteChangeTracker component to detect route changes
 const RouteChangeTracker = ({ setLoading }) => {
@@ -74,6 +75,7 @@ function App() {
           <Route path="/all-courses" element={<AllCoursesPage />} />
           <Route path="/browse-experts" element={<BrowseExperts />} />
           <Route path="/browse-experts/:category" element={<BrowseExperts />} />
+          <Route path="/assessment" element={<AssessmentPage />} />
           <Route path="*" element={<NotFound />} />
           {/* Add more routes as needed */}
           <Route path="/email-signin" element={<EmailSignIn />} />

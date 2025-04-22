@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
+import AssessmentModal from '../modals/AssessmentModal';
 
 const HeroSection = () => {
   const [displayText, setDisplayText] = useState('');
   const [textIndex, setTextIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
+  const [showAssessment, setShowAssessment] = useState(false);
   const typingRef = useRef(null);
   const eraseRef = useRef(null);
 
@@ -156,15 +158,15 @@ const HeroSection = () => {
 
               {/* CTA Buttons - Enhanced design */}
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mt-4">
-                <Link
-                  to="/appointment"
+                <button
+                  onClick={() => setShowAssessment(true)}
                   className="bg-blue-900 hover:bg-blue-800 text-white px-8 py-4 rounded-lg text-base font-semibold text-center transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center"
                 >
                   <span>Take An Assessment</span>
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
-                </Link>
+                </button>
                 <Link
                   to="/experts"
                   className="border-2 border-blue-700 text-blue-700 hover:bg-blue-50 px-8 py-4 rounded-lg text-base font-semibold text-center transition-all duration-300 flex items-center justify-center"
@@ -214,6 +216,9 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
+
+      {/* Assessment Modal */}
+      <AssessmentModal isOpen={showAssessment} onClose={() => setShowAssessment(false)} />
     </div>
   );
 };
