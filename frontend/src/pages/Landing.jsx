@@ -7,20 +7,18 @@ import TestimonialsSection from "../components/sections/testimonials-section";
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 
-
-
-
 export default function Landing() { 
   return (
-    <div className="min-h-screen bg-white">
-        <Header/>
-      <HeroSection />
-      <HowItWorks />
-      <EducationalPlatform />
-      <CategoryBrowser />
-      <TestimonialsSection />
+    <div className="w-full min-h-screen bg-white">
+      <Header/>
+      <main className="relative">
+        <HeroSection />
+        <HowItWorks />
+        <EducationalPlatform />
+        <CategoryBrowser />
+        <TestimonialsSection />
+      </main>
       <Footer />
-
     </div>
   );
 }

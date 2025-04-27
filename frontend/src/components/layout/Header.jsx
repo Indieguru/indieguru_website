@@ -40,11 +40,11 @@ const Header = () => {
               <Link to="/all-courses" className="text-gray-600 hover:text-gray-900">All Courses</Link>
             )}
             {isAuthenticated ? (
-              <Link to="/profile" className="px-6 py-2 rounded-full border-2 border-primary text-primary hover:bg-gray-200 hover:transition-colors">
+              <Link to="/profile" className="px-6 py-2 rounded-full border-2 border-primary text-primary hover:bg-indigo-900 hover:transition-colors">
                 Profile
               </Link>
             ) : (
-              <Link to="/signup" className="px-6 py-2 rounded-full border-2 border-primary bg-blue-900 text-white hover:bg-gray-400 hover:bg-blue-800 hover:text-white transition-colors">
+              <Link to="/signup" className="px-6 py-2 rounded-full border-2 border-primary bg-blue-900 text-white hover:bg-indigo-900 hover:bg-blue-800 hover:text-white transition-colors">
                 SignUp
               </Link>
             )}
