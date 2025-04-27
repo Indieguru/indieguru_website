@@ -51,6 +51,40 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  assessment: {
+    role: {
+      type: String,
+      enum: [
+        'High School Student (Class 11-12)',
+        'Secondary School Student (Class 9-10)',
+        'Undergraduate Student',
+        'Postgraduate Student',
+        'Working Professional'
+      ]
+    },
+    stream: {
+      type: String,
+      enum: ['Science (PCM)', 'Science (PCB)', 'Commerce', 'Arts/Humanities']
+    },
+    degree: String,
+    learningStyle: String,
+    confusion: {
+      type: Number,
+      min: 1,
+      max: 10
+    },
+    careerJourney: String,
+    lastUpdated: Date,
+    linkedinUrl: String,
+    fullName: String,
+    phoneNumber: String,
+    email: String,
+    city: String,
+    guidanceFor: String,
+    submittedAt: Date
+  }
+}, {
+  timestamps: true
 });
 
 UserSchema.pre('save', function (next) {

@@ -2,10 +2,14 @@ import expertAuthRoutes from "./expertAuthRoutes.js";
 import express from "express";
 import authMiddleware from "../middlewares/authMiddleware.js"; // Ensure this middleware exists
 import Expert from "../models/Expert.js"; // Ensure this model exists and is properly defined
+import { matchExperts } from '../controllers/expertController.js';
 
 const router = express.Router();
 
 router.use("/auth", expertAuthRoutes);
+
+// Expert matching route
+router.get('/match', authMiddleware, matchExperts);
 
 router.get("/search", authMiddleware, async (req, res) => {
   try {

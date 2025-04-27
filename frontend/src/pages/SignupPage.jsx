@@ -22,12 +22,39 @@ const LoginPage = () => {
   const { isAuthenticated } = useAuth();
   const countryCodes = ["+91", "+1", "+44", "+61", "+81"];
   const [userRole, setUserRole] = useState("student"); // Default role is student
+  const [assessmentData, setAssessmentData] = useState(null);
+
+  useEffect(() => {
+    // Load saved assessment data if it exists
+    const savedData = localStorage.getItem('assessmentData');
+    if (savedData) {
+      setAssessmentData(JSON.parse(savedData));
+    }
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
-      userRole === "student" ? navigate("/dashboard") : navigate("/experts");
+      // If we have assessment data, submit it before redirecting
+      if (assessmentData) {
+        // Submit the assessment data to your backend
+        axiosInstance.post('/user/assessment', assessmentData)
+          .then(() => {
+            // Clear the stored assessment data
+            localStorage.removeItem('assessmentData');
+            // Redirect based on role
+            userRole === "student" ? navigate("/dashboard") : navigate("/experts");
+          })
+          .catch(error => {
+            console.error('Error submitting assessment:', error);
+            // Still redirect even if assessment submission fails
+            userRole === "student" ? navigate("/dashboard") : navigate("/experts");
+          });
+      } else {
+        // No assessment data, just redirect
+        userRole === "student" ? navigate("/dashboard") : navigate("/experts");
+      }
     }
-  }, [isAuthenticated, navigate, userRole]);
+  }, [isAuthenticated, navigate, userRole, assessmentData]);
 
   useEffect(() => {
     let interval;
