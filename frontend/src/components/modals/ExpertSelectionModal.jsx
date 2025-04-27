@@ -4,10 +4,11 @@ import { Input } from "../ui/input";
 import { Search } from "lucide-react";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
-import { motion, AnimatePresence } from "framer-motion";
 import axiosInstance from "../../config/axios.config";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import Loader from "../layout/Loader";
+import * as Motion from "framer-motion";
 
 const industries = [
   { id: "tech", name: "Technology & Software", color: "#beeeed", iconPath: "/group-1.png" },
@@ -65,9 +66,9 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
   };
 
   return (
-    <AnimatePresence>
+    <Motion.AnimatePresence>
       {isOpen && (
-        <motion.div
+        <Motion.motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -75,7 +76,7 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
         >
           <div className="absolute inset-0 bg-black/10 backdrop-blur-sm" onClick={onClose} />
 
-          <motion.div
+          <Motion.motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
@@ -83,7 +84,7 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
           >
             <div className="relative rounded-2xl overflow-hidden glass-white shadow-xl">
               {/* Vector Decorations */}
-              <motion.img
+              <Motion.motion.img
                 src="/vector1.png"
                 alt="Vector decoration"
                 className="absolute -top-16 -right-16 w-40 h-40 opacity-25 z-0"
@@ -126,8 +127,8 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
                   </div>
 
                   {/* Content */}
-                  <AnimatePresence mode="wait">
-                    <motion.div
+                  <Motion.AnimatePresence mode="wait">
+                    <Motion.motion.div
                       key={step}
                       initial={{ x: 20, opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
@@ -137,7 +138,7 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
                       {step === 1 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                           {industries.map((industry) => (
-                            <motion.button
+                            <Motion.motion.button
                               key={industry.id}
                               onClick={() => handleIndustrySelect(industry)}
                               className="group relative p-6 rounded-xl text-left transition-all duration-300 overflow-hidden"
@@ -156,7 +157,7 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
                                 </h3>
                               </div>
                               <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-                            </motion.button>
+                            </Motion.motion.button>
                           ))}
                         </div>
                       ) : (
@@ -174,13 +175,13 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
 
                           <div className="relative">
                             {loading ? (
-                              <div className="flex justify-center py-12">
-                                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+                              <div className="py-12">
+                                <Loader fullScreen={false} />
                               </div>
                             ) : (
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
                                 {experts.map((expert) => (
-                                  <motion.div
+                                  <Motion.motion.div
                                     key={expert._id}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -216,15 +217,15 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
                                         </div>
                                       </div>
                                     </Card>
-                                  </motion.div>
+                                  </Motion.motion.div>
                                 ))}
                               </div>
                             )}
                           </div>
                         </div>
                       )}
-                    </motion.div>
-                  </AnimatePresence>
+                    </Motion.motion.div>
+                  </Motion.AnimatePresence>
 
                   {/* Navigation */}
                   <div className="flex justify-between items-center mt-8">
@@ -244,10 +245,10 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
                 </div>
               </div>
             </div>
-          </motion.div>
-        </motion.div>
+          </Motion.motion.div>
+        </Motion.motion.div>
       )}
-    </AnimatePresence>
+    </Motion.AnimatePresence>
   );
 };
 
