@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
+import Expert from '../models/Expert.js';
 
 const generateToken = (user) => {
   return jwt.sign({ id: user.id, userType: user.userType }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -9,7 +9,7 @@ const generateRefreshToken = (user) => {
   return jwt.sign({ id: user.id, userType: user.userType }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
 };
 
-const authMiddleware = async (req, res, next) => {
+const expertAuthMiddleware = async (req, res, next) => {
     const token = req.cookies?.token || req.header('Authorization')?.replace('Bearer ', '');
     const refreshToken = req.cookies?.refreshToken;
 
@@ -26,7 +26,7 @@ const authMiddleware = async (req, res, next) => {
         if (refreshToken) {
             try {
                 const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-                const user = await User.findById(decoded.id);
+                const user = await Expert.findById(decoded.id);
                 if (!user || user.refreshToken !== refreshToken) {
                     return res.status(403).json({ message: 'Invalid refresh token.' });
                 }
@@ -36,8 +36,8 @@ const authMiddleware = async (req, res, next) => {
                 user.refreshToken = newRefreshToken;
                 await user.save();
 
-                res.cookie('token', newToken, { httpOnly: true, secure: true, sameSite: "none" });
-                res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true , sameSite: "none" });
+                res.cookie('token', newToken, { httpOnly: true, secure: true , sameSite: "none"});
+                res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true, sameSite: "none"});
                 req.user = { id: user._id, userType: user.userType };
                 return next();
             } catch (err) {
@@ -49,6 +49,6 @@ const authMiddleware = async (req, res, next) => {
     }
 };
 
-export default authMiddleware;
+export default expertAuthMiddleware;
 
 

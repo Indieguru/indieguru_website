@@ -25,6 +25,7 @@ passport.use('google-user', new GoogleStrategy({
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const existingUser = await User.findOne({ gid: profile.id, authType: 'gmail' });
+
     if (existingUser) {
       const token = generateToken(existingUser);
       const refreshToken = generateRefreshToken(existingUser);
@@ -60,13 +61,13 @@ passport.use('google-expert', new GoogleStrategy({
   callbackURL: '/api/v1/expert/auth/google/callback', // Use relative path
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    const existingUser = await Expert.findOne({ gid: profile.id, userType: 'expert' });
+    console.log("refreshToken", refreshToken);
+    const existingUser = await Expert.findOne({ gid: profile.id });
     if (existingUser) {
       const token = generateToken(existingUser);
-      const refreshToken = generateRefreshToken(existingUser);
-      return done(null, { user: existingUser, token, refreshToken });
+      const localRefreshToken = generateRefreshToken(existingUser);
+      return done(null, { user: existingUser, token, localRefreshToken, googleRefreshToken: refreshToken, accessToken: accessToken });
     }
-
     // Split the display name into firstName and lastName
     const [firstName, ...lastNameParts] = profile.displayName.split(" ");
     const lastName = lastNameParts.join(" ");
@@ -79,12 +80,13 @@ passport.use('google-expert', new GoogleStrategy({
       authType: 'gmail',
       emailVerified: true,
       userType: 'expert',
+      googleRefreshToken: refreshToken, // Store the Google refresh token
     });
 
     await newUser.save();
     const token = generateToken(newUser);
-    const refreshToken = generateRefreshToken(newUser);
-    done(null, { user: newUser, token, refreshToken });
+    const localRefreshToken = generateRefreshToken(newUser);
+    done(null, { user: newUser, token, localRefreshToken , googleRefreshToken:  refreshToken, accessToken : accessToken });
   } catch (error) {
     console.error('Error during Google expert authentication:', error);
     done(error, false);

@@ -1,17 +1,22 @@
+import { refreshToken } from "firebase-admin/app";
 import mongoose from "mongoose";
 
 const ExpertSchema = new mongoose.Schema({
-  name: {
+  firstName: {
     type: String,
     required: true,
+    // default: "jfebwbi",
+  },
+  lastName: {
+    type: String,
+    required: true,
+    // default: "cnklenenllj",
   },
   domain: {
     type: String,
-    required: true,
   },
   description: {
     type: String,
-    required: true,
   },
   email: {
     type: String,
@@ -25,12 +30,12 @@ const ExpertSchema = new mongoose.Schema({
   emailVerified: { type: Boolean, default: false },
   authType: {
     type: String,
-    required: true,
-    enum: ['gmail', 'email'],
+    enum: ['gmail'],
   },
   gid: {
     type: String,
   },
+<<<<<<< HEAD
   expertise: [{
     type: String,
     enum: [
@@ -78,6 +83,20 @@ const ExpertSchema = new mongoose.Schema({
   }],
 }, {
   timestamps: true
+=======
+  googleRefreshToken: {
+    type: String,
+  },
+  refreshToken: {
+    type: String,
+    default: null,
+  },
+  status: {
+    type: String,
+    enum: ['rejected', 'pending', 'approved'],
+    default: 'pending',
+  },
+>>>>>>> b94f2f6 (nc)
 });
 
 ExpertSchema.pre('save', function (next) {

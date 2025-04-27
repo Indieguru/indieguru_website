@@ -36,6 +36,8 @@ router.get('/google', passport.authenticate('google-user', { scope: ['profile', 
 router.get('/google/callback', passport.authenticate('google-user', { failureRedirect: '/login', session: false }), async (req, res) => {
   const userId = req.user.user._id; 
   const token = req.user.token;
+  const decodedToken = jwt.decode(token);
+  console.log('decodetoken' , decodedToken);
 
   try {
     const refreshToken = generateRefreshToken(userId);

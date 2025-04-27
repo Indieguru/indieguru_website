@@ -2,7 +2,12 @@ import expertAuthRoutes from "./expertAuthRoutes.js";
 import express from "express";
 import authMiddleware from "../middlewares/authMiddleware.js"; // Ensure this middleware exists
 import Expert from "../models/Expert.js"; // Ensure this model exists and is properly defined
+<<<<<<< HEAD
 import { matchExperts } from '../controllers/expertController.js';
+=======
+import expertAuthMiddleware from "../middlewares/expertAuthMiddleware.js";
+import createSession from "../controllers/sessionController.js";
+>>>>>>> b94f2f6 (nc)
 
 const router = express.Router();
 
@@ -39,5 +44,8 @@ router.get("/search", authMiddleware, async (req, res) => {
   }
 });
 //
+
+router.post("/create-session", createSession);
+
 
 export default router;

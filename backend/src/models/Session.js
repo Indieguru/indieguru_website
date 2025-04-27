@@ -11,7 +11,11 @@ const SessionSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
-  timeSlot: {
+  startTime: {
+    type: String,
+    required: true,
+  },
+  endTime: {
     type: String,
     required: true,
   },
@@ -32,6 +36,11 @@ const SessionSchema = new mongoose.Schema({
     enum: ['pending', 'completed', 'failed'],
     default: 'pending',
   },
+  status: {
+    type: String,
+    enum: ['upcoming', 'completed', 'cancelled','not booked'],
+    default: 'not booked',
+  },
   feedback: {
     type: String,
   },
@@ -40,6 +49,13 @@ const SessionSchema = new mongoose.Schema({
     min: 0,
     max: 5,
   },
+  eventId: {
+    type: String, // Google Calendar event ID
+  },
+  meetLink: {
+    type: String, // Google Meet link
+    required: true,
+  }
 });
 
 const Session = mongoose.model('Session', SessionSchema);
