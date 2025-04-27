@@ -5,7 +5,7 @@ import { z } from 'zod';
 import passport from 'passport';
 import Expert from '../models/Expert.js';
 import '../services/passport.js'; // Import Passport configuration
-import { sendOtp, verifyOtp } from '../services/otpService.js'; // Import OTP service
+// Import OTP service
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
