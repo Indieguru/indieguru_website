@@ -34,7 +34,7 @@ router.get("/search", authMiddleware, async (req, res) => {
 });
 //
 
-router.post("/create-session", createSession);
+
 
 
 export default router;
