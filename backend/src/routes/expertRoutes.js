@@ -2,31 +2,20 @@ import expertAuthRoutes from "./expertAuthRoutes.js";
 import express from "express";
 import authMiddleware from "../middlewares/authMiddleware.js"; // Ensure this middleware exists
 import Expert from "../models/Expert.js"; // Ensure this model exists and is properly defined
-<<<<<<< HEAD
 import { matchExperts } from '../controllers/expertController.js';
-=======
-import expertAuthMiddleware from "../middlewares/expertAuthMiddleware.js";
-import createSession from "../controllers/sessionController.js";
->>>>>>> b94f2f6 (nc)
 
 const router = express.Router();
 
 router.use("/auth", expertAuthRoutes);
 
-// Expert matching route
+
 router.get('/match', authMiddleware, matchExperts);
 
 router.get("/search", authMiddleware, async (req, res) => {
   try {
-    const { filter } = req.query; // Extract the filter string from query params
+    const { filter } = req.query; 
 
-    // If filter is not provided or is an empty string, return all experts
-    // if (!filter || filter.trim() === "") {
-    //   const experts = await Expert.find();
-    //   return res.status(200).json({ success: true, data: experts });
-    // }
-
-    // Build a query to check if the fields contain the filter string
+ 
     const query = {
       $or: [
         { domain: { $regex: `.*${filter}.*`, $options: "i" } }, // Case-insensitive match
@@ -35,7 +24,7 @@ router.get("/search", authMiddleware, async (req, res) => {
       ],
     };
 
-    // Fetch experts matching the query
+  
     const experts = await Expert.find(query);
 
     res.status(200).json({ success: true, data: experts });

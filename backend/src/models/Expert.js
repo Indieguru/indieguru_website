@@ -12,12 +12,7 @@ const ExpertSchema = new mongoose.Schema({
     required: true,
     // default: "cnklenenllj",
   },
-  domain: {
-    type: String,
-  },
-  description: {
-    type: String,
-  },
+
   email: {
     type: String,
     required: true,
@@ -32,10 +27,23 @@ const ExpertSchema = new mongoose.Schema({
     type: String,
     enum: ['gmail'],
   },
+  
   gid: {
     type: String,
   },
-<<<<<<< HEAD
+  googleRefreshToken: {
+    type: String,
+  },
+  refreshToken: {
+    type: String,
+    default: null,
+  },
+  status: {
+    type: String,
+    enum: ['rejected', 'pending', 'approved'],
+    default: 'pending',
+  },
+
   expertise: [{
     type: String,
     enum: [
@@ -81,23 +89,8 @@ const ExpertSchema = new mongoose.Schema({
       'Life Sciences'
     ]
   }],
-}, {
-  timestamps: true
-=======
-  googleRefreshToken: {
-    type: String,
-  },
-  refreshToken: {
-    type: String,
-    default: null,
-  },
-  status: {
-    type: String,
-    enum: ['rejected', 'pending', 'approved'],
-    default: 'pending',
-  },
->>>>>>> b94f2f6 (nc)
-});
+}, 
+);
 
 ExpertSchema.pre('save', function (next) {
   if (this.authType === 'email' && !this.password) {
