@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import AssessmentModal from '../modals/AssessmentModal';
+import ExpertSelectionModal from '../modals/ExpertSelectionModal';
 
 const HeroSection = () => {
   const [displayText, setDisplayText] = useState('');
   const [textIndex, setTextIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [showAssessment, setShowAssessment] = useState(false);
+  const [showExpertSelection, setShowExpertSelection] = useState(false);
   const typingRef = useRef(null);
   const eraseRef = useRef(null);
 
@@ -167,15 +169,15 @@ const HeroSection = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
-                <Link
-                  to="/experts"
+                <button
+                  onClick={() => setShowExpertSelection(true)}
                   className="border-2 border-blue-700 text-blue-700 hover:bg-blue-50 px-8 py-4 rounded-lg text-base font-semibold text-center transition-all duration-300 flex items-center justify-center"
                 >
                   <span>Choose Your Expert</span>
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
-                </Link>
+                </button>
               </div>
               
               {/* Trust badges */}
@@ -217,8 +219,9 @@ const HeroSection = () => {
         </div>
       </div>
 
-      {/* Assessment Modal */}
+      {/* Modal components */}
       <AssessmentModal isOpen={showAssessment} onClose={() => setShowAssessment(false)} />
+      <ExpertSelectionModal isOpen={showExpertSelection} onClose={() => setShowExpertSelection(false)} />
     </div>
   );
 };

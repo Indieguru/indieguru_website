@@ -9,23 +9,23 @@ const HowItWorks = () => {
   const steps = [
     {
       number: 1,
-      title: "Step 1",
-      description: "Revolutionizing mentoring and learning. Revolutionizing mentoring and learning.bdisb Revolutionizing mentoring and learning"
+      title: "Start your Journey",
+      description: "Share your interests or pick an industry to match with the right Guru"
     },
     {
       number: 2,
-      title: "Step 2",
-      description: "Connect with expert mentors who guide you through your learning journey"
+      title: "Choose your Guru",
+      description: "Based on your inputs, choose from professionals across industries — designers, data pros, chefs, coders & more"
     },
     {
       number: 3,
-      title: "Step 3",
-      description: "Practice with real-world projects and get personalized feedback"
+      title: "Get Personalised 1:1 guidance",
+      description: "Schedule a one-on-one call with your Guru to get tailored guidance at a time that suits you"
     },
     {
       number: 4,
-      title: "Step 4",
-      description: "Track your progress and earn certificates as you grow"
+      title: "Master Skills and Collaborate Smarter",
+      description: "Access curated courses and join a tribe of learners, creators, and mentors"
     }
   ];
 
