@@ -176,7 +176,7 @@ const LoginPage = () => {
       ? import.meta.env.VITE_BACKEND_URL 
       : `${import.meta.env.VITE_BACKEND_URL}:${import.meta.env.VITE_BACKEND_PORT}`;
     
-    window.location.href = `${backendUrl}/api/v1/user/auth/google?role=${userRole}`;
+    window.location.href = `${backendUrl}/api/v1/user/auth/google`;
   };
 
   const handleRoleChange = (role) => {
