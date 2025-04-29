@@ -16,7 +16,7 @@ const generateToken = (user) => {
 const generateRefreshToken = (user) => {
   return jwt.sign({ id: user.id, userType: user.userType }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
 };
-let callbackURL = 'https://indieguru-website-3.onrender.com/api/v1/user/auth/google/callback'; // Use relative path
+let callbackURL = '/api/v1/user/auth/google/callback'; // Use relative path
 
 passport.use('google-user', new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
