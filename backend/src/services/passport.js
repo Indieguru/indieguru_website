@@ -17,6 +17,8 @@ const generateRefreshToken = (user) => {
   return jwt.sign({ id: user.id, userType: user.userType }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
 };
 let callbackURL = '/api/v1/user/auth/google/callback'; // Use relative path
+if(process.env.TYPE === 'production') 
+  callbackURL = `${process.env.BACKEND_URL}/api/v1/user/auth/google/callback`; // Use absolute path for production
 
 passport.use('google-user', new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
