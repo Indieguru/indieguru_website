@@ -72,6 +72,9 @@ router.get('/google/callback', passport.authenticate('google-user', { failureRed
 
 
 
+router.get('/check-auth', authMiddleware,(req, res) => {
+  res.status(200).json({ message: 'Authenticated'});
+});
 
 
 export default router;
