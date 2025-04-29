@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../config/axios.config';
 
 const AuthContext = createContext(null);
 
@@ -12,10 +12,10 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       localStorage.setItem('token', token);
       // Set default authorization header for all requests
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     } else {
       localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
+      delete axiosInstance.defaults.headers.common['Authorization'];
     }
   }, [token]);
 
@@ -23,17 +23,20 @@ export const AuthProvider = ({ children }) => {
     const initializeAuth = async () => {
       if (token) {
         try {
-          const response = await axios.get('/api/users/me', {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          setUser(response.data.user);
+          const response = await axiosInstance.get('/user/details');
+          if (response.status === 200) {
+            setUser(response.data);
+          }
         } catch (error) {
           console.error('Error fetching user:', error);
           setToken(null);
           setUser(null);
+        } finally {
+          setLoading(false);
         }
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     initializeAuth();
@@ -41,7 +44,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      const response = await axios.post('/api/auth/login', credentials);
+      const response = await axiosInstance.post('/api/auth/login', credentials);
       const { token: newToken, user: userData } = response.data;
       setToken(newToken);
       setUser(userData);
@@ -57,7 +60,7 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (userData) => {
     try {
-      const response = await axios.post('/api/auth/signup', userData);
+      const response = await axiosInstance.post('/api/auth/signup', userData);
       const { token: newToken, user: newUser } = response.data;
       setToken(newToken);
       setUser(newUser);

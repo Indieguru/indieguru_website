@@ -36,8 +36,7 @@ router.get('/google', passport.authenticate('google-user', { scope: ['profile', 
 router.get('/google/callback', passport.authenticate('google-user', { failureRedirect: '/login', session: false }), async (req, res) => {
   const userId = req.user.user._id; 
   const token = req.user.token;
-  const decodedToken = jwt.decode(token);
-  console.log('decodetoken' , decodedToken);
+  const role = req.user.role || 'student';
 
   try {
     const refreshToken = generateRefreshToken(userId);
@@ -50,14 +49,15 @@ router.get('/google/callback', passport.authenticate('google-user', { failureRed
     res.cookie('token', token, { httpOnly: true, secure: true, sameSite: "none" });
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: "none" });
     res.cookie('userId', userId, { httpOnly: true, secure: true, sameSite: "none" });
-    if(process.env.TYPE === 'development')
-    return res.redirect(`${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}/dashboard`); 
-    else
-    return res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
-
-  // Ensure return after res.redirect
+    
+    // Redirect based on role
+    if(process.env.TYPE === 'development') {
+      return res.redirect(`${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}${role === 'expert' ? '/expert' : '/dashboard'}`);
+    } else {
+      return res.redirect(`${process.env.FRONTEND_URL}${role === 'expert' ? '/expert' : '/dashboard'}`);
+    }
   } catch (error) {
-    return res.status(500).json({ message: 'Server error', error }); // Ensure return after res.json
+    return res.status(500).json({ message: 'Server error', error });
   }
 });
 // 🔐 POST /verify-phone

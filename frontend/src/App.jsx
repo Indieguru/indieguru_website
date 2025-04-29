@@ -7,6 +7,7 @@ import BlogPage from './pages/BlogPage';
 import CommunityPage from './pages/CommunityPage';
 import Landing from "./pages/Landing";
 import ExpertDashboard from "./pages/ExpertDashboard";
+import ExpertProfile from "./pages/ExpertProfile";
 import Loader from "./components/layout/Loader";
 import BookingsPage from "./pages/BookingsPage";
 import ExpertPayments from "./pages/PaymentsPage";
@@ -70,6 +71,7 @@ function App() {
           <Route path="/blogpage" element={<BlogPage />} />
           <Route path="/blog/:id" element={<BlogPost />} />
           <Route path="/expert" element={<ExpertDashboard />} />
+          <Route path="/expert/profile" element={<ExpertProfile />} />
           <Route path="/communitypage" element={<CommunityPage />} />
           <Route path="/bookings" element={<BookingsPage />} />
           <Route path="/payments" element={<ExpertPayments />} />

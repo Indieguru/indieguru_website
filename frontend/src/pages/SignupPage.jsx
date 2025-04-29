@@ -42,16 +42,16 @@ const LoginPage = () => {
             // Clear the stored assessment data
             localStorage.removeItem('assessmentData');
             // Redirect based on role
-            userRole === "student" ? navigate("/dashboard") : navigate("/experts");
+            userRole === "student" ? navigate("/dashboard") : navigate("/expert");
           })
           .catch(error => {
             console.error('Error submitting assessment:', error);
             // Still redirect even if assessment submission fails
-            userRole === "student" ? navigate("/dashboard") : navigate("/experts");
+            userRole === "student" ? navigate("/dashboard") : navigate("/expert");
           });
       } else {
         // No assessment data, just redirect
-        userRole === "student" ? navigate("/dashboard") : navigate("/experts");
+        userRole === "student" ? navigate("/dashboard") : navigate("/expert");
       }
     }
   }, [isAuthenticated, navigate, userRole, assessmentData]);
@@ -75,7 +75,7 @@ const LoginPage = () => {
     if (token && userId) {
       console.log("JWT Token:", token);
       console.log("User ID:", userId);
-      userRole === "student" ? navigate("/dashboard") : navigate("/experts");
+      userRole === "student" ? navigate("/dashboard") : navigate("/expert");
     }
   }, [navigate, userRole]);
 
@@ -151,7 +151,7 @@ const LoginPage = () => {
         firebaseToken: idToken,
         role: userRole
       });
-      userRole === "student" ? navigate("/dashboard") : navigate("/experts");
+      userRole === "student" ? navigate("/dashboard") : navigate("/expert");
     } catch (err) {
       setErrorMessage("Invalid OTP. Please try again.");
     }

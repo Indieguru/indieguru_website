@@ -22,14 +22,18 @@ passport.use('google-user', new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   callbackURL: callbackURL, // Use relative path
-}, async (accessToken, refreshToken, profile, done) => {
+  passReqToCallback: true // This allows us to access the query parameters
+}, async (req, accessToken, refreshToken, profile, done) => {
   try {
+    const role = req.query.role || 'student'; // Get role from query parameter
     const existingUser = await User.findOne({ gid: profile.id, authType: 'gmail' });
 
     if (existingUser) {
+      existingUser.role = role; // Update role
+      await existingUser.save();
       const token = generateToken(existingUser);
       const refreshToken = generateRefreshToken(existingUser);
-      return done(null, { user: existingUser, token, refreshToken });
+      return done(null, { user: existingUser, token, refreshToken, role });
     }
 
     // Split the display name into firstName and lastName
@@ -43,12 +47,13 @@ passport.use('google-user', new GoogleStrategy({
       gid: profile.id,
       authType: 'gmail',
       emailVerified: true,
+      role: role
     });
 
     await newUser.save();
     const token = generateToken(newUser);
     const refreshToken = generateRefreshToken(newUser);
-    done(null, { user: newUser, token, refreshToken });
+    done(null, { user: newUser, token, refreshToken, role });
   } catch (error) {
     console.error('Error during Google user authentication:', error);
     done(error, false);

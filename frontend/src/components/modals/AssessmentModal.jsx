@@ -37,8 +37,13 @@ const AssessmentModal = ({ isOpen, onClose }) => {
   const handleNextStep = () => {
     // Special handling for role selection
     if (step === 1) {
-      if (formData.role === 'Secondary School Student (Class 9-10)') {
-        // Skip directly to personal details for secondary school students
+      if (formData.role === 'High School Student (Class 11-12)') {
+        // Only proceed if stream is selected for high school students
+        if (!formData.stream) {
+          return;
+        }
+        setStep(3);
+      } else if (formData.role === 'Secondary School Student (Class 9-10)') {
         setStep(3);
       } else {
         setStep(2);

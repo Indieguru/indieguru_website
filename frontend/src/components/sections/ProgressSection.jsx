@@ -64,7 +64,7 @@ function ProgressSection() {
             initial={{ width: 0 }}
             animate={{ width: `${completionPercentage}%` }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className={`h-full rounded-full ${isCompleted ? 'bg-green-500' : 'bg-indigo-400'}`}
+            className={`h-full rounded-full ${isCompleted ? 'bg-green-500' : 'bg-white'}`}
           />
         </div>
       </div>

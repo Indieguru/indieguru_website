@@ -78,7 +78,7 @@ function Dashboard() {
         {/* Greeting Section */}
         <motion.section 
           variants={itemVariants}
-          className="mb-8 p-6 border-l-4 border-indigo-500 bg-white rounded-lg shadow-md transform hover:scale-[1.02] transition-all duration-300 hover:shadow-lg"
+          className="mb-8 p-6 border-l-4 border-indigo-900 bg-white rounded-lg shadow-md transform hover:scale-[1.02] transition-all duration-300 hover:shadow-lg"
         >
           <h1 className="text-2xl font-semibold text-gray-800">Welcome back, {user.firstName}!</h1>
           <p className="text-sm text-gray-600 mt-1">Continue your learning journey where you left off</p>
