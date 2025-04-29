@@ -31,7 +31,15 @@ const generateRefreshToken = (user) => {
 router.use(cookieParser());
 
 
-router.get('/google', passport.authenticate('google-user', { scope: ['profile', 'email'] }));
+router.get('/google', passport.authenticate('google-user', {
+  scope: [
+    'profile',
+    'email',
+    'https://www.googleapis.com/auth/calendar' // Add calendar access
+  ],
+  accessType: 'offline',   // Request refresh token
+  prompt: 'consent'        // Force Google to show consent screen
+}));
 
 router.get('/google/callback', passport.authenticate('google-user', { failureRedirect: '/login', session: false }), async (req, res) => {
   const userId = req.user.user._id; 
@@ -61,100 +69,6 @@ router.get('/google/callback', passport.authenticate('google-user', { failureRed
   }
 });
 // 🔐 POST /verify-phone
-router.post('/firebase-login', async (req, res) => {
-  const { email, phone, firebaseToken } = req.body;
-
-  if (!firebaseToken) return res.status(400).json({ message: 'Missing Firebase token' });
-
-  try {
-    // Verify Firebase ID token
-    const decodedToken = await admin.auth().verifyIdToken(firebaseToken);
-    
-    // Handle email authentication
-    if (email) {
-      if (email !== decodedToken.email) {
-        return res.status(400).json({ message: 'Email mismatch' });
-      }
-
-      let user = await User.findOne({ email });
-      if (!user) {
-        user = new User({
-          firstName: 'User',
-          lastName: email.split('@')[0],
-          email,
-          authType: 'email',
-          emailVerified: true,
-        });
-        await user.save();
-      }
-
-      const token = generateToken(user);
-      const refreshToken = generateRefreshToken(user);
-      user.refreshToken = refreshToken;
-      await user.save();
-
-      res.cookie('token', token, { httpOnly: true, secure: true, sameSite: "none" });
-      res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: "none" });
-      
-      return res.status(200).json({ message: 'Email verified and user authenticated' });
-    }
-    
-    // Handle phone authentication
-    if (phone) {
-      const phoneNumber = decodedToken.phone_number;
-      if (!phoneNumber) {
-        return res.status(400).json({ message: 'Invalid phone token' });
-      }
-
-      let user = await User.findOne({ phone });
-      if (!user) {
-        user = new User({
-          firstName: 'User',
-          lastName: phone,
-          phone,
-          authType: 'phone',
-          phoneVerified: true,
-        });
-        await user.save();
-      }
-
-      const token = generateToken(user);
-      const refreshToken = generateRefreshToken(user);
-      user.refreshToken = refreshToken;
-      await user.save();
-
-      res.cookie('token', token, { httpOnly: true, secure: true, sameSite: "none" });
-      res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: "none" });
-
-      return res.status(200).json({ message: 'Phone verified and user authenticated' });
-    }
-
-    return res.status(400).json({ message: 'Invalid authentication request' });
-  } catch (error) {
-    console.error('Firebase verification error:', error);
-    res.status(401).json({ message: 'Invalid Firebase token' });
-  }
-});
-
-router.get('/firebase-token', authMiddleware, async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        // Create a Firebase custom token
-        const customToken = await admin.auth().createCustomToken(user.id.toString());
-        res.json({ customToken });
-    } catch (error) {
-        console.error('Error creating Firebase token:', error);
-        res.status(500).json({ message: 'Failed to create Firebase token' });
-    }
-});
-
-router.get('/check-auth', authMiddleware,(req, res) => {
-  res.status(200).json({ message: 'Authenticated'});
-});
 
 
 

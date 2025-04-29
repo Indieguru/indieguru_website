@@ -1,4 +1,50 @@
-import Expert from '../models/Expert.js';
+
+import Session from "../models/Session.js";
+import Expert from "../models/Expert.js";
+
+export const addSlot = async (req, res) => {
+  try {
+    const { date, startTime, endTime, paymentFee } = req.body;
+    const expertId = req.body.user._id; // Logged-in expert's ID
+
+    console.log(date, startTime, endTime, paymentFee, expertId);
+
+    // Basic validations
+    if (!date || !startTime || !endTime || !paymentFee) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Check if already a slot at same time for this expert
+    const existingSlot = await Session.findOne({
+      expert: expertId,
+      date: new Date(date),
+      startTime,
+      endTime,
+    });
+
+    if (existingSlot) {
+      return res.status(400).json({ message: "Slot already exists for this time" });
+    }
+
+    const newSlot = new Session({
+      expert: expertId,
+      date: new Date(date),
+      startTime,
+      endTime,
+      paymentFee,
+      status: 'not booked',
+      meetLink: 'N/A', // Will update meet link after booking
+    });
+
+    await newSlot.save();
+
+    res.status(201).json({ message: "Slot created successfully", slot: newSlot });
+
+  } catch (error) {
+    console.error('Error creating slot:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
 
 export const matchExperts = async (req, res) => {
   try {

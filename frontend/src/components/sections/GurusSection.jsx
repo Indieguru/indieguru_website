@@ -8,12 +8,13 @@ function GurusSection({ setExperts }) {
   const [searchText, setSearchText] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  const handleSearch = async (filter = "") => {
+  const handleSearch = async (searchText) => {
     try {
       const response = await axiosInstance.get("/expert/search", {
-        params: { filter },
+        params: { searchText },
       });
       setExperts(response.data.data);
+      console.log("Experts fetched successfully:", response.data.data);
     } catch (error) {
       console.error("Error fetching experts:", error.message);
     }

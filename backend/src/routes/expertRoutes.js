@@ -3,13 +3,14 @@ import express from "express";
 import authMiddleware from "../middlewares/authMiddleware.js"; // Ensure this middleware exists
 import Expert from "../models/Expert.js"; // Ensure this model exists and is properly defined
 import { matchExperts } from '../controllers/expertController.js';
-
+import { addSlot } from "../controllers/expertController.js";
+import expertAuthMiddleware from "../middlewares/expertAuthMiddleware.js";
 const router = express.Router();
 
 router.use("/auth", expertAuthRoutes);
 
 
-router.get('/match', authMiddleware, matchExperts);
+router.get('/match', expertAuthMiddleware, matchExperts);
 
 router.get("/search", authMiddleware, async (req, res) => {
   try {
@@ -33,7 +34,7 @@ router.get("/search", authMiddleware, async (req, res) => {
   }
 });
 //
-
+router.post("/add-slot", addSlot);
 
 
 
