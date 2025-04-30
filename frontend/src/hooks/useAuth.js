@@ -1,10 +1,32 @@
-import { useContext } from 'react';
-import AuthContext from '../context/AuthContext';
+import { useState, useEffect } from "react";
+import axiosInstance from "../config/axios.config";
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    const checkAuth = async () => {
+        try {
+            await axiosInstance.get("/user/auth/check-auth");
+            setIsAuthenticated(true);
+        } catch (error) {
+            if (error.response.status === 401) {
+                await refreshAccessToken();
+                try {
+                    await axiosInstance.get("/user/auth/check-auth");
+                    setIsAuthenticated(true);
+                } catch {
+                    setIsAuthenticated(false);
+                }
+            } else {
+                setIsAuthenticated(false);
+            }
+        }
+    };
+
+
+    useEffect(() => {
+        checkAuth();
+    }, []);
+
+    return { isAuthenticated };
 };
