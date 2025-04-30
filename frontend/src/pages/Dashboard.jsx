@@ -29,10 +29,10 @@ function Dashboard() {
           try {
             await axiosInstance.get("/user/auth/check-auth");
           } catch {
-            navigate("/signup");
+            // navigate("/signup");
           }
         } else {
-          navigate("/signup");
+          // navigate("/signup");
         }
       }
     };
