@@ -12,6 +12,7 @@ const generateRefreshToken = (user) => {
 const authMiddleware = async (req, res, next) => {
     const token = req.cookies?.token || req.header('Authorization')?.replace('Bearer ', '');
     const refreshToken = req.cookies?.refreshToken;
+    console.log("authMiddleware", token, refreshToken);
 
     if (!token && !refreshToken) {
         return res.status(401).json({ message: 'Access denied. No token provided.' });
