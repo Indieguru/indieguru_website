@@ -40,7 +40,7 @@ const Header = () => {
               <Link to="/all-courses" className="text-gray-600 hover:text-gray-900">All Courses</Link>
             )}
             {isAuthenticated ? (
-              <Link to="/profile" className="px-6 py-2 rounded-full border-2 border-primary text-primary hover:bg-indigo-900 hover:transition-colors">
+              <Link to="/profile" className="px-6 py-2 rounded-full border-2 border-primary text-primary hover:bg-indigo-900 hover:text-white hover:transition-colors">
                 Profile
               </Link>
             ) : (
