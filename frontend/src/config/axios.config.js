@@ -11,27 +11,4 @@ const axiosInstance = axios.create({
     withCredentials: true,
 });
 
-axiosInstance.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-        if (error.response?.status === 401) {
-            try {
-                const refreshResponse = await axios.post(
-                    `${backendUrl}/expert/auth/refresh-token`, 
-                    {}, 
-                    { withCredentials: true }
-                );
-                if (refreshResponse.data.token) {
-                    return axiosInstance(error.config);
-                }
-            } catch (refreshError) {
-                console.error("Failed to refresh token:", refreshError);
-                window.location.href = '/signup'; // Changed from /login to /signup
-                return Promise.reject(refreshError);
-            }
-        }
-        return Promise.reject(error);
-    }
-);
-
 export default axiosInstance;

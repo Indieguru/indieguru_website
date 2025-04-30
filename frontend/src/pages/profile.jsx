@@ -14,15 +14,28 @@ import InputBox from "../components/util/InputBox"
 import { useNavigate, useLocation } from "react-router-dom";
 import { ErrorPopup } from "../components/ui/error-popup"
 import axiosInstance from "../config/axios.config"
+import useAuthStore from "../store/authStore"
+
+// import axios from "axios"
 
 function Profile() {
   const { user, fetchUser } = useUserStore()
   const navigate = useNavigate();
   const location = useLocation();
+  const {isAuthenticated,fetchIsAuthenticated} = useAuthStore();
 
   useEffect(() => {
-    fetchUser()
-  }, [])
+    try {
+      fetchIsAuthenticated();
+      if(!isAuthenticated) {
+        navigate("/signup");
+      }
+      fetchUser();
+      
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+    }
+  }, []);
 
   useEffect(() => {
     // Handle hash routing
@@ -269,9 +282,19 @@ function Profile() {
     setEditingField(null)
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     // Clear user session or token logic here
-    navigate("/login");
+    try{
+      await axiosInstance.post("/user/auth/signout");
+      fetchUser();
+      fetchIsAuthenticated();
+      navigate("/");
+    }
+    catch(err){
+      console.error("Logout error:", err);
+      setErrorMessage("Failed to logout. Please try again.");
+    }
+
   };
 
   return (

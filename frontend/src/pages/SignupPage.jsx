@@ -7,6 +7,7 @@ import axiosInstance from "../config/axios.config";
 import { useAuth } from "../hooks/useAuth";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { app, auth } from "../config/firebase.js";
+import useAuthStore from "../store/authStore";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ const LoginPage = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [timer, setTimer] = useState(0);
   const [resendActive, setResendActive] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const {isAuthenticated,fetchIsAuthenticated} = useAuthStore()
   const countryCodes = ["+91", "+1", "+44", "+61", "+81"];
   const [userRole, setUserRole] = useState("student"); // Default role is student
   const [assessmentData, setAssessmentData] = useState(null);
@@ -39,7 +40,7 @@ const LoginPage = () => {
         // Submit the assessment data to your backend
         axiosInstance.post('/user/assessment', assessmentData)
           .then(() => {
-            // Clear the stored assessment data
+           
             localStorage.removeItem('assessmentData');
             // Redirect based on role
             userRole === "student" ? navigate("/dashboard") : navigate("/expert");
@@ -53,6 +54,9 @@ const LoginPage = () => {
         // No assessment data, just redirect
         userRole === "student" ? navigate("/dashboard") : navigate("/expert");
       }
+    }
+    else{
+      fetchIsAuthenticated();
     }
   }, [isAuthenticated, navigate, userRole, assessmentData]);
 

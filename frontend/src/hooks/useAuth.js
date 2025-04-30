@@ -10,7 +10,6 @@ export const useAuth = () => {
             setIsAuthenticated(true);
         } catch (error) {
             if (error.response.status === 401) {
-                await refreshAccessToken();
                 try {
                     await axiosInstance.get("/user/auth/check-auth");
                     setIsAuthenticated(true);
@@ -23,10 +22,9 @@ export const useAuth = () => {
         }
     };
 
-
     useEffect(() => {
         checkAuth();
     }, []);
 
-    return { isAuthenticated };
+    return { isAuthenticated, checkAuth };
 };

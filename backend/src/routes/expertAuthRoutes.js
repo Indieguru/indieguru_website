@@ -11,6 +11,15 @@ const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'your_jwt_refresh_secret_key';
 
+router.get('/google', passport.authenticate('google-expert', {
+  scope: [
+    'profile',
+    'email',
+    'https://www.googleapis.com/auth/calendar' // Add calendar access
+  ],
+  accessType: 'offline',   // Request refresh token
+  prompt: 'consent'        // Force Google to show consent screen
+}));
 
 router.get('/google/callback', passport.authenticate('google-expert', { failureRedirect: '/login', session: false }), async (req, res) => {
   const userId = req.user.user._id;

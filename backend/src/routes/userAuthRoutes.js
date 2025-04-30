@@ -68,8 +68,13 @@ router.get('/google/callback', passport.authenticate('google-user', { failureRed
     return res.status(500).json({ message: 'Server error', error });
   }
 });
-// 🔐 POST /verify-phone
 
+router.post('/signout', authMiddleware, async (req, res) => {
+  res.clearCookie('token', { httpOnly: true, secure: true, sameSite: "none" });
+  res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: "none" });
+  res.clearCookie('userId', { httpOnly: true, secure: true, sameSite: "none" });
+  res.status(200).json({ message: 'Logged out successfully' });
+})
 
 
 router.get('/check-auth', authMiddleware,(req, res) => {
