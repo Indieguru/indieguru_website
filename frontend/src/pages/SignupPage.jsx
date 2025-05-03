@@ -155,6 +155,7 @@ const LoginPage = () => {
         firebaseToken: idToken,
         role: userRole
       });
+     
       userRole === "student" ? navigate("/dashboard") : navigate("/expert");
     } catch (err) {
       setErrorMessage("Invalid OTP. Please try again.");
@@ -179,8 +180,12 @@ const LoginPage = () => {
     const backendUrl = import.meta.env.VITE_TYPE === "production" 
       ? import.meta.env.VITE_BACKEND_URL 
       : `${import.meta.env.VITE_BACKEND_URL}:${import.meta.env.VITE_BACKEND_PORT}`;
-    
+    if(userRole === "student") {
     window.location.href = `${backendUrl}/api/v1/user/auth/google`;
+    }
+    else{
+      window.location.href = `${backendUrl}/api/v1/expert/auth/google`;
+    }
   };
 
   const handleRoleChange = (role) => {

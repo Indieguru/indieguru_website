@@ -12,6 +12,15 @@ function ProfileCard() {
   });
 
   useEffect(() => {
+    try{
+      fetchUser();
+    }
+    catch (error) {   
+      console.error("Error fetching user details:", error);
+    }
+
+
+
     const calculateCompletedSteps = () => {
       let completed = 0;
       if (user?.firstName) completed++;
