@@ -1,11 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth'; // Assuming the hook is located here
+import useUserStore from '../../store/userStore';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { isAuthenticated } = useAuth(); // Use the useAuth hook to check login status
+  const { user } = useUserStore();
   
+  const getDashboardLink = () => {
+    return user?.userType === 'expert' ? '/expert' : '/dashboard';
+  };
+
   useEffect(() => {
     console.log(isAuthenticated);
   }, [isAuthenticated]);
@@ -18,7 +24,7 @@ const Header = () => {
           <div className="flex items-center">
         
             {isAuthenticated ? (
-              <Link to="/dashboard" className="flex items-center">
+              <Link to={getDashboardLink()} className="flex items-center">
               <img src="/logo.png" alt="IndieGuru" className="h-8 w-8 object-contain rounded-full" />
               <span className="ml-2 text-lg font-semibold text-gray-900">IndieGuru</span>
             </Link>
@@ -39,10 +45,16 @@ const Header = () => {
             ) : (
               <Link to="/all-courses" className="text-gray-600 hover:text-gray-900">All Courses</Link>
             )}
+            {isAuthenticated && (
+              <Link to={getDashboardLink()} className="text-gray-600 hover:text-gray-900">Dashboard</Link>
+            )}
             {isAuthenticated ? (
-              <Link to="/profile" className="px-6 py-2 rounded-full border-2 border-primary text-primary hover:bg-indigo-900 hover:text-white hover:transition-colors">
-                Profile
-              </Link>
+              <>
+                <Link to="/bookings" className="text-gray-600 hover:text-gray-900">Bookings</Link>
+                <Link to="/profile" className="px-6 py-2 rounded-full border-2 border-primary text-primary hover:bg-indigo-900 hover:text-white hover:transition-colors">
+                  Profile
+                </Link>
+              </>
             ) : (
               <Link to="/signup" className="px-6 py-2 rounded-full border-2 border-primary bg-blue-900 text-white hover:bg-indigo-900 hover:bg-blue-800 hover:text-white transition-colors">
                 SignUp
@@ -99,28 +111,29 @@ const Header = () => {
             >
               Community
             </Link>
-            {isAuthenticated ? (
-              <Link to="/bookings"
+            {isAuthenticated && (
+              <Link to={getDashboardLink()}
                 className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
                 onClick={() => setIsOpen(false)}
               >
-                Bookings
-              </Link>
-            ) : (
-              <Link to="/all-courses"
-                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
-                onClick={() => setIsOpen(false)}
-              >
-                All Courses
+                Dashboard
               </Link>
             )}
             {isAuthenticated ? (
-              <Link to="/profile" 
-                className="text-primary hover:bg-primary hover:text-white px-6 py-3 transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                Profile
-              </Link>
+              <>
+                <Link to="/bookings"
+                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Bookings
+                </Link>
+                <Link to="/profile" 
+                  className="text-primary hover:bg-primary hover:text-white px-6 py-3 transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Profile
+                </Link>
+              </>
             ) : (
               <Link to="/login" 
                 className="text-primary hover:bg-primary hover:text-white px-6 py-3 transition-colors"
