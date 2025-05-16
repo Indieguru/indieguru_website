@@ -2,33 +2,36 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/layout/Footer';
 import axiosInstance from '../config/axios.config';
+import useExpertStore from '../store/expertStore';
+
+// In your component
 
 function ExpertDashboard() {
   const [activeTab] = useState("dashboard");
   const [isLoading, setIsLoading] = useState(true);
-  const [expertData, setExpertData] = useState(null);
+  const { expertData } = useExpertStore();
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchExpertData = async () => {
-      try {
-        const response = await axiosInstance.get('/expert/profile');
-        if (response.data.success) {
-          setExpertData(response.data.expert);
-        } else {
-          setError("Failed to fetch expert data");
-        }
-      } catch (err) {
-        console.error('Error fetching expert data:', err);
-        setError(err.response?.data?.message || "Failed to fetch expert data");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchExpertData = async () => {
+  //     try {
+  //       const response = await axiosInstance.get('/expert/profile');
+  //       if (response.data.success) {
+  //         setExpertData(response.data.expert);
+  //       } else {
+  //         setError("Failed to fetch expert data");
+  //       }
+  //     } catch (err) {
+  //       console.error('Error fetching expert data:', err);
+  //       setError(err.response?.data?.message || "Failed to fetch expert data");
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
 
-    fetchExpertData();
-  }, []);
+  //   fetchExpertData();
+  // }, []);
 
   // Navigation handlers
   const handleCreateResource = () => {
@@ -71,39 +74,39 @@ function ExpertDashboard() {
     navigate('/expert/profile#certifications');
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-900"></div>
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-gray-50">
+  //       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-900"></div>
+  //     </div>
+  //   );
+  // }
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-red-600">
-          {error}
-          <button 
-            onClick={() => window.location.reload()} 
-            className="ml-4 text-blue-600 hover:underline"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-gray-50">
+  //       <div className="text-red-600">
+  //         {error}
+  //         <button 
+  //           onClick={() => window.location.reload()} 
+  //           className="ml-4 text-blue-600 hover:underline"
+  //         >
+  //           Retry
+  //         </button>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
-  if (!expertData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-gray-600">
-          No expert data available
-        </div>
-      </div>
-    );
-  }
+  // if (!expertData) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-gray-50">
+  //       <div className="text-gray-600">
+  //         No expert data available
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -531,7 +534,7 @@ function ExpertDashboard() {
                   </svg>
                 </div>
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-2">${expertData.earnings}</div>
+              <div className="text-3xl font-bold text-gray-900 mb-2">${expertData.earnings.total}</div>
               <div className="flex items-center text-sm">
                 <span className="text-[#00b6c4] font-medium">+12% </span>
                 <span className="text-gray-600 ml-1">vs. last month</span>
@@ -563,10 +566,10 @@ function ExpertDashboard() {
                 </div>
               </div>
               <div className="flex items-center mb-3">
-                <div className="text-3xl font-bold text-gray-900 mr-2">{expertData.ratings}</div>
+                <div className="text-3xl font-bold text-gray-900 mr-2">{expertData.ratings.overall}</div>
                 <div className="flex text-yellow-500">
                   {[...Array(5)].map((_, index) => (
-                    <svg key={index} className={`w-4 h-4 ${index < Math.floor(expertData.ratings) ? 'text-yellow-500' : 'text-gray-300'}`} fill="currentColor" viewBox="0 0 20 20">
+                    <svg key={index} className={`w-4 h-4 ${index < Math.floor(expertData.ratings.overall) ? 'text-yellow-500' : 'text-gray-300'}`} fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
                   ))}
@@ -574,7 +577,7 @@ function ExpertDashboard() {
               </div>
               <div className="flex items-center justify-between mb-4">
                 <div className="text-sm text-gray-600">
-                  <span className="text-gray-800 font-medium">{expertData.ratings}</span> Your Average
+                  <span className="text-gray-800 font-medium">{expertData.ratings.overall}</span> Your Average
                 </div>
                 <div className="text-sm text-gray-600">
                   <span className="text-gray-800 font-medium">{expertData.avgCategoryRating}</span> Category Average
@@ -582,7 +585,7 @@ function ExpertDashboard() {
               </div>
               <div className="mt-2">
                 <div className="w-full h-2 bg-gray-200 rounded-full mb-2">
-                  <div className="h-2 bg-blue-900 rounded-full" style={{ width: `${(expertData.ratings / 5) * 100}%` }}></div>
+                  <div className="h-2 bg-blue-900 rounded-full" style={{ width: `${(expertData.ratings.overall / 5) * 100}%` }}></div>
                 </div>
                 <Link to="/analytics/ratings" className="text-xs text-blue-800 hover:text-yellow-800 font-medium transition-colors duration-300">
                   View detailed ratings
