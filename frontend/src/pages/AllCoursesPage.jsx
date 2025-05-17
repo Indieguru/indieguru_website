@@ -2,17 +2,14 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../components/ui/button";
-<<<<<<< HEAD
 import { Users, ArrowRight, Calendar } from "lucide-react";
 import Header from "../components/layout/Header";
 import { Modal } from "../components/modals/modal";
 import { BookingModal } from "../components/modals/BookingModal";
 import useAuthStore from "../store/authStore";
 import { useNavigate } from "react-router-dom";
-=======
-import { Users, ArrowRight } from "lucide-react";
+// import { Users, ArrowRight } from "lucide-react";
 // import Header from "../components/layout/Header";
->>>>>>> 4809dc6 (nc1)
 
 const AllCoursesPage = () => {
   const navigate = useNavigate();
