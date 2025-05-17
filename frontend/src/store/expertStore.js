@@ -1,63 +1,72 @@
 import { create } from 'zustand';
+import axiosInstance from '../config/axios.config';
 
 const useExpertStore = create((set) => ({
   expertData: {
-    name: "John Doe",
-    profileCompletion: 85,
-    activeStreak: 7,
-    expertise: ["Web Development", "JavaScript", "React", "Node.js"],
-    upcomingSessions: [
-      {
-        id: 1,
-        title: "Advanced React Patterns",
-        date: "2024-02-15",
-        time: "10:00 AM",
-        students: 5
-      },
-      {
-        id: 2,
-        title: "Node.js Best Practices",
-        date: "2024-02-18",
-        time: "2:00 PM",
-        students: 3
-      }
-    ],
+    name: "",
+    email:"",
+    phone:"",
+    profileCompletion: 0,
+    activeStreak: 0,
+    expertise: [],
+    upcomingSessions: [],
     earnings: {
-      total: 25000,
-      thisMonth: 3500,
-      lastMonth: 4200
+      total: 0,
+      thisMonth: 0,
+      lastMonth: 0,
+      outstanding: 0
+    },
+    outstandingAmount: {
+      total: 0,
+      sessions: 0,
+      courses: 0,
+      cohorts: 0
     },
     analytics: {
       courses: {
-        earnings: 15000,
-        monthlyGrowth: 12
+        earnings: 0,
+        monthlyGrowth: 0,
+        delivered: 0
       },
       sessions: {
-        earnings: 8000,
-        monthlyGrowth: 8
+        earnings: 0,
+        monthlyGrowth: 0,
+        delivered: 0
       },
       cohorts: {
-        earnings: 2000,
-        monthlyGrowth: 15
+        earnings: 0,
+        monthlyGrowth: 0,
+        delivered: 0
       }
     },
     ratings: {
-      overall: 4.8,
-      total: 127,
-      breakdown: {
-        5: 85,
-        4: 30,
-        3: 8,
-        2: 3,
-        1: 1
-      }
+      overall: 0,
+      total: 0,
+      breakdown: {}
     },
-    avgCategoryRating: 3.9,
-    studentsEnrolled: 250,
-    delivered: {
-      courses: 12,
-      sessions: 45,
-      cohorts: 4
+    studentsEnrolled: 0
+  },
+  
+  isLoading: false,
+  error: null,
+
+  fetchExpertData: async () => {
+    set({ isLoading: true });
+    try {
+      const response = await axiosInstance.get('/expert/dashboard');
+      if (response.status === 200) {
+        set({ 
+          expertData: response.data,
+          isLoading: false,
+          error: null
+        });
+      }
+    } catch (error) {
+      set({ 
+        error: error.response?.data?.message || "Failed to fetch expert data",
+        isLoading: false
+      });
+      console.error('Error fetching expert data:', error);
     }
   },
   
@@ -69,6 +78,13 @@ const useExpertStore = create((set) => ({
     expertData: {
       ...state.expertData,
       earnings: { ...state.expertData.earnings, ...newEarnings }
+    }
+  })),
+
+  updateOutstandingAmount: (newOutstanding) => set((state) => ({
+    expertData: {
+      ...state.expertData,
+      outstandingAmount: { ...state.expertData.outstandingAmount, ...newOutstanding }
     }
   })),
   
@@ -87,7 +103,9 @@ const useExpertStore = create((set) => ({
       ...state.expertData,
       ratings: { ...state.expertData.ratings, ...newRatings }
     }
-  }))
+  })),
+
+  clearError: () => set({ error: null })
 }));
 
 export default useExpertStore;

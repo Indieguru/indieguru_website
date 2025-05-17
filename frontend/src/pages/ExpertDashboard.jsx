@@ -1,37 +1,107 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/layout/Footer';
-import axiosInstance from '../config/axios.config';
 import useExpertStore from '../store/expertStore';
-
-// In your component
+import useExpertCoursesStore from '../store/expertCoursesStore';
+import useExpertCohortsStore from '../store/expertCohortsStore';
+import axiosInstance from '../config/axios.config';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import AddCourseModal from '../components/modals/AddCourseModal';
 
 function ExpertDashboard() {
   const [activeTab] = useState("dashboard");
-  const [isLoading, setIsLoading] = useState(true);
-  const { expertData } = useExpertStore();
-  const [error, setError] = useState(null);
+  const { expertData, fetchExpertData, isLoading, error } = useExpertStore();
+  const { courses, fetchExpertCourses } = useExpertCoursesStore();
+  const { cohorts, fetchExpertCohorts } = useExpertCohortsStore();
   const navigate = useNavigate();
 
-  // useEffect(() => {
-  //   const fetchExpertData = async () => {
-  //     try {
-  //       const response = await axiosInstance.get('/expert/profile');
-  //       if (response.data.success) {
-  //         setExpertData(response.data.expert);
-  //       } else {
-  //         setError("Failed to fetch expert data");
-  //       }
-  //     } catch (err) {
-  //       console.error('Error fetching expert data:', err);
-  //       setError(err.response?.data?.message || "Failed to fetch expert data");
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
+  const [message, setMessage] = useState('');
+  const [showCourseModal, setShowCourseModal] = useState(false);
 
-  //   fetchExpertData();
-  // }, []);
+  const timeSlots = [
+    "09:00-10:00", "10:00-11:00", "11:00-12:00", "12:00-13:00",
+    "13:00-14:00", "14:00-15:00", "15:00-16:00", "16:00-17:00",
+    "17:00-18:00", "18:00-19:00", "19:00-20:00", "20:00-21:00"
+  ];
+
+  const handleManageCalendar = () => {
+    setShowCalendarModal(true);
+  };
+
+  const handleAddSlot = async () => {
+    if (!selectedDate || !selectedTimeSlot) {
+      setMessage('Please select both date and time slot');
+      return;
+    }
+
+    const [startTime, endTime] = selectedTimeSlot.split('-');
+    
+    try {
+      const formattedDate = selectedDate.toISOString().split('T')[0]; // Format date as YYYY-MM-DD
+      await axiosInstance.post('/expert/addsession', {
+        date: formattedDate,
+        startTime,
+        endTime,
+        duration: 60
+      });
+
+      setMessage('Slot added successfully');
+      setSelectedDate(null);
+      setSelectedTimeSlot('');
+      setTimeout(() => {
+        setMessage('');
+        setShowCalendarModal(false);
+      }, 1500);
+    } catch (error) {
+      console.error('Error adding slot:', error);
+      setMessage(error.response?.data?.message || 'Error adding slot. Please try again.');
+    }
+  };
+
+  useEffect(() => {
+    const initializeData = async () => {
+      try {
+        // Fetch everything in parallel
+        await Promise.all([
+          fetchExpertData(),
+          fetchExpertCourses(),
+          fetchExpertCohorts()
+        ]);
+      } catch (err) {
+        console.error('Error initializing data:', err);
+      }
+    };
+
+    initializeData();
+  }, [fetchExpertData, fetchExpertCourses, fetchExpertCohorts]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-900"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-red-600">
+          {error}
+          <button 
+            onClick={fetchExpertData} 
+            className="ml-4 text-blue-600 hover:underline"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Navigation handlers
   const handleCreateResource = () => {
@@ -74,39 +144,15 @@ function ExpertDashboard() {
     navigate('/expert/profile#certifications');
   };
 
-  // if (isLoading) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-  //       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-900"></div>
-  //     </div>
-  //   );
-  // }
+  const handleAddCourse = () => {
+    setShowCourseModal(true);
+  };
 
-  // if (error) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-  //       <div className="text-red-600">
-  //         {error}
-  //         <button 
-  //           onClick={() => window.location.reload()} 
-  //           className="ml-4 text-blue-600 hover:underline"
-  //         >
-  //           Retry
-  //         </button>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
-  // if (!expertData) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-  //       <div className="text-gray-600">
-  //         No expert data available
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  const handleCourseModalClose = async () => {
+    setShowCourseModal(false);
+    // Refresh courses list
+    await fetchExpertCourses();
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -121,7 +167,7 @@ function ExpertDashboard() {
               </div>
               <nav className="ml-8 flex space-x-8">
                 <Link 
-                  to="/dashboard"
+                  to="/expert"
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                     activeTab === "dashboard" ? "border-indigo-900 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
@@ -343,15 +389,15 @@ function ExpertDashboard() {
                 </div>
                 <h3 className="text-lg font-semibold text-blue-900 mb-1">Upload Course</h3>
                 <p className="text-xs text-center text-blue-900 mb-3">Create and publish your own course</p>
-                <div className="text-2xl font-bold text-blue-900 mb-2">3</div>
+                <div className="text-2xl font-bold text-blue-900 mb-2">{courses.length}</div>
                 <p className="text-xs text-blue-900">Courses Published</p>
               </div>
               <div className="flex-grow"></div>
               <div className="mt-4 pt-4 border-t border-blue-100">
                 <button 
-                  onClick={handleEducationEdit}
+                  onClick={handleAddCourse}
                   className="w-full bg-blue-900 hover:bg-blue-800 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
-                  Add Education
+                  Add Course
                 </button>
               </div>
             </div>
@@ -366,7 +412,7 @@ function ExpertDashboard() {
                 </div>
                 <h3 className="text-lg font-semibold text-blue-900 mb-1">Conduct Cohort</h3>
                 <p className="text-xs text-center text-blue-900 mb-3">Lead a group learning experience</p>
-                <div className="text-2xl font-bold text-blue-900 mb-2">1</div>
+                <div className="text-2xl font-bold text-blue-900 mb-2">{cohorts.length}</div>
                 <p className="text-xs text-blue-900">Active Cohorts</p>
               </div>
               <div className="flex-grow"></div>
@@ -374,7 +420,7 @@ function ExpertDashboard() {
                 <button 
                   onClick={handleExperienceEdit}
                   className="w-full bg-blue-900 hover:bg-blue-800 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
-                  Add Experience
+                  Add Cohort
                 </button>
               </div>
             </div>
@@ -433,12 +479,14 @@ function ExpertDashboard() {
                 </div>
                 <h3 className="text-lg font-semibold text-blue-900 mb-1">1-on-1 Sessions</h3>
                 <p className="text-xs text-center text-blue-900 mb-3">Personalized mentoring</p>
-                <div className="text-2xl font-bold text-blue-900 mb-2">24</div>
+                <div className="text-2xl font-bold text-blue-900 mb-2">{expertData.analytics.sessions.delivered}</div>
                 <p className="text-xs text-blue-900">Sessions Conducted</p>
               </div>
               <div className="flex-grow"></div>
               <div className="mt-4 pt-4 border-t border-blue-100">
-                <button className="w-full bg-blue-900 hover:bg-blue-800 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
+                <button 
+                  onClick={handleManageCalendar}
+                  className="w-full bg-blue-900 hover:bg-blue-800 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
                   Manage Calendar
                 </button>
               </div>
@@ -690,77 +738,41 @@ function ExpertDashboard() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Testimonial 1 */}
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300">
-              <div className="flex items-start mb-4">
-                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Student" className="w-12 h-12 rounded-full mr-4" />
-                <div>
-                  <h4 className="font-bold text-gray-800">Alex Thompson</h4>
-                  <div className="flex items-center mt-1">
-                    {[...Array(5)].map((_, index) => (
-                      <svg key={index} className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
-                    <span className="text-xs text-gray-500 ml-2">2 weeks ago</span>
+            {expertData.completedSessions?.slice(0, 3).map((session, index) => (
+              <div key={index} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300">
+                <div className="flex items-start mb-4">
+                  <img 
+                    src={session.studentAvatar || "https://randomuser.me/api/portraits/men/32.jpg"} 
+                    alt="Student" 
+                    className="w-12 h-12 rounded-full mr-4" 
+                  />
+                  <div>
+                    <h4 className="font-bold text-gray-800">{session.studentName}</h4>
+                    <div className="flex items-center mt-1">
+                      {[...Array(5)].map((_, i) => (
+                        <svg 
+                          key={i} 
+                          className={`w-4 h-4 ${i < session.rating ? 'text-yellow-500' : 'text-gray-300'}`} 
+                          fill="currentColor" 
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z" />
+                        </svg>
+                      ))}
+                      <span className="text-xs text-gray-500 ml-2">
+                        {new Date(session.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <p className="text-gray-600 mb-4">
-                "Dr. Johnson's UX Design course transformed my approach to problem-solving. Her practical insights and real-world examples made complex concepts accessible. I landed a new job within a month of completing her cohort!"
-              </p>
-              <div className="text-xs text-gray-500 italic">
-                From: Advanced UI Design Masterclass
-              </div>
-            </div>
-
-            {/* Testimonial 2 */}
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300">
-              <div className="flex items-start mb-4">
-                <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Student" className="w-12 h-12 rounded-full mr-4" />
-                <div>
-                  <h4 className="font-bold text-gray-800">Maya Rodriguez</h4>
-                  <div className="flex items-center mt-1">
-                    {[...Array(5)].map((_, index) => (
-                      <svg key={index} className={`w-4 h-4 ${index < 5 ? 'text-yellow-500' : 'text-gray-300'}`} fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
-                    <span className="text-xs text-gray-500 ml-2">1 month ago</span>
-                  </div>
+                <p className="text-gray-600 mb-4">
+                  {session.feedback || "Great session! The expert was very knowledgeable and helpful."}
+                </p>
+                <div className="text-xs text-gray-500 italic">
+                  From: {session.title}
                 </div>
               </div>
-              <p className="text-gray-600 mb-4">
-                "The 1-on-1 sessions with Sarah were incredibly valuable. She provided personalized feedback on my portfolio that helped me identify and fix critical issues. Her mentorship has been instrumental in my career growth."
-              </p>
-              <div className="text-xs text-gray-500 italic">
-                From: Portfolio Review Session
-              </div>
-            </div>
-
-            {/* Testimonial 3 */}
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300">
-              <div className="flex items-start mb-4">
-                <img src="https://randomuser.me/api/portraits/men/75.jpg" alt="Student" className="w-12 h-12 rounded-full mr-4" />
-                <div>
-                  <h4 className="font-bold text-gray-800">James Wilson</h4>
-                  <div className="flex items-center mt-1">
-                    {[...Array(5)].map((_, index) => (
-                      <svg key={index} className={`w-4 h-4 ${index < 4 ? 'text-yellow-500' : 'text-gray-300'}`} fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
-                    <span className="text-xs text-gray-500 ml-2">3 months ago</span>
-                  </div>
-                </div>
-              </div>
-              <p className="text-gray-600 mb-4">
-                "Figma for Beginners is by far the most comprehensive yet accessible course I've taken. Dr. Johnson breaks down complex tools into manageable chunks. I went from zero knowledge to designing my first app in just two weeks!"
-              </p>
-              <div className="text-xs text-gray-500 italic">
-                From: Figma for Beginners Course
-              </div>
-            </div>
+            ))}
           </div>
         </section>
 
@@ -790,6 +802,79 @@ function ExpertDashboard() {
           </div>
         </section>
       </main>
+
+      {showCalendarModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-800">Add Time Slot</h2>
+              <button 
+                onClick={() => setShowCalendarModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {message && (
+              <div className={`mb-4 p-2 rounded ${
+                message.includes('Error') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+              }`}>
+                {message}
+              </div>
+            )}
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Select Date</label>
+              <DatePicker
+                selected={selectedDate}
+                onChange={date => setSelectedDate(date)}
+                minDate={new Date()}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                dateFormat="MMMM d, yyyy"
+                placeholderText="Click to select a date"
+              />
+            </div>
+
+            {selectedDate && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Select Time Slot</label>
+                <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+                  {timeSlots.map((slot) => (
+                    <button
+                      key={slot}
+                      onClick={() => setSelectedTimeSlot(slot)}
+                      className={`p-2 text-sm rounded ${
+                        selectedTimeSlot === slot
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                      }`}
+                    >
+                      {slot}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-6">
+              <button
+                onClick={handleAddSlot}
+                className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              >
+                Add Slot
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <AddCourseModal 
+        isOpen={showCourseModal} 
+        onClose={handleCourseModalClose} 
+      />
 
       {/* Footer */}
       <Footer />

@@ -23,8 +23,22 @@ const CourseSchema = new mongoose.Schema({
         ref: 'User'
     }],
     pricing: {
-        type: Number,
-        required: true
+        expertFee: {
+            type: Number,
+            required: true
+        },
+        platformFee: {
+            type: Number,
+            default: 0
+        },
+        total: {
+            type: Number,
+            required: true
+        },
+        currency: {
+            type: String,
+            default: 'INR'
+        }
     },
     status: {
         type: String,
@@ -37,6 +51,14 @@ const CourseSchema = new mongoose.Schema({
     }
 }, {
     timestamps: true
+});
+
+// Pre-save hook to calculate total price
+CourseSchema.pre('save', function(next) {
+    if (this.pricing && this.pricing.expertFee) {
+        this.pricing.total = this.pricing.expertFee + (this.pricing.platformFee || 0);
+    }
+    next();
 });
 
 export default mongoose.model("Course", CourseSchema);

@@ -1,19 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card } from '../components/ui/card';
-import { Plus, Pencil } from 'lucide-react';
-import { Doughnut } from 'react-chartjs-2';
-import "chart.js/auto";
+import { Plus, Upload } from 'lucide-react';
 import InputBox from '../components/util/InputBox';
 import { ErrorPopup } from '../components/ui/error-popup';
 import axiosInstance from '../config/axios.config';
+import useExpertStore from "../store/expertStore";
+import useExpertSessionStore from "../store/expertSessionsStore";
+import useExpertCourseStore from "../store/expertCoursesStore";
+import useExpertCohortStore from "../store/expertCohortsStore";
 
 function ExpertProfile() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { expertData, fetchExpertData } = useExpertStore();
+  const resetExpertStore = useExpertStore((state) => state.reset);
+  const resetSessionStore = useExpertSessionStore((state) => state.reset);
+  const resetCourseStore = useExpertCourseStore((state) => state.reset);
+  const resetCohortStore = useExpertCohortStore((state) => state.reset);
+
   const [profileData, setProfileData] = useState({
     name: "",
     title: "",
@@ -36,14 +45,31 @@ function ExpertProfile() {
   const [errorMessage, setErrorMessage] = useState("");
   const [newEducation, setNewEducation] = useState({ degree: "", institution: "", year: "" });
   const [newExperience, setNewExperience] = useState({ title: "", company: "", duration: "", description: "" });
-  const [newCertification, setNewCertification] = useState({ name: "", issuer: "", year: "" });
+  const [newCertification, setNewCertification] = useState({ name: "", issuer: "" });
   const [isEditingEducation, setIsEditingEducation] = useState(false);
   const [isEditingExperience, setIsEditingExperience] = useState(false);
   const [isEditingCertification, setIsEditingCertification] = useState(false);
+  const [selectedCertificateFile, setSelectedCertificateFile] = useState(null);
 
   useEffect(() => {
-    fetchExpertProfile();
-  }, []);
+    // Load data from expert store
+    fetchExpertData();
+    if (expertData) {
+      setProfileData(prev => ({
+        ...prev,
+        name: expertData.name || "",
+        email: expertData.email || "",
+        phone: expertData.phone || "",  
+        expertise: expertData.expertise || [],
+        avatar: expertData.avatar || "/imagecopy.png",
+        completedSteps: expertData.profileCompletion || 0,
+        totalSteps: 8,
+        education: expertData.education || [],
+        experience: expertData.experience || [],
+        certifications: expertData.certifications || []
+      }));
+    } 
+  }, [expertData]);
 
   useEffect(() => {
     if (location.hash) {
@@ -53,21 +79,6 @@ function ExpertProfile() {
       }
     }
   }, [location]);
-
-  const fetchExpertProfile = async () => {
-    try {
-      const response = await axiosInstance.get('/expert/profile');
-      if (response.status === 200) {
-        setProfileData(prev => ({
-          ...prev,
-          ...response.data
-        }));
-      }
-    } catch (error) {
-      console.error('Failed to fetch profile:', error);
-      setErrorMessage("Failed to fetch profile data");
-    }
-  };
 
   const handleEditField = (field) => {
     setEditingField(field);
@@ -85,6 +96,8 @@ function ExpertProfile() {
           [field]: value
         }));
         setEditingField(null);
+        // Refresh expert data in store
+        fetchExpertData();
       }
     } catch (error) {
       console.error('Failed to update field:', error);
@@ -113,6 +126,8 @@ function ExpertProfile() {
         }));
         setNewExpertise("");
         setIsEditing(false);
+        // Refresh expert data in store
+        fetchExpertData();
       }
     } catch (error) {
       console.error('Failed to add expertise:', error);
@@ -138,6 +153,8 @@ function ExpertProfile() {
         }));
         setNewEducation({ degree: "", institution: "", year: "" });
         setIsEditingEducation(false);
+        // Refresh expert data in store
+        fetchExpertData();
       }
     } catch (error) {
       console.error('Failed to add education:', error);
@@ -163,6 +180,8 @@ function ExpertProfile() {
         }));
         setNewExperience({ title: "", company: "", duration: "", description: "" });
         setIsEditingExperience(false);
+        // Refresh expert data in store
+        fetchExpertData();
       }
     } catch (error) {
       console.error('Failed to add experience:', error);
@@ -171,27 +190,77 @@ function ExpertProfile() {
   };
 
   const handleAddCertification = async () => {
-    if (!newCertification.name || !newCertification.issuer || !newCertification.year) {
-      setErrorMessage("Please fill all certification fields");
+    if (!newCertification.name || !newCertification.issuer || !selectedCertificateFile) {
+      setErrorMessage("Please fill all certification fields and upload a PDF certificate");
       return;
     }
 
     try {
-      const response = await axiosInstance.put('/expert/update', {
-        certifications: [...profileData.certifications, newCertification]
+      const formData = new FormData();
+      formData.append('name', newCertification.name);
+      formData.append('issuer', newCertification.issuer);
+      formData.append('certificate', selectedCertificateFile);
+
+      const response = await axiosInstance.post('/expert/certification', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       });
       
-      if (response.status === 200) {
+      if (response.status === 201) {
         setProfileData(prev => ({
           ...prev,
-          certifications: [...prev.certifications, newCertification]
+          certifications: [...prev.certifications, response.data.certification]
         }));
-        setNewCertification({ name: "", issuer: "", year: "" });
+        setNewCertification({ name: "", issuer: "" });
+        setSelectedCertificateFile(null);
         setIsEditingCertification(false);
+        // Refresh expert data in store
+        fetchExpertData();
       }
     } catch (error) {
       console.error('Failed to add certification:', error);
-      setErrorMessage("Failed to add certification");
+      setErrorMessage(error.response?.data?.message || "Failed to add certification");
+    }
+  };
+
+  const handleCertificateFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.type !== 'application/pdf') {
+        setErrorMessage("Please upload a PDF file");
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {  // 5MB
+        setErrorMessage("File size should be less than 5MB");
+        return;
+      }
+      setSelectedCertificateFile(file);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await axiosInstance.post("/expert/auth/logout");
+      
+      // Clear cookies
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+      
+      // Reset all stores
+      resetExpertStore();
+      resetSessionStore();
+      resetCourseStore(); 
+      resetCohortStore();
+      
+      // Navigate to landing page
+      navigate("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      setErrorMessage("Failed to logout. Please try again.");
     }
   };
 
@@ -461,22 +530,43 @@ function ExpertProfile() {
                     value={newCertification.issuer}
                     onChange={(e) => setNewCertification(prev => ({ ...prev, issuer: e.target.value }))}
                   />
-                  <Input
-                    placeholder="Year"
-                    value={newCertification.year}
-                    onChange={(e) => setNewCertification(prev => ({ ...prev, year: e.target.value }))}
-                  />
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Certificate (PDF only)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        onChange={handleCertificateFileChange}
+                        className="hidden"
+                        id="certificate-upload"
+                      />
+                      <label
+                        htmlFor="certificate-upload"
+                        className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer"
+                      >
+                        <Upload size={16} />
+                        {selectedCertificateFile ? selectedCertificateFile.name : "Choose PDF file"}
+                      </label>
+                      {selectedCertificateFile && (
+                        <span className="text-sm text-green-600">File selected</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <Button
                     onClick={handleAddCertification}
                     className="bg-blue-800 text-white hover:bg-[#143d65]"
+                    disabled={!selectedCertificateFile}
                   >
                     Save
                   </Button>
                   <Button
                     onClick={() => {
-                      setNewCertification({ name: "", issuer: "", year: "" });
+                      setNewCertification({ name: "", issuer: "" });
+                      setSelectedCertificateFile(null);
                       setIsEditingCertification(false);
                     }}
                     className="bg-gray-300 text-black hover:bg-gray-400"
@@ -502,12 +592,19 @@ function ExpertProfile() {
             <div 
               className="h-full bg-[#143d65]" 
               style={{ width: `${completionPercentage}%` }}
-            ></div>
+            />
           </div>
           <div className="text-sm text-[#676767] mt-1">
             Profile completion: {profileData.completedSteps}/{profileData.totalSteps} steps completed
           </div>
         </div>
+
+        <button
+          onClick={handleLogout}
+          className="mt-8 w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors"
+        >
+          Logout
+        </button>
       </main>
 
       <Footer />

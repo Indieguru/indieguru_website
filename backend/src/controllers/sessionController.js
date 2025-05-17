@@ -133,3 +133,35 @@ export const bookSession = async (req, res) => {
     res.status(500).json({ message: 'Booking failed', error: error.message });
   }
 };
+
+export const getSessionFeedback = async (req, res) => {
+  try {
+    const sessions = await Session.find({ 
+      status: 'completed',
+      feedback: { $exists: true, $ne: null },
+      rating: { $exists: true, $ne: null }
+    })
+    .populate('expert', 'firstName lastName')
+    .populate('bookedBy', 'firstName lastName')
+    .sort({ rating: -1 })
+    .limit(10);
+
+    res.status(200).json({ 
+      success: true,
+      sessions: sessions.map(session => ({
+        _id: session._id,
+        title: `Session with ${session.expert.firstName} ${session.expert.lastName}`,
+        feedback: session.feedback,
+        rating: session.rating,
+        studentName: session.bookedBy ? `${session.bookedBy.firstName} ${session.bookedBy.lastName}` : 'Anonymous Student'
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching session feedback:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error fetching session feedback',
+      error: error.message 
+    });
+  }
+};

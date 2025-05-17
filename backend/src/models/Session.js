@@ -1,7 +1,15 @@
 import mongoose from 'mongoose';
 
-
 const SessionSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+    default: 'One-on-One Session'
+  },
+  studentName: {
+    type: String,
+    required: false
+  },
   expert: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Expert',
@@ -19,9 +27,24 @@ const SessionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  paymentFee: {
-    type: Number,
-    required: true,
+  pricing: {
+    expertFee: {
+      type: Number,
+      // required: true
+    },
+    platformFee: {
+      type: Number,
+      required: false,
+      default: 0
+    },
+    total: {
+      type: Number,
+      // required: true
+    },
+    currency: {
+      type: String,
+      default: 'INR'
+    }
   },
   bookedStatus: {
     type: Boolean,
@@ -38,7 +61,7 @@ const SessionSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['upcoming', 'completed', 'cancelled','not booked'],
+    enum: ['upcoming', 'completed', 'cancelled', 'not booked'],
     default: 'not booked',
   },
   feedback: {
@@ -56,6 +79,15 @@ const SessionSchema = new mongoose.Schema({
     type: String, // Google Meet link
     required: true,
   }
+});
+
+// Pre-save hook to calculate total price
+SessionSchema.pre('save', function(next) {
+  if (this.pricing && this.pricing.expertFee) {
+    // Calculate total using existing platform fee or 0
+    this.pricing.total = this.pricing.expertFee + (this.pricing.platformFee || 0);
+  }
+  next();
 });
 
 const Session = mongoose.model('Session', SessionSchema);

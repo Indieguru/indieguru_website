@@ -8,6 +8,8 @@ import { Modal } from "../components/modals/modal";
 import { BookingModal } from "../components/modals/BookingModal";
 import useAuthStore from "../store/authStore";
 import { useNavigate } from "react-router-dom";
+// import { Users, ArrowRight } from "lucide-react";
+// import Header from "../components/layout/Header";
 
 const AllCoursesPage = () => {
   const navigate = useNavigate();
