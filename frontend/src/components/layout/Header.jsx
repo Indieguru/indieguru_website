@@ -30,7 +30,7 @@ const Header = () => {
             </Link>
             ) : (
             <Link to="/" className="flex items-center">
-              <img src="/logo.png" alt="IndieGuru" className="h-8 w-8 object-contain rounded-full" />
+              <img src="/logo.svg" alt="IndieGuru" className="h-8 w-8 object-contain rounded-full" />
               <span className="ml-2 text-lg font-semibold text-gray-900">IndieGuru</span>
             </Link>
             )}

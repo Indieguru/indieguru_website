@@ -8,13 +8,16 @@ import Header from "../components/layout/Header";
 export default function CommunityPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("threads");
+  // Commented out like and comment state variables
+  /* 
   const [likes, setLikes] = useState({});
   const [likedPosts, setLikedPosts] = useState(new Set()); // Track liked posts
   const [comments] = useState({});
-  const [showPostForm, setShowPostForm] = useState(false);
   const [showCommentForm, setShowCommentForm] = useState(null);
-  const [newPost, setNewPost] = useState({ category: "", content: "", image: null });
   const [newComment, setNewComment] = useState("");
+  */
+  const [showPostForm, setShowPostForm] = useState(false);
+  const [newPost, setNewPost] = useState({ category: "", content: "", image: null });
   const [isSignedIn] = useState(false); // Mock state for user authentication
   const [postAnonymously, setPostAnonymously] = useState(false);
   
@@ -224,6 +227,8 @@ export default function CommunityPage() {
     },
   ];
 
+  // Commented out like functionality
+  /*
   const handleLike = (postId) => {
     if (!likedPosts.has(postId)) {
       setLikes((prevLikes) => ({
@@ -233,10 +238,14 @@ export default function CommunityPage() {
       setLikedPosts((prevLikedPosts) => new Set(prevLikedPosts).add(postId));
     }
   };
+  */
 
+  // Commented out comment functionality
+  /*
   const handleComment = (postId) => {
     setShowCommentForm(postId);
   };
+  */
 
   const handleShare = (postId) => {
     alert(`Post ${postId} shared!`);
@@ -273,6 +282,8 @@ export default function CommunityPage() {
     }
   };
 
+  // Commented out add comment functionality
+  /*
   const handleAddComment = (postId) => {
     if (newComment.trim() === "") {
       alert("Please enter a comment.");
@@ -317,6 +328,7 @@ export default function CommunityPage() {
       setShowCommentForm(null);
     }
   };
+  */
 
   // CSS for hiding scrollbar but allowing scroll functionality
   const scrollbarStyles = `
@@ -773,6 +785,7 @@ export default function CommunityPage() {
                   <img src={post.image} alt="Post image" className="w-full rounded-lg mb-4" />
                 )}
                 <div className="flex items-center gap-4 pt-2 border-t mt-4">
+                {/* Commented out like button 
                 <button
                     className={`bg-white flex items-center gap-1 text-[#6d6e76] hover:text-[#00a9a5] ${
                       likedPosts.has(post.id) ? "text-red-500" : ""
@@ -782,6 +795,8 @@ export default function CommunityPage() {
                     <Heart className={`w-4 h-4 ${likedPosts.has(post.id) ? "fill-current" : ""}`} />
                     <span>{likes[post.id] || post.likes}</span>
                   </button>
+                */}
+                  {/* Commented out comment button 
                   <button
                     className="flex bg-white items-center gap-1 text-[#6d6e76] hover:text-[#00a9a5]"
                     onClick={() => handleComment(post.id)}
@@ -789,16 +804,17 @@ export default function CommunityPage() {
                     <MessageCircle className="w-4 h-4" />
                     <span>{comments[post.id] || post.comments}</span>
                   </button>
-                  <button
+                  */}
+                  {/* <button
                     className="flex items-center bg-white gap-1 text-[#6d6e76] hover:text-[#00a9a5] ml-auto"
                     onClick={() => handleShare(post.id)}
                   >
                     <Share2 className="w-4 h-4" />
                     <span>Share</span>
-                  </button>
+                  </button> */}
                 </div>
 
-                {/* Comments List */}
+                {/* Comments List - Commented Out
                 {post.commentsList && post.commentsList.length > 0 && (
                   <div className="mt-4 pt-4 border-t">
                     <h4 className="font-medium text-[#232536] mb-3">Comments</h4>
@@ -818,8 +834,9 @@ export default function CommunityPage() {
                     </div>
                   </div>
                 )}
+                */}
 
-                {/* Comment Form */}
+                {/* Comment Form - Commented Out
                 {showCommentForm === post.id && (
                   <div className="mt-4 pt-4 border-t scale-in">
                     <div className="flex gap-3">
@@ -850,6 +867,7 @@ export default function CommunityPage() {
                     </div>
                   </div>
                 )}
+                */}
               </div>
             </div>
           ))}
