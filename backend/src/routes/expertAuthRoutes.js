@@ -5,7 +5,7 @@ import { z } from 'zod';
 import passport from 'passport';
 import Expert from '../models/Expert.js';
 import '../services/passport.js'; // Import Passport configuration
-// Import OTP service
+import expertAuthMiddleware from '../middlewares/expertAuthMiddleware.js'; // Import expert auth middleware
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
@@ -43,6 +43,22 @@ router.get('/google/callback', passport.authenticate('google-expert', { failureR
       return res.redirect(`${process.env.FRONTEND_URL}/expert`);
   } catch (error) {
     return res.status(500).json({ message: 'Server error', error });
+  }
+});
+
+router.post('/logout', expertAuthMiddleware, async (req, res) => {
+  try {
+    // Clear all cookies
+    res.clearCookie('token', { httpOnly: true, secure: true, sameSite: "none" });
+    res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: "none" });
+    res.clearCookie('userId', { httpOnly: true, secure: true, sameSite: "none" });
+    res.clearCookie('googleRefreshToken', { httpOnly: true, secure: true, sameSite: "none" });
+    res.clearCookie('accessToken', { httpOnly: true, secure: true, sameSite: "none" });
+
+    res.status(200).json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ message: 'Error during logout', error: error.message });
   }
 });
 
