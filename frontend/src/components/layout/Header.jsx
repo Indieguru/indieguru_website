@@ -40,11 +40,7 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/blogpage" className="text-gray-600 hover:text-gray-900">Blogs</Link>
             <Link to="/communitypage" className="text-gray-600 hover:text-gray-900">Community</Link>
-            {isAuthenticated ? (
-              <Link to="/bookings" className="text-gray-600 hover:text-gray-900">Bookings</Link>
-            ) : (
               <Link to="/all-courses" className="text-gray-600 hover:text-gray-900">All Courses</Link>
-            )}
             {isAuthenticated && (
               <Link to={getDashboardLink()} className="text-gray-600 hover:text-gray-900">Dashboard</Link>
             )}
