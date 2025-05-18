@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import Expert from '../models/Expert.js';
+import mongoose from 'mongoose';
 
 const generateToken = (user) => {
   return jwt.sign({ id: user.id, userType: user.userType }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -19,8 +20,11 @@ const expertAuthMiddleware = async (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-
+        // Convert the decoded ID to a string if it's a Buffer
+        req.user = {
+            ...decoded,
+            id: decoded.id instanceof Buffer ? decoded.id.toString('hex') : decoded.id
+        };
         return next();
     } catch (err) {
         if (refreshToken) {
@@ -31,14 +35,17 @@ const expertAuthMiddleware = async (req, res, next) => {
                     return res.status(403).json({ message: 'Invalid refresh token.' });
                 }
 
-                const newToken = generateToken(user._id);
-                const newRefreshToken = generateRefreshToken(user._id);
+                const newToken = generateToken(user);
+                const newRefreshToken = generateRefreshToken(user);
                 user.refreshToken = newRefreshToken;
                 await user.save();
 
-                res.cookie('token', newToken, { httpOnly: true, secure: true , sameSite: "none"});
-                res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true, sameSite: "none"});
-                req.user = { id: user._id, userType: user.userType };
+                res.cookie('token', newToken, { httpOnly: true, secure: true, sameSite: "none" });
+                res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true, sameSite: "none" });
+                req.user = { 
+                    id: user._id.toString(),
+                    userType: user.userType 
+                };
                 return next();
             } catch (err) {
                 return res.status(403).json({ message: 'Invalid refresh token.' });

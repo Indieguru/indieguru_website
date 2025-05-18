@@ -4,8 +4,16 @@ import axiosInstance from '../config/axios.config';
 const useExpertStore = create((set) => ({
   expertData: {
     name: "",
-    email:"",
-    phone:"",
+    email: "",
+    phone: "",
+    title: "",
+    firstName: "",
+    lastName: "",
+    education: [],
+    experience: [],
+    certifications: [],
+    industries: [],
+    targetAudience: [],
     profileCompletion: 0,
     activeStreak: 0,
     expertise: [],
@@ -21,6 +29,11 @@ const useExpertStore = create((set) => ({
       sessions: 0,
       courses: 0,
       cohorts: 0
+    },
+    sessionPricing: {
+      expertFee: 0,
+      platformFee: 0,
+      currency: 'INR'
     },
     analytics: {
       courses: {
@@ -44,7 +57,8 @@ const useExpertStore = create((set) => ({
       total: 0,
       breakdown: {}
     },
-    studentsEnrolled: 0
+    studentsEnrolled: 0,
+    completedSessions: []
   },
   
   isLoading: false,
@@ -54,6 +68,7 @@ const useExpertStore = create((set) => ({
     set({ isLoading: true });
     try {
       const response = await axiosInstance.get('/expert/dashboard');
+      console.log('Expert data fetched:', response.data);
       if (response.status === 200) {
         set({ 
           expertData: response.data,
@@ -105,7 +120,79 @@ const useExpertStore = create((set) => ({
     }
   })),
 
-  clearError: () => set({ error: null })
+  updateEducation: (education) => set((state) => ({
+    expertData: {
+      ...state.expertData,
+      education
+    }
+  })),
+
+  updateExperience: (experience) => set((state) => ({
+    expertData: {
+      ...state.expertData,
+      experience
+    }
+  })),
+
+  updateCertifications: (certifications) => set((state) => ({
+    expertData: {
+      ...state.expertData,
+      certifications
+    }
+  })),
+
+  clearError: () => set({ error: null }),
+
+  reset: () => set({
+    expertData: {
+      name: "",
+      email: "",
+      phone: "",
+      title: "",
+      firstName: "",
+      lastName: "",
+      education: [],
+      experience: [],
+      certifications: [],
+      industries: [],
+      targetAudience: [],
+      profileCompletion: 0,
+      activeStreak: 0,
+      expertise: [],
+      upcomingSessions: [],
+      earnings: {
+        total: 0,
+        thisMonth: 0,
+        lastMonth: 0,
+        outstanding: 0
+      },
+      outstandingAmount: {
+        total: 0,
+        sessions: 0,
+        courses: 0,
+        cohorts: 0
+      },
+      sessionPricing: {
+        expertFee: 0,
+        platformFee: 0,
+        currency: 'INR'
+      },
+      analytics: {
+        courses: { earnings: 0, monthlyGrowth: 0, delivered: 0 },
+        sessions: { earnings: 0, monthlyGrowth: 0, delivered: 0 },
+        cohorts: { earnings: 0, monthlyGrowth: 0, delivered: 0 }
+      },
+      ratings: {
+        overall: 0,
+        total: 0,
+        breakdown: {}
+      },
+      studentsEnrolled: 0,
+      completedSessions: []
+    },
+    isLoading: false,
+    error: null
+  })
 }));
 
 export default useExpertStore;

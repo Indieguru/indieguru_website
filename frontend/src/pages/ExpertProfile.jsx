@@ -5,8 +5,7 @@ import Footer from '../components/layout/Footer';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card } from '../components/ui/card';
-import { Plus, Upload } from 'lucide-react';
-import InputBox from '../components/util/InputBox';
+import { Plus, Upload, Pencil } from 'lucide-react';
 import { ErrorPopup } from '../components/ui/error-popup';
 import axiosInstance from '../config/axios.config';
 import useExpertStore from "../store/expertStore";
@@ -28,8 +27,6 @@ function ExpertProfile() {
     title: "",
     email: "",
     phone: "",
-    location: "",
-    bio: "",
     expertise: [],
     education: [],
     experience: [],
@@ -39,27 +36,43 @@ function ExpertProfile() {
     totalSteps: 8
   });
 
-  const [isEditing, setIsEditing] = useState(false);
   const [editingField, setEditingField] = useState(null);
-  const [newExpertise, setNewExpertise] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [newEducation, setNewEducation] = useState({ degree: "", institution: "", year: "" });
+  const [isEditing, setIsEditing] = useState(false);
+  const [newExpertise, setNewExpertise] = useState("");
+  const [newEducation, setNewEducation] = useState({ 
+    degree: "", 
+    institution: "", 
+    field: "",
+    startYear: "",
+    endYear: "",
+    description: "" 
+  });
   const [newExperience, setNewExperience] = useState({ title: "", company: "", duration: "", description: "" });
   const [newCertification, setNewCertification] = useState({ name: "", issuer: "" });
   const [isEditingEducation, setIsEditingEducation] = useState(false);
   const [isEditingExperience, setIsEditingExperience] = useState(false);
   const [isEditingCertification, setIsEditingCertification] = useState(false);
   const [selectedCertificateFile, setSelectedCertificateFile] = useState(null);
+  const [editValues, setEditValues] = useState({
+    name: "",
+    title: "",
+    email: "",
+    phone: ""
+  });
 
   useEffect(() => {
-    // Load data from expert store
     fetchExpertData();
+  }, []);
+
+  useEffect(() => {
     if (expertData) {
       setProfileData(prev => ({
         ...prev,
         name: expertData.name || "",
         email: expertData.email || "",
-        phone: expertData.phone || "",  
+        phone: expertData.phoneNo || "",
+        title: expertData.title || "",  // This line is crucial
         expertise: expertData.expertise || [],
         avatar: expertData.avatar || "/imagecopy.png",
         completedSteps: expertData.profileCompletion || 0,
@@ -68,124 +81,194 @@ function ExpertProfile() {
         experience: expertData.experience || [],
         certifications: expertData.certifications || []
       }));
-    } 
-  }, [expertData]);
-
-  useEffect(() => {
-    if (location.hash) {
-      const element = document.getElementById(location.hash.slice(1));
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
+      setEditValues(prev => ({
+        ...prev,
+        name: expertData.name || "",
+        title: expertData.title || "",  // Make sure to set title in editValues too
+        email: expertData.email || "",
+        phone: expertData.phoneNo || ""
+      }));
     }
-  }, [location]);
+  }, [expertData]);
 
   const handleEditField = (field) => {
     setEditingField(field);
   };
 
-  const handleSaveField = async (field, value) => {
+  const handleSaveField = async (field) => {
     try {
-      const response = await axiosInstance.put('/expert/update', {
-        [field]: value
-      });
+      const payload = {};
+      
+      // Map frontend field names to backend field names
+      switch (field) {
+        case 'name':
+          payload.name = editValues[field];
+          break;
+        case 'title':
+          payload.title = editValues[field];
+          break;
+        case 'phone':
+          payload.phoneNo = editValues[field];
+          break;
+        case 'expertise':
+          payload.expertise = [...profileData.expertise, newExpertise];
+          break;
+        default:
+          payload[field] = editValues[field];
+      }
+      
+      const response = await axiosInstance.put('/expert/update', payload);
       
       if (response.status === 200) {
-        setProfileData(prev => ({
-          ...prev,
-          [field]: value
-        }));
-        setEditingField(null);
-        // Refresh expert data in store
-        fetchExpertData();
+        if (field === 'expertise') {
+          setProfileData(prev => ({
+            ...prev,
+            expertise: [...prev.expertise, newExpertise]
+          }));
+          setNewExpertise("");
+          setIsEditing(false);
+        } else {
+          setProfileData(prev => ({
+            ...prev,
+            [field]: editValues[field]
+          }));
+          // Update the expert store with the new data
+          useExpertStore.getState().setExpertData({
+            [field]: editValues[field]
+          });
+          setEditingField(null);
+        }
       }
     } catch (error) {
       console.error('Failed to update field:', error);
-      setErrorMessage("Failed to update field");
+      setErrorMessage(error.response?.data?.message || "Failed to update field");
     }
   };
 
-  const handleAddExpertise = async () => {
-    if (newExpertise.trim() === "") return;
+  const renderBasicInfoField = (field, label, type = "text") => {
+    // console.log("Rendering field:", field, "with value:", profileData[field]);
+    const isEditable = field === 'email' || field === 'phone' ? !profileData[field] : true;
     
-    const expertiseToAdd = newExpertise.trim();
-    if (profileData.expertise.some(exp => exp.toLowerCase() === expertiseToAdd.toLowerCase())) {
-      setErrorMessage("This expertise is already added!");
-      return;
-    }
-
-    try {
-      const response = await axiosInstance.put('/expert/update', {
-        expertise: [...profileData.expertise, expertiseToAdd]
-      });
-      
-      if (response.status === 200) {
-        setProfileData(prev => ({
-          ...prev,
-          expertise: [...prev.expertise, expertiseToAdd]
-        }));
-        setNewExpertise("");
-        setIsEditing(false);
-        // Refresh expert data in store
-        fetchExpertData();
-      }
-    } catch (error) {
-      console.error('Failed to add expertise:', error);
-      setErrorMessage("Failed to add expertise");
-    }
+    return (
+      <div className="relative">
+        <label className="block text-sm font-medium text-[#232636] mb-1">{label}</label>
+        {editingField === field ? (
+          <div>
+            <Input
+              type={type}
+              value={editValues[field]}
+              onChange={(e) => setEditValues(prev => ({ ...prev, [field]: e.target.value }))}
+              className="w-full border-[#d8d8d8]"
+              disabled={!isEditable}
+            />
+            {isEditable && (
+              <div className="flex gap-2 mt-2">
+                <Button
+                  onClick={() => handleSaveField(field)}
+                  className="bg-blue-800 text-white hover:bg-[#143d65]"
+                >
+                  Save
+                </Button>
+                <Button
+                  onClick={() => {
+                    setEditingField(null);
+                    setEditValues(prev => ({ ...prev, [field]: profileData[field] }));
+                  }}
+                  className="bg-gray-300 text-black hover:bg-gray-400"
+                >
+                  Cancel
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="relative">
+            <Input
+              value={profileData[field] || ""}
+              readOnly
+              className="w-full border-[#d8d8d8] bg-[#f9fbff] pr-10"
+            />
+            {isEditable && (
+              <Button
+                onClick={() => handleEditField(field)}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[#003265] bg-transparent hover:bg-[#f5f5f5] p-1"
+              >
+                <Pencil size={16} />
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+    );
   };
 
   const handleAddEducation = async () => {
-    if (!newEducation.degree || !newEducation.institution || !newEducation.year) {
-      setErrorMessage("Please fill all education fields");
+    if (!newEducation.degree || !newEducation.institution || !newEducation.field || !newEducation.startYear || !newEducation.endYear) {
+      setErrorMessage("Please fill all required education fields");
       return;
     }
 
     try {
-      const response = await axiosInstance.put('/expert/update', {
-        education: [...profileData.education, newEducation]
-      });
+      const response = await axiosInstance.post('/expert/education', newEducation);
       
-      if (response.status === 200) {
+      if (response.status === 201) {
         setProfileData(prev => ({
           ...prev,
-          education: [...prev.education, newEducation]
+          education: [...prev.education, response.data.education]
         }));
-        setNewEducation({ degree: "", institution: "", year: "" });
+        setNewEducation({ 
+          degree: "", 
+          institution: "", 
+          field: "",
+          startYear: "",
+          endYear: "",
+          description: "" 
+        });
         setIsEditingEducation(false);
-        // Refresh expert data in store
         fetchExpertData();
       }
     } catch (error) {
       console.error('Failed to add education:', error);
-      setErrorMessage("Failed to add education");
+      setErrorMessage(error.response?.data?.message || "Failed to add education");
     }
   };
 
   const handleAddExperience = async () => {
     if (!newExperience.title || !newExperience.company || !newExperience.duration) {
-      setErrorMessage("Please fill all experience fields");
+      setErrorMessage("Please fill all required experience fields");
       return;
     }
 
     try {
-      const response = await axiosInstance.put('/expert/update', {
-        experience: [...profileData.experience, newExperience]
-      });
+      const response = await axiosInstance.post('/expert/experience', newExperience);
       
-      if (response.status === 200) {
+      if (response.status === 201) {
         setProfileData(prev => ({
           ...prev,
-          experience: [...prev.experience, newExperience]
+          experience: [...prev.experience, response.data.experience]
         }));
         setNewExperience({ title: "", company: "", duration: "", description: "" });
         setIsEditingExperience(false);
-        // Refresh expert data in store
         fetchExpertData();
       }
     } catch (error) {
       console.error('Failed to add experience:', error);
-      setErrorMessage("Failed to add experience");
+      setErrorMessage(error.response?.data?.message || "Failed to add experience");
+    }
+  };
+
+  const handleCertificateFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.type !== 'application/pdf') {
+        setErrorMessage("Please upload a PDF file");
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {  // 5MB
+        setErrorMessage("File size should be less than 5MB");
+        return;
+      }
+      setSelectedCertificateFile(file);
     }
   };
 
@@ -224,39 +307,10 @@ function ExpertProfile() {
     }
   };
 
-  const handleCertificateFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.type !== 'application/pdf') {
-        setErrorMessage("Please upload a PDF file");
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {  // 5MB
-        setErrorMessage("File size should be less than 5MB");
-        return;
-      }
-      setSelectedCertificateFile(file);
-    }
-  };
-
   const handleLogout = async () => {
     try {
       await axiosInstance.post("/expert/auth/logout");
       
-      // Clear cookies
-      document.cookie.split(";").forEach((c) => {
-        document.cookie = c
-          .replace(/^ +/, "")
-          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-      });
-      
-      // Reset all stores
-      resetExpertStore();
-      resetSessionStore();
-      resetCourseStore(); 
-      resetCohortStore();
-      
-      // Navigate to landing page
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -294,34 +348,10 @@ function ExpertProfile() {
 
             <div className="md:w-3/4">
               <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputBox 
-                  field="Name" 
-                  value={profileData.name} 
-                  isEditing={editingField === 'name'}
-                  onEdit={() => handleEditField('name')}
-                  onSave={(value) => handleSaveField('name', value)}
-                />
-                <InputBox 
-                  field="Title" 
-                  value={profileData.title} 
-                  isEditing={editingField === 'title'}
-                  onEdit={() => handleEditField('title')}
-                  onSave={(value) => handleSaveField('title', value)}
-                />
-                <InputBox 
-                  field="Email" 
-                  value={profileData.email} 
-                  isEditing={editingField === 'email'}
-                  onEdit={() => handleEditField('email')}
-                  onSave={(value) => handleSaveField('email', value)}
-                />
-                <InputBox 
-                  field="Phone" 
-                  value={profileData.phone} 
-                  isEditing={editingField === 'phone'}
-                  onEdit={() => handleEditField('phone')}
-                  onSave={(value) => handleSaveField('phone', value)}
-                />
+                {renderBasicInfoField('name', 'Name')}
+                {renderBasicInfoField('title', 'Title')}
+                {renderBasicInfoField('email', 'Email', 'email')}
+                {renderBasicInfoField('phone', 'Phone', 'tel')}
               </form>
             </div>
           </div>
@@ -346,12 +376,12 @@ function ExpertProfile() {
                   className="border-[#d8d8d8] w-48"
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
-                      handleAddExpertise();
+                      handleSaveField('expertise');
                     }
                   }}
                 />
                 <Button
-                  onClick={handleAddExpertise}
+                  onClick={() => handleSaveField('expertise')}
                   className="bg-blue-800 text-white hover:bg-[#143d65] px-4 py-2"
                 >
                   Save
@@ -403,9 +433,26 @@ function ExpertProfile() {
                     onChange={(e) => setNewEducation(prev => ({ ...prev, institution: e.target.value }))}
                   />
                   <Input
-                    placeholder="Year"
-                    value={newEducation.year}
-                    onChange={(e) => setNewEducation(prev => ({ ...prev, year: e.target.value }))}
+                    placeholder="Field of Study"
+                    value={newEducation.field}
+                    onChange={(e) => setNewEducation(prev => ({ ...prev, field: e.target.value }))}
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Start Year"
+                    value={newEducation.startYear}
+                    onChange={(e) => setNewEducation(prev => ({ ...prev, startYear: parseInt(e.target.value) }))}
+                  />
+                  <Input
+                    type="number"
+                    placeholder="End Year"
+                    value={newEducation.endYear}
+                    onChange={(e) => setNewEducation(prev => ({ ...prev, endYear: parseInt(e.target.value) }))}
+                  />
+                  <Input
+                    placeholder="Description (optional)"
+                    value={newEducation.description}
+                    onChange={(e) => setNewEducation(prev => ({ ...prev, description: e.target.value }))}
                   />
                 </div>
                 <div className="flex gap-2">
@@ -417,7 +464,7 @@ function ExpertProfile() {
                   </Button>
                   <Button
                     onClick={() => {
-                      setNewEducation({ degree: "", institution: "", year: "" });
+                      setNewEducation({ degree: "", institution: "", field: "", startYear: "", endYear: "", description: "" });
                       setIsEditingEducation(false);
                     }}
                     className="bg-gray-300 text-black hover:bg-gray-400"

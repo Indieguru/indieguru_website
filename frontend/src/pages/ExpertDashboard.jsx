@@ -8,6 +8,7 @@ import axiosInstance from '../config/axios.config';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import AddCourseModal from '../components/modals/AddCourseModal';
+import AddCohortModal from '../components/modals/AddCohortModal';
 
 function ExpertDashboard() {
   const [activeTab] = useState("dashboard");
@@ -21,6 +22,7 @@ function ExpertDashboard() {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
   const [message, setMessage] = useState('');
   const [showCourseModal, setShowCourseModal] = useState(false);
+  const [showCohortModal, setShowCohortModal] = useState(false);
 
   const timeSlots = [
     "09:00-10:00", "10:00-11:00", "11:00-12:00", "12:00-13:00",
@@ -136,14 +138,6 @@ function ExpertDashboard() {
     navigate('/expert/profile#education');
   };
 
-  const handleExperienceEdit = () => {
-    navigate('/expert/profile#experience');
-  };
-
-  const handleCertificationsEdit = () => {
-    navigate('/expert/profile#certifications');
-  };
-
   const handleAddCourse = () => {
     setShowCourseModal(true);
   };
@@ -152,6 +146,16 @@ function ExpertDashboard() {
     setShowCourseModal(false);
     // Refresh courses list
     await fetchExpertCourses();
+  };
+
+  const handleAddCohort = () => {
+    setShowCohortModal(true);
+  };
+
+  const handleCohortModalClose = async () => {
+    setShowCohortModal(false);
+    // Refresh cohorts data
+    await fetchExpertCohorts();
   };
 
   return (
@@ -418,7 +422,7 @@ function ExpertDashboard() {
               <div className="flex-grow"></div>
               <div className="mt-4 pt-4 border-t border-blue-100">
                 <button 
-                  onClick={handleExperienceEdit}
+                  onClick={handleAddCohort}
                   className="w-full bg-blue-900 hover:bg-blue-800 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
                   Add Cohort
                 </button>
@@ -441,7 +445,7 @@ function ExpertDashboard() {
               <div className="flex-grow"></div>
               <div className="mt-4 pt-4 border-t border-blue-100">
                 <button 
-                  onClick={handleCertificationsEdit}
+                  onClick={handleEducationEdit}
                   className="w-full bg-blue-900 hover:bg-blue-800 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
                   Add Certification
                 </button>
@@ -743,11 +747,11 @@ function ExpertDashboard() {
                 <div className="flex items-start mb-4">
                   <img 
                     src={session.studentAvatar || "https://randomuser.me/api/portraits/men/32.jpg"} 
-                    alt="Student" 
-                    className="w-12 h-12 rounded-full mr-4" 
+                    alt="Student"
+                    className="w-10 h-10 rounded-full mr-3"
                   />
-                  <div>
-                    <h4 className="font-bold text-gray-800">{session.studentName}</h4>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900">{session.studentName || "Anonymous Student"}</h4>
                     <div className="flex items-center mt-1">
                       {[...Array(5)].map((_, i) => (
                         <svg 
@@ -874,6 +878,11 @@ function ExpertDashboard() {
       <AddCourseModal 
         isOpen={showCourseModal} 
         onClose={handleCourseModalClose} 
+      />
+
+      <AddCohortModal 
+        isOpen={showCohortModal} 
+        onClose={handleCohortModalClose} 
       />
 
       {/* Footer */}

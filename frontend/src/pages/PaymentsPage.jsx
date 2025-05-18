@@ -230,7 +230,9 @@ function PaymentsPage() {
                           {item.title || 'One-on-One Session'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
-                          ${item.pricing?.total || item.pricing || 0}
+                          ${typeof item.pricing === 'object' ? 
+                            (item.pricing.expertFee || 0) : 
+                            (item.pricing || 0)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -244,7 +246,7 @@ function PaymentsPage() {
                           </span>
                         </td>
                       </tr>
-                  ))}
+                    ))}
                 </tbody>
               </table>
             </div>

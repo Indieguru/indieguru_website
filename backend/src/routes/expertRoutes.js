@@ -23,7 +23,8 @@ import {
   updateCertification,
   deleteEducationDocument,
   deleteCertificationDocument,
-  getExpertTransactions
+  getExpertTransactions,
+  addExperience
 } from '../controllers/expertController.js';
 import expertAuthMiddleware from "../middlewares/expertAuthMiddleware.js";
 import upload from '../middlewares/uploadMiddleware.js';
@@ -35,6 +36,35 @@ router.use("/auth", expertAuthRoutes);
 // Expert dashboard data
 router.get('/dashboard', expertAuthMiddleware, getExpertDashboardData);
 router.get('/transactions', expertAuthMiddleware, getExpertTransactions);
+
+// Expert profile update
+router.put('/update', expertAuthMiddleware, async (req, res) => {
+  try {
+    const expertId = req.user.id;
+    const updates = req.body;
+
+    const expert = await Expert.findById(expertId);
+    if (!expert) {
+      return res.status(404).json({ message: "Expert not found" });
+    }
+
+    // Update allowed fields
+    if (updates.name) {
+      const [firstName, ...lastNameParts] = updates.name.split(" ");
+      expert.firstName = firstName;
+      expert.lastName = lastNameParts.join(" ");
+    }
+    if (updates.title) expert.title = updates.title;
+    if (updates.phoneNo) expert.phoneNo = updates.phoneNo;
+    if (updates.expertise) expert.expertise = updates.expertise;
+
+    await expert.save();
+    res.status(200).json(expert);
+  } catch (error) {
+    console.error('Error updating expert profile:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+});
 
 // Education routes
 router.post('/education', 
@@ -51,6 +81,9 @@ router.delete('/education/:educationId/documents/:documentId',
   expertAuthMiddleware, 
   deleteEducationDocument
 );
+
+// Experience routes
+router.post('/experience', expertAuthMiddleware, addExperience);
 
 // Certification routes - PDF only uploads
 router.post('/certification', 

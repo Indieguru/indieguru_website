@@ -360,8 +360,9 @@ export const deleteSession = async (req, res) => {
 
 export const getExpertDashboardData = async (req, res) => {
   try {
+    // Convert Buffer ID to string if needed and ensure it's a valid ObjectId
     const expertId = req.user.id;
-
+    
     // Get expert's basic info and data
     const expert = await Expert.findById(expertId);
     if (!expert) {
@@ -443,13 +444,21 @@ export const getExpertDashboardData = async (req, res) => {
     });
 
     const dashboardData = {
+      // Basic Information
       name: `${expert.firstName} ${expert.lastName}`,
       email: expert.email,
       phone: expert.phoneNo,
-
+      title: expert.title || "",
+      
+      // Profile Details
       profileCompletion: calculateProfileCompletion(expert),
       activeStreak: calculateActiveStreak(sessions),
       expertise: expert.expertise || [],
+      education: expert.education || [],
+      experience: expert.experience || [],
+      certifications: expert.certifications || [],
+      
+      // Session and Course Data
       upcomingSessions: upcomingSessions.map(session => ({
         id: session._id,
         title: session.title || 'One-on-One Session',
@@ -669,16 +678,37 @@ export const addEducation = async (req, res) => {
   try {
     const expertId = req.user.id;
     const { degree, institution, field, startYear, endYear, description } = req.body;
-    const files = req.files; // Multiple document uploads
+    const files = req.files;
 
     const expert = await Expert.findById(expertId);
     if (!expert) {
       return res.status(404).json({ message: "Expert not found" });
     }
 
-    // Validate required fields
-    if (!degree || !institution || !field || !startYear || !endYear) {
-      return res.status(400).json({ message: "Required fields are missing" });
+    // Validate required fields with better error messages
+    const requiredFields = {
+      degree: 'Degree',
+      institution: 'Institution',
+      field: 'Field of study',
+      startYear: 'Start year',
+      endYear: 'End year'
+    };
+
+    const missingFields = Object.entries(requiredFields)
+      .filter(([field]) => !req.body[field])
+      .map(([_, label]) => label);
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({ 
+        message: `Missing required fields: ${missingFields.join(', ')}` 
+      });
+    }
+
+    // Validate year values
+    if (startYear && endYear && parseInt(startYear) > parseInt(endYear)) {
+      return res.status(400).json({
+        message: "Start year cannot be greater than end year"
+      });
     }
 
     const educationEntry = {
@@ -687,7 +717,7 @@ export const addEducation = async (req, res) => {
       field,
       startYear,
       endYear,
-      description,
+      description: description || '',
       documents: files?.map(file => ({
         url: `/uploads/${file.filename}`,
         filename: file.filename,
@@ -696,6 +726,10 @@ export const addEducation = async (req, res) => {
       })) || []
     };
 
+    if (!expert.education) {
+      expert.education = [];
+    }
+    
     expert.education.push(educationEntry);
     await expert.save();
 
@@ -705,7 +739,10 @@ export const addEducation = async (req, res) => {
     });
   } catch (error) {
     console.error('Error adding education:', error);
-    res.status(500).json({ message: "Internal Server Error", error: error.message });
+    res.status(500).json({ 
+      message: "Failed to add education", 
+      error: error.message 
+    });
   }
 };
 
@@ -981,5 +1018,59 @@ export const getExpertTransactions = async (req, res) => {
   } catch (error) {
     console.error('Error fetching expert transactions:', error);
     res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+export const addExperience = async (req, res) => {
+  try {
+    const expertId = req.user.id;
+    const { title, company, duration, description } = req.body;
+
+    // Validate required fields with better error messages
+    const requiredFields = {
+      title: 'Job title',
+      company: 'Company name',
+      duration: 'Duration'
+    };
+
+    const missingFields = Object.entries(requiredFields)
+      .filter(([field]) => !req.body[field])
+      .map(([_, label]) => label);
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({ 
+        message: `Missing required fields: ${missingFields.join(', ')}` 
+      });
+    }
+
+    const expert = await Expert.findById(expertId);
+    if (!expert) {
+      return res.status(404).json({ message: "Expert not found" });
+    }
+
+    const experienceEntry = {
+      title,
+      company,
+      duration,
+      description: description || ''
+    };
+
+    if (!expert.experience) {
+      expert.experience = [];
+    }
+
+    expert.experience.push(experienceEntry);
+    await expert.save();
+
+    res.status(201).json({
+      message: "Experience added successfully",
+      experience: experienceEntry
+    });
+  } catch (error) {
+    console.error('Error adding experience:', error);
+    res.status(500).json({ 
+      message: "Failed to add experience", 
+      error: error.message 
+    });
   }
 };

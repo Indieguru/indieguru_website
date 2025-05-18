@@ -35,10 +35,7 @@ router.get('/google', passport.authenticate('google-user', {
   scope: [
     'profile',
     'email',
-    'https://www.googleapis.com/auth/calendar' // Add calendar access
   ],
-  accessType: 'offline',   // Request refresh token
-  prompt: 'consent'        // Force Google to show consent screen
 }));
 
 router.get('/google/callback', passport.authenticate('google-user', { failureRedirect: '/login', session: false }), async (req, res) => {
@@ -47,8 +44,8 @@ router.get('/google/callback', passport.authenticate('google-user', { failureRed
   const role = req.user.role || 'student';
 
   try {
-    const refreshToken = generateRefreshToken(userId);
     const user = await User.findById(userId);
+    const refreshToken = generateRefreshToken(user);
     if (user) {
       user.refreshToken = refreshToken;
       await user.save();
