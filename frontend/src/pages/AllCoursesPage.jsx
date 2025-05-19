@@ -437,15 +437,15 @@ const AllCoursesPage = () => {
           
           <div className="flex justify-between items-center">
             <div className="flex items-baseline">
-              <span className="text-2xl font-bold text-[#003265]">${course.price}</span>
-              <span className="ml-2 text-gray-400 line-through text-sm">${course.originalPrice}</span>
+              <span className="text-2xl font-bold text-[#003265]">₹{course.price}</span>
+              <span className="ml-2 text-gray-400 line-through text-sm">₹{course.originalPrice}</span>
             </div>
             <Button 
               onClick={() => handleEnrollClick(course)} 
-              className="bg-blue-800 hover:bg-[#0a2540] text-white rounded-full px-6 flex items-center gap-2 transform transition-transform group-hover:scale-105"
+              className="bg-blue-700 hover:bg-blue-800 text-white rounded-full px-6 py-2.5 flex items-center gap-2 shadow-md font-medium transition-all duration-200"
             >
               <span>Enroll Now</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </Button>
           </div>
         </div>
@@ -496,15 +496,15 @@ const AllCoursesPage = () => {
             
             <div className="mt-auto flex justify-between items-center pt-3 border-t border-gray-100">
               <div className="flex items-baseline">
-                <span className="text-2xl font-bold text-[#003265]">${session.price}</span>
-                <span className="ml-2 text-gray-400 line-through text-sm">${session.originalPrice}</span>
+                <span className="text-2xl font-bold text-[#003265]">₹{session.price}</span>
+                <span className="ml-2 text-gray-400 line-through text-sm">₹{session.originalPrice}</span>
               </div>
               <Button 
                 onClick={() => handleEnrollClick(session, "session")} 
-                className="bg-blue-800 hover:bg-[#0a2540] text-white rounded-full px-4 py-1 h-8 flex items-center gap-2 transform transition-transform hover:scale-105"
+                className="bg-blue-700 hover:bg-blue-800 text-white rounded-full px-4 py-1 h-8 flex items-center gap-2 shadow-md font-medium transition-all duration-200"
               >
                 <span className="text-sm">Book</span>
-                <ArrowRight className="w-3 h-3" />
+                <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
               </Button>
             </div>
           </div>
@@ -591,7 +591,7 @@ const AllCoursesPage = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-3 mb-16 flex gap-2 w-full max-w-lg mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl p-3 mb-16 flex gap-2 w-full max-w-md mx-auto">
           <TabButton active={activeTab === "all"} label="All" />
           <TabButton active={activeTab === "courses"} label="Courses" />
           <TabButton active={activeTab === "sessions"} label="Sessions" />

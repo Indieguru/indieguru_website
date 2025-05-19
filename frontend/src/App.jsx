@@ -21,6 +21,7 @@ import BlogPost from './pages/BlogPost';
 import BrowseExperts from "./pages/BrowseExperts";
 import AssessmentPage from "./pages/AssessmentPage";
 import BookingPage from "./pages/BookingPage";
+import ReferPage from "./pages/ReferPage";
 
 // RouteChangeTracker component to detect route changes
 const RouteChangeTracker = ({ setLoading }) => {
@@ -80,6 +81,7 @@ function App() {
           <Route path="/browse-experts/:category" element={<BrowseExperts />} />
           <Route path="/assessment" element={<AssessmentPage />} />
           <Route path="/booking/:expertId" element={<BookingPage />} />
+          <Route path="/refer" element={<ReferPage />} />
           <Route path="*" element={<NotFound />} />
           {/* Add more routes as needed */}
           <Route path="/email-signin" element={<EmailSignIn />} />

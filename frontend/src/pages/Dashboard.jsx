@@ -71,7 +71,7 @@ function Dashboard() {
         {/* Greeting Section */}
         <motion.section 
           variants={itemVariants}
-          className="mb-8 p-6 border-l-4 border-indigo-900 bg-white rounded-lg shadow-md transform hover:scale-[1.02] transition-all duration-300 hover:shadow-lg"
+          className="mb-8 p-6 border-l-4 border-indigo-900 bg-white rounded-lg shadow-sm transition-all duration-300"
         >
           <h1 className="text-2xl font-semibold text-gray-800">Welcome back, {user.firstName}!</h1>
           <p className="text-sm text-gray-600 mt-1">Continue your learning journey where you left off</p>
@@ -81,21 +81,18 @@ function Dashboard() {
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <motion.div 
             variants={itemVariants} 
-            whileHover={{ y: -5, boxShadow: "0 10px 20px rgba(0,0,0,0.1)" }} 
             transition={{ duration: 0.2 }}
           >
             <ProfileCard />
           </motion.div>
           <motion.div 
             variants={itemVariants} 
-            whileHover={{ y: -5, boxShadow: "0 10px 20px rgba(0,0,0,0.1)" }} 
             transition={{ duration: 0.2 }}
           >
             <InterestsCard />
           </motion.div>
           <motion.div 
             variants={itemVariants} 
-            whileHover={{ y: -5, boxShadow: "0 10px 20px rgba(0,0,0,0.1)" }} 
             transition={{ duration: 0.2 }}
           >
             <GoalsCard />
@@ -109,51 +106,47 @@ function Dashboard() {
           <ProgressSection />
         </motion.div>
         
-        {/* Gurus Section with enhanced animations */}
+        {/* Gurus Section */}
         <motion.div 
           variants={itemVariants} 
-          whileHover={{ y: -5 }} 
           transition={{ duration: 0.3 }}
-          className="mt-16 transform hover:shadow-lg rounded-xl overflow-hidden"
+          className="mt-16 rounded-xl overflow-hidden"
         >
           <GurusSection setExperts={setExperts} />
         </motion.div>
         
-        {/* Experts Section with staggered animation */}
+        {/* Experts Section */}
         <motion.div 
           variants={itemVariants} 
-          whileHover={{ y: -5 }} 
           transition={{ duration: 0.3, delay: 0.1 }}
-          className="mt-12 transform hover:shadow-lg rounded-xl overflow-hidden"
+          className="mt-12 rounded-xl overflow-hidden"
         >
           <ExpertsSection experts={experts} />
         </motion.div>
         
-        {/* Refer Section with attention-grabbing animation */}
+        {/* Refer Section */}
         <motion.div 
           variants={itemVariants}  
           transition={{ duration: 0.3 }}
-          className="mt-16 transform rounded-xl overflow-hidden"
+          className="mt-16 rounded-xl overflow-hidden"
         >
           <ReferSection />
         </motion.div>
         
-        {/* Previous Sessions with smooth reveal */}
+        {/* Previous Sessions */}
         <motion.div 
           variants={itemVariants} 
-          whileHover={{ y: -5 }} 
           transition={{ duration: 0.3 }}
-          className="mt-12 transform hover:shadow-lg rounded-xl overflow-hidden"
+          className="mt-12 rounded-xl overflow-hidden"
         >
           <PreviousSessionsSection />
         </motion.div>
         
-        {/* Upcoming Courses with subtle scale effect */}
+        {/* Upcoming Courses */}
         <motion.div 
           variants={itemVariants} 
-          whileHover={{ scale: 1.01 }} 
           transition={{ duration: 0.3 }}
-          className="mt-12 mb-16 transform hover:shadow-lg rounded-xl overflow-hidden"
+          className="mt-12 mb-16 rounded-xl overflow-hidden"
         >
           <UpcomingCourses />
         </motion.div>

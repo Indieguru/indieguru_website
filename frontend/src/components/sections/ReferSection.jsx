@@ -1,6 +1,13 @@
 import { Button } from "../ui/button"
+import { useNavigate } from "react-router-dom"
 
 function ReferSection() {
+  const navigate = useNavigate();
+
+  const handleReferClick = () => {
+    navigate('/refer');
+  };
+
   return (
     <section className="bg-yellow-500 rounded-lg p-6 mb-12 flex flex-col md:flex-row justify-between items-center shadow-md relative overflow-hidden">
       {/* Decorative elements */}
@@ -20,7 +27,10 @@ function ReferSection() {
         </p>
       </div>
       <div className="md:w-1/2 flex md:justify-end gap-12 items-center z-10">
-        <Button className="bg-white hover:bg-gray-50 text-yellow-600 font-semibold px-8 py-3 mr-24 text-lg rounded shadow-md border-2 border-yellow-400 transition-colors duration-300 transform hover:scale-105">
+        <Button 
+          onClick={handleReferClick}
+          className="bg-white hover:bg-gray-50 text-yellow-600 font-semibold px-8 py-3 mr-24 text-lg rounded shadow-md border-2 border-yellow-400 transition-colors duration-300"
+        >
           Refer Now
         </Button>
         <div className="hidden md:block">

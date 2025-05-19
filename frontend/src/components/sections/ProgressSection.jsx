@@ -48,32 +48,24 @@ function ProgressSection() {
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-white">{completionData.completedSteps}/{completionData.totalSteps}</span>
             {isCompleted && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.3 }}
+              <div
                 className="bg-green-500 text-white text-xs px-2 py-1 rounded-full"
               >
                 Completed!
-              </motion.div>
+              </div>
             )}
           </div>
         </div>
         <div className="h-2 w-full bg-indigo-950/30 rounded-full overflow-hidden">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${completionPercentage}%` }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+          <div
+            style={{ width: `${completionPercentage}%` }}
             className={`h-full rounded-full ${isCompleted ? 'bg-green-500' : 'bg-white'}`}
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          transition={{ type: "spring", stiffness: 300 }}
-        >
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div>
           <div className="flex items-center gap-2 text-white mb-1">
             <div className="text-indigo-200">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -84,12 +76,9 @@ function ProgressSection() {
             <span className="text-sm">Courses Enrolled</span>
           </div>
           <div className="text-2xl font-bold text-white">4</div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          transition={{ type: "spring", stiffness: 300 }}
-        >
+        <div>
           <div className="flex items-center gap-2 text-white mb-1">
             <div className="text-indigo-200">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -97,25 +86,23 @@ function ProgressSection() {
                 <path d="M17 7H21V11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <span className="text-sm">Skills Learned</span>
+            <span className="text-sm">Sessions Joined</span>
           </div>
           <div className="text-2xl font-bold text-white">4</div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          transition={{ type: "spring", stiffness: 300 }}
-        >
+        <div>
           <div className="flex items-center gap-2 text-white mb-1">
             <div className="text-indigo-200">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M3 17L9 11L13 15L21 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M17 7H21V11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <span className="text-sm">Daily Streak</span>
+            <span className="text-sm">Cohorts Joined</span>
           </div>
-          <div className="text-2xl font-bold text-white">100</div>
-        </motion.div>
+          <div className="text-2xl font-bold text-white">1</div>
+        </div>
       </div>
     </section>
   );

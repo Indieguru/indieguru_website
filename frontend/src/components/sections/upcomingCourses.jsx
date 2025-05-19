@@ -1,5 +1,4 @@
 import { Button } from "../ui/button";
-import { motion } from "framer-motion";
 
 function UpcomingCourses() {
   const courses = [
@@ -46,76 +45,31 @@ function UpcomingCourses() {
   ];
 
   return (
-    <motion.section
-      className="mb-12 p-6 bg-gradient-to-br from-[#cceeed] to-[#e8f7f7] rounded-xl shadow-md"
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5 }}
-    >
-      <motion.div 
-        className="flex items-center mb-1"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <motion.span 
-          className="mr-2 bg-amber-100 p-2 rounded-full text-amber-500"
-          whileHover={{ rotate: 360, scale: 1.1 }}
-          transition={{ duration: 0.5 }}
-        >
+    <section className="mb-12 p-6 bg-gradient-to-br from-[#cceeed] to-[#e8f7f7] rounded-xl">
+      <div className="flex items-center mb-1">
+        <span className="mr-2 bg-amber-100 p-2 rounded-full text-amber-500">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M12 8V12L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" />
           </svg>
-        </motion.span>
+        </span>
         <h2 className="text-2xl font-semibold text-[#003265]">Upcoming Courses</h2>
-      </motion.div>
+      </div>
       
-      <motion.p 
-        className="text-sm text-[#6d6e76] mb-8 ml-8"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-      >
+      <p className="text-sm text-[#6d6e76] mb-8 ml-8">
         Explore upcoming courses and prepare for your next learning adventure. Stay ahead with the latest offerings.
-      </motion.p>
+      </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {courses.map((course, index) => (
-          <motion.div
-            key={course.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            className="group"
-          >
-            <motion.div
-              whileHover={{ y: -5 }}
-              transition={{ duration: 0.2 }}
-              className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
-            >
-              <div 
-                className="h-48 relative overflow-hidden group-hover:shadow-inner transition-all duration-300" 
-                style={{ backgroundColor: course.color }}
-              >
-                <motion.div 
-                  className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  initial={false}
-                  whileHover={{ opacity: 1 }}
-                />
+        {courses.map((course) => (
+          <div key={course.id} className="group">
+            <div className="bg-white rounded-lg overflow-hidden">
+              <div className="h-48 relative overflow-hidden" style={{ backgroundColor: course.color }}>
                 <img 
                   src={course.image} 
                   alt={course.title} 
-                  className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-500" 
+                  className="w-full h-full object-contain" 
                 />
-                <motion.div
-                  className="absolute bottom-0 left-0 right-0 p-4 text-white opacity-0 group-hover:opacity-100 transition-all duration-300"
-                  initial={{ y: 20 }}
-                  whileHover={{ y: 0 }}
-                >
-                  <span className="text-sm font-medium">View Details →</span>
-                </motion.div>
               </div>
               <div className="p-4">
                 <div className="text-sm text-gray-500 mb-2 flex items-center">
@@ -124,7 +78,7 @@ function UpcomingCourses() {
                   </svg>
                   {course.date}
                 </div>
-                <h3 className="text-lg font-bold text-[#003265] mb-3 line-clamp-2 group-hover:text-indigo-700 transition-colors duration-300">
+                <h3 className="text-lg font-bold text-[#003265] mb-3 line-clamp-2">
                   {course.title}
                 </h3>
                 <p className="text-sm text-gray-600 mb-6">
@@ -132,19 +86,19 @@ function UpcomingCourses() {
                 </p>
                 <div className="flex justify-between items-center">
                   <div className="flex items-baseline">
-                    <span className="text-xl font-bold text-[#003265]">$ {course.price}</span>
-                    <span className="ml-2 text-gray-400 line-through text-sm">$ {course.originalPrice}</span>
+                    <span className="text-xl font-bold text-[#003265]">₹ {course.price}</span>
+                    <span className="ml-2 text-gray-400 line-through text-sm">₹ {course.originalPrice}</span>
                   </div>
-                  <Button className="bg-blue-800 hover:bg-[#0a2540] text-white text-xs px-4 py-2 rounded-full transform hover:scale-105 transition-all duration-300 shadow-md hover:shadow-lg">
+                  <Button className="bg-blue-800 hover:bg-[#0a2540] text-white text-xs px-4 py-2 rounded-full">
                     Book Now
                   </Button>
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         ))}
       </div>
-    </motion.section>
+    </section>
   );
 }
 

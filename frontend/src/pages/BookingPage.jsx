@@ -106,7 +106,7 @@ const BookingPage = () => {
                 <div className="border-t pt-4">
                   <h3 className="font-medium text-gray-900 mb-2">Session Rate</h3>
                   <p className="text-2xl font-bold text-gray-900">
-                    ${expert?.sessionRate || "150"}<span className="text-sm text-gray-500">/hour</span>
+                    ₹{expert?.sessionRate || "150"}<span className="text-sm text-gray-500">/hour</span>
                   </p>
                 </div>
               </div>
@@ -165,7 +165,7 @@ const BookingPage = () => {
                   <div className="flex justify-between border-t pt-4">
                     <span className="text-gray-900 font-medium">Total Amount</span>
                     <span className="text-xl font-bold text-gray-900">
-                      ${expert?.sessionRate || "150"}
+                      ₹{expert?.sessionRate || "150"}
                     </span>
                   </div>
                 </div>
