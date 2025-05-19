@@ -15,25 +15,40 @@ import useUserStore from "../store/userStore";
 import axiosInstance from "../config/axios.config";
 import UpcomingCourses from '../components/sections/upcomingCourses';
 import useAuthStore from '../store/authStore';
+import useUserTypeStore from '../store/userTypeStore';
 
 function Dashboard() {
   const { user, fetchUser } = useUserStore();
   const navigate = useNavigate();
   const [experts, setExperts] = useState([]);
-  const {isAuthenticated,fetchIsAuthenticated} = useAuthStore();
+  const { isAuthenticated, fetchIsAuthenticated } = useAuthStore();
+  const { userType } = useUserTypeStore();
 
   useEffect(() => {
+   
+    
     try {
-      fetchIsAuthenticated();
-      if(!isAuthenticated) {
-        navigate("/signup");
+      if (userType === "expert") {
+        navigate("/expert");
+        return;
       }
-      fetchUser();
+      fetchIsAuthenticated();
+      if (!isAuthenticated) {
+        navigate("/signup");
+        return;
+      }
       
+      if (userType === "not_signed_in") {
+        navigate("/signup");
+        return;
+      }
+     
+      fetchUser();
     } catch (error) {
       console.error("Error fetching user details:", error);
     }
-  }, []);
+  }, [isAuthenticated, userType]);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { 

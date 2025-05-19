@@ -2,14 +2,20 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth'; // Assuming the hook is located here
 import useUserStore from '../../store/userStore';
+import useUserTypeStore from '../../store/userTypeStore';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { isAuthenticated } = useAuth(); // Use the useAuth hook to check login status
   const { user } = useUserStore();
+  const { userType } = useUserTypeStore();
   
   const getDashboardLink = () => {
-    return user?.userType === 'expert' ? '/expert' : '/dashboard';
+    return userType === 'expert' ? '/expert' : '/dashboard';
+  };
+
+  const getProfileLink = () => {
+    return userType === 'expert' ? '/expert/profile' : '/profile';
   };
 
   useEffect(() => {
@@ -47,12 +53,12 @@ const Header = () => {
             {isAuthenticated ? (
               <>
                 <Link to="/bookings" className="text-gray-600 hover:text-gray-900">Bookings</Link>
-                <Link to="/profile" className="px-6 py-2 rounded-full border-2 border-primary text-primary hover:bg-indigo-900 hover:text-white hover:transition-colors">
+                <Link to={getProfileLink()} className="px-6 py-2 rounded-full border-2 border-primary text-primary hover:bg-indigo-900 hover:text-white hover:transition-colors">
                   Profile
                 </Link>
               </>
             ) : (
-              <Link to="/signup" className="px-6 py-2 rounded-full border-2 border-primary bg-blue-900 text-white hover:bg-indigo-900 hover:bg-blue-800 hover:text-white transition-colors">
+              <Link to="/signup" className="px-6 py-2 rounded-full border-2 border-primary bg-blue-900 text-white hover:bg-indigo-900 hover:text-white transition-colors">
                 SignUp
               </Link>
             )}
@@ -95,17 +101,17 @@ const Header = () => {
             >
               Blogs
             </Link>
-            <Link to="/about" 
-              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
-              onClick={() => setIsOpen(false)}
-            >
-              About
-            </Link>
             <Link to="/communitypage" 
               className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
               onClick={() => setIsOpen(false)}
             >
               Community
+            </Link>
+            <Link to="/all-courses"
+              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
+              onClick={() => setIsOpen(false)}
+            >
+              All Courses
             </Link>
             {isAuthenticated && (
               <Link to={getDashboardLink()}
@@ -123,7 +129,7 @@ const Header = () => {
                 >
                   Bookings
                 </Link>
-                <Link to="/profile" 
+                <Link to={getProfileLink()} 
                   className="text-primary hover:bg-primary hover:text-white px-6 py-3 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
@@ -131,11 +137,11 @@ const Header = () => {
                 </Link>
               </>
             ) : (
-              <Link to="/login" 
+              <Link to="/signup" 
                 className="text-primary hover:bg-primary hover:text-white px-6 py-3 transition-colors"
                 onClick={() => setIsOpen(false)}
               >
-                Login
+                SignUp
               </Link>
             )}
           </div>

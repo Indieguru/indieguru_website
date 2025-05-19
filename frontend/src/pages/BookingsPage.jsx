@@ -7,6 +7,12 @@ import useExpertSessionsStore from '../store/expertSessionsStore';
 import useExpertCohortsStore from '../store/expertCohortsStore';
 import useExpertCoursesStore from '../store/expertCoursesStore';
 import useExpertStore from '../store/expertStore';
+<<<<<<< HEAD
+=======
+import useAuthStore from '../store/authStore';
+import useExpertAuthStore from '../store/expertAuthstore';
+import useUserTypeStore from '../store/userTypeStore';
+>>>>>>> 1b8e60f (tc)
 import { useNavigate } from "react-router-dom";
 
 // TabIndicator component
@@ -27,12 +33,31 @@ const TabIndicator = ({ active, label, icon, onClick }) => (
 );
 
 const BookingsPage = () => {
+<<<<<<< HEAD
   const navigate = useNavigate();
+=======
+  const { isAuthenticated } = useAuthStore();
+  const { isExpertAuthenticated } = useExpertAuthStore();
+  const { userType } = useUserTypeStore();
+  const navigate = useNavigate();
+
+>>>>>>> 1b8e60f (tc)
   const [activeTab, setActiveTab] = useState("upcoming");
   const { sessions, fetchExpertSessions, isLoading: isLoadingSessions } = useExpertSessionsStore();
   const { cohorts, fetchExpertCohorts, isLoading: isLoadingCohorts } = useExpertCohortsStore();
   const { courses, fetchExpertCourses, isLoading: isLoadingCourses } = useExpertCoursesStore();
   const { expertData, fetchExpertData, isLoading: isLoadingExpert } = useExpertStore();
+
+  useEffect(() => {
+    if (userType === "not_signed_in") {
+      navigate("/signup");
+      return;
+    }
+    if (!isAuthenticated && !isExpertAuthenticated) {
+      navigate("/signup");
+      return;
+    }
+  }, [isAuthenticated, isExpertAuthenticated, userType, navigate]);
 
   useEffect(() => {
     const fetchAllData = async () => {

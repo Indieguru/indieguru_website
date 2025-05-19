@@ -8,6 +8,8 @@ import { useAuth } from "../hooks/useAuth";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { app, auth } from "../config/firebase.js";
 import useAuthStore from "../store/authStore";
+import useExpertAuthStore from "../store/expertAuthstore";
+import useUserTypeStore from "../store/userTypeStore";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -20,7 +22,9 @@ const LoginPage = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [timer, setTimer] = useState(0);
   const [resendActive, setResendActive] = useState(false);
-  const {isAuthenticated,fetchIsAuthenticated} = useAuthStore()
+  const { isAuthenticated, fetchIsAuthenticated } = useAuthStore();
+  const { isExpertAuthenticated, fetchIsExpertAuthenticated } = useExpertAuthStore();
+  const { setUserType } = useUserTypeStore();
   const countryCodes = ["+91", "+1", "+44", "+61", "+81"];
   const [userRole, setUserRole] = useState("student"); // Default role is student
   const [assessmentData, setAssessmentData] = useState(null);
@@ -34,31 +38,25 @@ const LoginPage = () => {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && userRole === "student") {
       // If we have assessment data, submit it before redirecting
       if (assessmentData) {
-        // Submit the assessment data to your backend
         axiosInstance.post('/user/assessment', assessmentData)
           .then(() => {
-           
             localStorage.removeItem('assessmentData');
-            // Redirect based on role
-            userRole === "student" ? navigate("/dashboard") : navigate("/expert");
+            navigate("/dashboard");
           })
           .catch(error => {
             console.error('Error submitting assessment:', error);
-            // Still redirect even if assessment submission fails
-            userRole === "student" ? navigate("/dashboard") : navigate("/expert");
+            navigate("/dashboard");
           });
       } else {
-        // No assessment data, just redirect
-        userRole === "student" ? navigate("/dashboard") : navigate("/expert");
+        navigate("/dashboard");
       }
+    } else if (isExpertAuthenticated && userRole === "expert") {
+      navigate("/expert");
     }
-    else{
-      fetchIsAuthenticated();
-    }
-  }, [isAuthenticated, navigate, userRole, assessmentData]);
+  }, [isAuthenticated, isExpertAuthenticated, navigate, userRole, assessmentData]);
 
   useEffect(() => {
     let interval;
@@ -190,6 +188,7 @@ const LoginPage = () => {
 
   const handleRoleChange = (role) => {
     setUserRole(role);
+    setUserType(role);
   };
 
   return (

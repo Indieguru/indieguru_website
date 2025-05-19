@@ -4,6 +4,8 @@ import Footer from '../components/layout/Footer';
 import useExpertStore from '../store/expertStore';
 import useExpertCoursesStore from '../store/expertCoursesStore';
 import useExpertCohortsStore from '../store/expertCohortsStore';
+import useUserTypeStore from '../store/userTypeStore';
+import useExpertAuthStore from '../store/expertAuthstore';
 import axiosInstance from '../config/axios.config';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
@@ -15,6 +17,8 @@ function ExpertDashboard() {
   const { expertData, fetchExpertData, isLoading, error } = useExpertStore();
   const { courses, fetchExpertCourses } = useExpertCoursesStore();
   const { cohorts, fetchExpertCohorts } = useExpertCohortsStore();
+  const { userType, setUserType } = useUserTypeStore();
+  const { isExpertAuthenticated, fetchIsExpertAuthenticated } = useExpertAuthStore();
   const navigate = useNavigate();
 
   const [showCalendarModal, setShowCalendarModal] = useState(false);
@@ -65,9 +69,28 @@ function ExpertDashboard() {
   };
 
   useEffect(() => {
-    const initializeData = async () => {
+    const checkAuthAndFetchData = async () => {
       try {
-        // Fetch everything in parallel
+        // First check authentication
+        const isAuthenticated = await fetchIsExpertAuthenticated();
+        
+        if (!isAuthenticated) {
+          navigate("/signup");
+          return;
+        }
+
+        // Set user type to expert after successful authentication
+        setUserType("expert");
+        if (userType === "not_signed_in") {
+          navigate("/signup");
+          return;
+        }
+        if (userType === "student") {
+          navigate("/student");
+          return;
+        }
+
+        // Then fetch all data in parallel
         await Promise.all([
           fetchExpertData(),
           fetchExpertCourses(),
@@ -78,8 +101,8 @@ function ExpertDashboard() {
       }
     };
 
-    initializeData();
-  }, [fetchExpertData, fetchExpertCourses, fetchExpertCohorts]);
+    checkAuthAndFetchData();
+  }, [fetchExpertData, fetchExpertCourses, fetchExpertCohorts, fetchIsExpertAuthenticated, setUserType]);
 
   if (isLoading) {
     return (

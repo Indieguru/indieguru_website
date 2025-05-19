@@ -15,6 +15,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ErrorPopup } from "../components/ui/error-popup"
 import axiosInstance from "../config/axios.config"
 import useAuthStore from "../store/authStore"
+import useUserTypeStore from "../store/userTypeStore"
 
 // import axios from "axios"
 
@@ -23,19 +24,25 @@ function Profile() {
   const navigate = useNavigate();
   const location = useLocation();
   const {isAuthenticated,fetchIsAuthenticated} = useAuthStore();
+  const { userType } = useUserTypeStore();
 
   useEffect(() => {
     try {
       fetchIsAuthenticated();
       if(!isAuthenticated) {
         navigate("/signup");
+        return;
+      }
+      if(userType === 'expert') {
+        navigate("/expert/profile");
+        return;
       }
       fetchUser();
       
     } catch (error) {
       console.error("Error fetching user details:", error);
     }
-  }, []);
+  }, [isAuthenticated, userType]);
 
   useEffect(() => {
     // Handle hash routing
@@ -283,18 +290,14 @@ function Profile() {
   }
 
   const handleLogout = async () => {
-    // Clear user session or token logic here
-    try{
+    try {
       await axiosInstance.post("/user/auth/signout");
-      fetchUser();
-      fetchIsAuthenticated();
+      useAuthStore.getState().resetAuth();
       navigate("/");
-    }
-    catch(err){
+    } catch (err) {
       console.error("Logout error:", err);
       setErrorMessage("Failed to logout. Please try again.");
     }
-
   };
 
   return (

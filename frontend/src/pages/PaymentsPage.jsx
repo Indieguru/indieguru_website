@@ -1,17 +1,36 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Footer from '../components/layout/Footer';
 import useExpertStore from '../store/expertStore';
 import useExpertSessionsStore from '../store/expertSessionsStore';
 import useExpertCohortsStore from '../store/expertCohortsStore';
 import useExpertCoursesStore from '../store/expertCoursesStore';
+import useAuthStore from '../store/authStore';
+import useExpertAuthStore from '../store/expertAuthstore';
+import useUserTypeStore from '../store/userTypeStore';
 
-function PaymentsPage() {
+const PaymentsPage = () => {
+  const { isAuthenticated } = useAuthStore();
+  const { isExpertAuthenticated } = useExpertAuthStore();
+  const { userType } = useUserTypeStore();
+  const navigate = useNavigate();
+
   const { expertData, fetchExpertData, isLoading: isLoadingExpert } = useExpertStore();
   const { sessions, fetchExpertSessions, isLoading: isLoadingSessions } = useExpertSessionsStore();
   const { cohorts, fetchExpertCohorts, isLoading: isLoadingCohorts } = useExpertCohortsStore();
   const { courses, fetchExpertCourses, isLoading: isLoadingCourses } = useExpertCoursesStore();
+
+  useEffect(() => {
+    if (userType === "not_signed_in") {
+      navigate("/signup");
+      return;
+    }
+    if (!isAuthenticated && !isExpertAuthenticated) {
+      navigate("/signup");
+      return;
+    }
+  }, [isAuthenticated, isExpertAuthenticated, userType, navigate]);
 
   useEffect(() => {
     const fetchAllData = async () => {
