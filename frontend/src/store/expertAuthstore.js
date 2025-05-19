@@ -17,6 +17,7 @@ const useExpertAuthStore = create((set) => ({
           loading: false,
           error: null
         });
+        useUserTypeStore.getState().setUserType("expert");
         return true;
       }
     } catch (error) {
