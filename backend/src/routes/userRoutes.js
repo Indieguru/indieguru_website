@@ -62,6 +62,6 @@ router.get('/check-email/:email', async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
-router.post("/book-slot/:sessionId",authMiddleware, bookSession);
+router.post("/book-slot/:sessionId", bookSession);
 
 export default router;

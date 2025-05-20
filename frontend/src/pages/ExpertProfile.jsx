@@ -12,15 +12,11 @@ import useExpertStore from "../store/expertStore";
 import useExpertSessionStore from "../store/expertSessionsStore";
 import useExpertCourseStore from "../store/expertCoursesStore";
 import useExpertCohortStore from "../store/expertCohortsStore";
-import useUserTypeStore from "../store/userTypeStore";
-import useExpertAuthStore from "../store/expertAuthstore";
 
 function ExpertProfile() {
   const location = useLocation();
   const navigate = useNavigate();
   const { expertData, fetchExpertData } = useExpertStore();
-  const { userType } = useUserTypeStore();
-  const { isExpertAuthenticated } = useExpertAuthStore();
   const resetExpertStore = useExpertStore((state) => state.reset);
   const resetSessionStore = useExpertSessionStore((state) => state.reset);
   const resetCourseStore = useExpertCourseStore((state) => state.reset);
@@ -66,20 +62,8 @@ function ExpertProfile() {
   });
 
   useEffect(() => {
-    if (userType === "not_signed_in") {
-      navigate("/signup");
-      return;
-    }
-    if (userType === "student") {
-      navigate("/");
-      return;
-    }
-    if (!isExpertAuthenticated) {
-      navigate("/signup");
-      return;
-    }
     fetchExpertData();
-  }, [userType, isExpertAuthenticated, navigate, fetchExpertData]);
+  }, []);
 
   useEffect(() => {
     if (expertData) {

@@ -1074,3 +1074,35 @@ export const addExperience = async (req, res) => {
     });
   }
 };
+
+export const getExpertById = async (req, res) => {
+  try {
+    const { expertId } = req.params;
+    const expert = await Expert.findById(expertId).select('-password -emailOtp -gid');
+    
+    if (!expert) {
+      return res.status(404).json({ message: "Expert not found" });
+    }
+
+    res.status(200).json(expert);
+  } catch (error) {
+    console.error('Error fetching expert:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+export const getExpertAvailableSessions = async (req, res) => {
+  try {
+    const { expertId } = req.params;
+    const sessions = await Session.find({ 
+      expert: expertId,
+      bookedStatus: false,
+      date: { $gte: new Date() }
+    }).sort({ date: 1, startTime: 1 });
+    
+    res.status(200).json(sessions);
+  } catch (error) {
+    console.error('Error fetching expert sessions:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};

@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, MapPin, Clock, CheckCircle, ArrowLeft, ArrowRight, Users } from 'lucide-react';
 import { Button } from '../ui/button';
 import './modal.css';
+import { toast } from "react-toastify";
 
 export const BookingModal = ({ 
   isOpen, 
@@ -19,10 +20,11 @@ export const BookingModal = ({
   children 
 }) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [currentStep, setCurrentStep] = useState('dateSelection'); // dateSelection, confirmation
+  const [currentStep, setCurrentStep] = useState('dateSelection'); // dateSelection, titleInput, confirmation
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
   const [showAuthConfirmation, setShowAuthConfirmation] = useState(false);
+  const [sessionTitle, setSessionTitle] = useState("");
   
   // Check authentication status when modal opens
   useEffect(() => {
@@ -67,6 +69,7 @@ export const BookingModal = ({
         setSelectedDate(null);
         setSelectedTimeSlot(null);
         setIsSubmitted(false);
+        setSessionTitle("");
       }, 300); // Match the animation exit time
     }
   }, [isOpen]);
@@ -92,7 +95,7 @@ export const BookingModal = ({
   if (!isOpen) return null;
 
   const {
-    sessionTitle = title || "Design Thinking Workshop",
+    sessionTitle: defaultSessionTitle = title || "Design Thinking Workshop",
     instructorName = sessionData.instructor || "Expert Instructor",
     instructorDetails = sessionData.instructorDetails || "Industry expert with years of experience",
     date = sessionData.date || "Flexible date",
@@ -139,26 +142,62 @@ export const BookingModal = ({
     setSelectedTimeSlot(slot);
   };
   
-  // Continue to confirmation
+  // Continue to next step
   const handleContinue = () => {
-    setCurrentStep('confirmation');
+    if (currentStep === 'dateSelection') {
+      setCurrentStep('titleInput');
+    } else if (currentStep === 'titleInput' && sessionTitle.trim()) {
+      setCurrentStep('confirmation');
+    }
   };
   
   // Handle booking confirmation
-  const handleConfirm = () => {
-    setIsSubmitted(true);
-    // Here you would normally make an API call to save the booking
-  };
-  
-  // Handle back button click
-  const handleBack = () => {
-    if (currentStep === 'confirmation') {
-      setCurrentStep('dateSelection');
-    } else if (isSubmitted) {
-      setIsSubmitted(false);
-      setCurrentStep('confirmation');
-    } else {
-      onClose();
+  const handleConfirm = async () => {
+    try {
+      const response = await axiosInstance.post(`/session/book/${sessionData.id}`, {
+        sessionTitle: sessionTitle.trim()
+      });
+
+      if (response.data.paymentId) {
+        const options = {
+          key: process.env.REACT_APP_RAZORPAY_KEY_ID,
+          amount: sessionData.pricing.total * 100,
+          currency: sessionData.pricing.currency || "INR",
+          name: "IndieGuru",
+          description: `Session: ${sessionTitle}`,
+          order_id: response.data.paymentId,
+          handler: function (response) {
+            toast.success("🎉 Session booked successfully! Check your email for details.", {
+              position: "top-center",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            });
+            setIsSubmitted(true);
+            setTimeout(() => {
+              onClose();
+              // Optionally redirect to bookings page
+              window.location.href = '/bookings';
+            }, 2000);
+          },
+          prefill: {
+            email: sessionData.userEmail,
+            contact: sessionData.userPhone
+          },
+          theme: {
+            color: "#3B82F6"
+          }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      }
+    } catch (error) {
+      console.error('Booking error:', error);
+      toast.error(error.response?.data?.message || 'Failed to book session');
     }
   };
 
@@ -227,7 +266,7 @@ export const BookingModal = ({
                 {!isSubmitted ? (
                   <>
                     <h2 className="text-2xl font-bold text-indigo-900 mb-4 text-center">
-                      {currentStep === 'dateSelection' ? 'Select Date & Time' : 'Confirm Your Booking'}
+                      {currentStep === 'dateSelection' ? 'Select Date & Time' : currentStep === 'titleInput' ? 'Add Session Title' : 'Confirm Your Booking'}
                     </h2>
                     
                     {currentStep === 'dateSelection' ? (
@@ -289,7 +328,34 @@ export const BookingModal = ({
                             disabled={!selectedDate || !selectedTimeSlot}
                             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2"
                           >
-                            <span>Continue to Booking</span>
+                            <span>Continue</span>
+                            <ArrowRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : currentStep === 'titleInput' ? (
+                      <div className="space-y-6 bg-white p-4 rounded-xl shadow-sm">
+                        <h3 className="text-lg font-semibold text-indigo-800 mb-3">Add Session Title</h3>
+                        <div>
+                          <label htmlFor="sessionTitle" className="block text-sm font-medium text-gray-700 mb-2">
+                            What would you like to discuss in this session?
+                          </label>
+                          <input
+                            id="sessionTitle"
+                            type="text"
+                            value={sessionTitle}
+                            onChange={(e) => setSessionTitle(e.target.value)}
+                            placeholder="e.g., Career Guidance Session, Technical Discussion"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                        </div>
+                        <div className="pt-6">
+                          <Button
+                            onClick={handleContinue}
+                            disabled={!sessionTitle.trim()}
+                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2"
+                          >
+                            <span>Continue to Payment</span>
                             <ArrowRight className="h-4 w-4" />
                           </Button>
                         </div>
@@ -322,14 +388,14 @@ export const BookingModal = ({
                             onClick={handleConfirm}
                             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium"
                           >
-                            Confirm Booking
+                            Pay Now
                           </Button>
                         </div>
                       </div>
                     )}
                     
                     <div className="mt-6 text-center text-sm text-indigo-700">
-                      <p>{currentStep === 'dateSelection' ? 'Select a convenient time for your session' : 'Review and confirm your booking details'}</p>
+                      <p>{currentStep === 'dateSelection' ? 'Select a convenient time for your session' : currentStep === 'titleInput' ? 'Provide a title for your session' : 'Review and confirm your booking details'}</p>
                     </div>
                   </>
                 ) : (
@@ -361,13 +427,13 @@ export const BookingModal = ({
                     className="h-48 relative overflow-hidden"
                     style={{ backgroundColor: color }}
                   >
-                    <img src={image} alt={sessionTitle} className="w-full h-full object-cover" />
+                    <img src={image} alt={defaultSessionTitle} className="w-full h-full object-cover" />
                   </div>
                   
                   <div className="p-6 flex-1 space-y-4">
                     {/* Session heading */}
                     <h2 className="text-xl font-bold text-indigo-900 mt-2">
-                      {sessionTitle}
+                      {defaultSessionTitle}
                     </h2>
                     
                     {/* Expert details */}

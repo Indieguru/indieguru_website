@@ -2,20 +2,14 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth'; // Assuming the hook is located here
 import useUserStore from '../../store/userStore';
-import useUserTypeStore from '../../store/userTypeStore';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { isAuthenticated } = useAuth(); // Use the useAuth hook to check login status
   const { user } = useUserStore();
-  const { userType } = useUserTypeStore();
   
   const getDashboardLink = () => {
-    return userType === 'expert' ? '/expert' : '/dashboard';
-  };
-
-  const getProfileLink = () => {
-    return userType === 'expert' ? '/expert/profile' : '/profile';
+    return user?.userType === 'expert' ? '/expert' : '/dashboard';
   };
 
   useEffect(() => {
@@ -46,19 +40,20 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/blogpage" className="text-gray-600 hover:text-gray-900">Blogs</Link>
             <Link to="/communitypage" className="text-gray-600 hover:text-gray-900">Community</Link>
-              <Link to="/all-courses" className="text-gray-600 hover:text-gray-900">All Courses</Link>
+            <Link to="/all-courses" className="text-gray-600 hover:text-gray-900">All Courses</Link>
+            <Link to="/browse-experts" className="text-gray-600 hover:text-gray-900">Find Experts</Link>
             {isAuthenticated && (
               <Link to={getDashboardLink()} className="text-gray-600 hover:text-gray-900">Dashboard</Link>
             )}
             {isAuthenticated ? (
               <>
                 <Link to="/bookings" className="text-gray-600 hover:text-gray-900">Bookings</Link>
-                <Link to={getProfileLink()} className="px-6 py-2 rounded-full border-2 border-primary text-primary hover:bg-indigo-900 hover:text-white hover:transition-colors">
+                <Link to="/profile" className="px-6 py-2 rounded-full border-2 border-primary text-primary hover:bg-indigo-900 hover:text-white hover:transition-colors">
                   Profile
                 </Link>
               </>
             ) : (
-              <Link to="/signup" className="px-6 py-2 rounded-full border-2 border-primary bg-blue-900 text-white hover:bg-indigo-900 hover:text-white transition-colors">
+              <Link to="/signup" className="px-6 py-2 rounded-full border-2 border-primary bg-blue-900 text-white hover:bg-indigo-900 hover:bg-blue-800 hover:text-white transition-colors">
                 SignUp
               </Link>
             )}
@@ -101,17 +96,23 @@ const Header = () => {
             >
               Blogs
             </Link>
+            <Link to="/browse-experts" 
+              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
+              onClick={() => setIsOpen(false)}
+            >
+              Find Experts
+            </Link>
+            <Link to="/about" 
+              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
+              onClick={() => setIsOpen(false)}
+            >
+              About
+            </Link>
             <Link to="/communitypage" 
               className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
               onClick={() => setIsOpen(false)}
             >
               Community
-            </Link>
-            <Link to="/all-courses"
-              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
-              onClick={() => setIsOpen(false)}
-            >
-              All Courses
             </Link>
             {isAuthenticated && (
               <Link to={getDashboardLink()}
@@ -129,7 +130,7 @@ const Header = () => {
                 >
                   Bookings
                 </Link>
-                <Link to={getProfileLink()} 
+                <Link to="/profile" 
                   className="text-primary hover:bg-primary hover:text-white px-6 py-3 transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
@@ -137,11 +138,11 @@ const Header = () => {
                 </Link>
               </>
             ) : (
-              <Link to="/signup" 
+              <Link to="/login" 
                 className="text-primary hover:bg-primary hover:text-white px-6 py-3 transition-colors"
                 onClick={() => setIsOpen(false)}
               >
-                SignUp
+                Login
               </Link>
             )}
           </div>

@@ -17,13 +17,11 @@ import axiosInstance from "../config/axios.config"
 import useAuthStore from "../store/authStore"
 import useUserTypeStore from "../store/userTypeStore"
 
-// import axios from "axios"
-
 function Profile() {
   const { user, fetchUser } = useUserStore()
   const navigate = useNavigate();
   const location = useLocation();
-  const {isAuthenticated,fetchIsAuthenticated} = useAuthStore();
+  const {isAuthenticated, fetchIsAuthenticated} = useAuthStore();
   const { userType } = useUserTypeStore();
 
   useEffect(() => {
@@ -31,18 +29,13 @@ function Profile() {
       fetchIsAuthenticated();
       if(!isAuthenticated) {
         navigate("/signup");
-        return;
-      }
-      if(userType === 'expert') {
-        navigate("/expert/profile");
-        return;
       }
       fetchUser();
       
     } catch (error) {
       console.error("Error fetching user details:", error);
     }
-  }, [isAuthenticated, userType]);
+  }, []);
 
   useEffect(() => {
     // Handle hash routing
@@ -290,14 +283,18 @@ function Profile() {
   }
 
   const handleLogout = async () => {
-    try {
+    // Clear user session or token logic here
+    try{
       await axiosInstance.post("/user/auth/signout");
-      useAuthStore.getState().resetAuth();
+      fetchUser();
+      fetchIsAuthenticated();
       navigate("/");
-    } catch (err) {
+    }
+    catch(err){
       console.error("Logout error:", err);
       setErrorMessage("Failed to logout. Please try again.");
     }
+
   };
 
   return (
@@ -322,37 +319,142 @@ function Profile() {
 
             <div className="md:w-3/4">
               <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputBox 
-                  field="First Name" 
-                  value={profileData.firstName} 
-                  otpRequired={false} 
-                />
-                <InputBox 
-                  field="Last Name" 
-                  value={profileData.lastName} 
-                  otpRequired={false} 
-                />
-
-                <InputBox 
-                  field="Contact No" 
-                  value={profileData.contactNo1} 
-                  otpRequired={false} 
-                />
-                <InputBox 
-                  field="Email" 
-                  value={profileData.email} 
-                  otpRequired={false} 
-                />
-                <InputBox 
-                  field="Gender" 
-                  value={profileData.gender} 
-                  otpRequired={false} 
-                />
-           
+                {userType === "expert" ? (
+                  <>
+                    <InputBox field="First Name" value={profileData.firstName} otpRequired={false} />
+                    <InputBox field="Last Name" value={profileData.lastName} otpRequired={false} />
+                    <InputBox field="Title" value={profileData.title} otpRequired={false} />
+                    <InputBox field="Contact No" value={profileData.contactNo1} otpRequired={false} />
+                    <InputBox field="Email" value={profileData.email} otpRequired={false} />
+                    <InputBox field="Expertise" value={profileData.expertise?.join(", ")} otpRequired={false} />
+                  </>
+                ) : (
+                  <>
+                    <InputBox field="First Name" value={profileData.firstName} otpRequired={false} />
+                    <InputBox field="Last Name" value={profileData.lastName} otpRequired={false} />
+                    <InputBox field="Contact No" value={profileData.contactNo1} otpRequired={false} />
+                    <InputBox field="Email" value={profileData.email} otpRequired={false} />
+                    <InputBox field="Gender" value={profileData.gender} otpRequired={false} />
+                  </>
+                )}
               </form>
             </div>
           </div>
         </Card>
+
+        {userType === "student" ? (
+          <>
+            <Card id="skills" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <h2 className="text-2xl font-semibold text-[#232636] mb-4">My Skills</h2>
+
+              <div className="flex flex-wrap gap-2 mb-4">
+                {profileData.skills?.map((skill, index) => (
+                  <span key={index} className="px-4 py-2 bg-blue-800 text-white rounded-md text-sm">
+                    {skill}
+                  </span>
+                ))}
+
+                {isEditing ? (
+                  <div className="flex gap-2 items-center">
+                    <Input
+                      value={newSkill}
+                      onChange={(e) => setNewSkill(e.target.value)}
+                      placeholder="Enter skill"
+                      className="border-[#d8d8d8] w-48"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleAddSkill();
+                        }
+                      }}
+                    />
+                    <Button
+                      onClick={handleAddSkill}
+                      className="bg-blue-800 text-white hover:bg-[#143d65] px-4 py-2"
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      onClick={handleCancelSkill}
+                      className="bg-gray-300 text-black hover:bg-gray-400 px-4 py-2"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    onClick={() => setIsEditing(true)}
+                    className="px-4 py-2 border border-[#d8d8d8] bg-white text-[#232636] hover:bg-[#f5f5f5] rounded-md text-sm flex items-center gap-1"
+                  >
+                    <Plus size={16} />
+                    Add Skill
+                  </Button>
+                )}
+              </div>
+            </Card>
+            <Card id="goals" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <h2 className="text-2xl font-semibold text-[#232636] mb-4">My Goals</h2>
+
+              <div className="flex flex-wrap gap-2 mb-4">
+                {profileData.goals?.map((goal, index) => (
+                  <span key={index} className="px-4 py-2 bg-blue-800 text-white rounded-md text-sm">
+                    {goal}
+                  </span>
+                ))}
+
+                {isEditingGoal ? (
+                  <div className="flex gap-2 items-center">
+                    <Input
+                      value={newGoal}
+                      onChange={(e) => setNewGoal(e.target.value)}
+                      placeholder="Add new goal"
+                      className="border-[#d8d8d8] w-48"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleAddGoal();
+                        }
+                      }}
+                    />
+                    <Button
+                      onClick={handleAddGoal}
+                      className="bg-blue-800 text-white hover:bg-[#143d65] px-4 py-2"
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      onClick={handleCancelGoal}
+                      className="bg-gray-300 text-black hover:bg-gray-400 px-4 py-2"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <Button 
+                    onClick={handleGoalClick}
+                    className="px-4 py-2 border border-[#d8d8d8] bg-white text-[#232636] hover:bg-[#f5f5f5] rounded-md text-sm flex items-center gap-1"
+                  >
+                    <Plus size={16} />
+                    New Goal
+                  </Button>
+                )}
+              </div>
+            </Card>
+          </>
+        ) : (
+          <>
+            <Card id="expertise" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <h2 className="text-2xl font-semibold text-[#232636] mb-6">Expertise & Skills</h2>
+              {/* ...existing expertise content... */}
+            </Card>
+            <Card id="education" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <h2 className="text-2xl font-semibold text-[#232636] mb-6">Education</h2>
+              {/* ...existing education content... */}
+            </Card>
+            <Card id="experience" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <h2 className="text-2xl font-semibold text-[#232636] mb-6">Experience</h2>
+              {/* ...existing experience content... */}
+            </Card>
+          </>
+        )}
 
         <Card id="progress" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
           <h2 className="text-2xl font-semibold text-[#232636] mb-4">My Progress</h2>
@@ -459,184 +561,6 @@ function Profile() {
                 <span className="text-sm">Daily Streak</span>
               </div>
               <div className="text-2xl font-bold text-[#232636]">100</div>
-            </div>
-          </div>
-        </Card>
-
-        <Card id="skills" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <h2 className="text-2xl font-semibold text-[#232636] mb-4">My Skills</h2>
-
-          <div className="flex flex-wrap gap-2 mb-4">
-            {profileData.skills?.map((skill, index) => (
-              <span key={index} className="px-4 py-2 bg-blue-800 text-white rounded-md text-sm">
-                {skill}
-              </span>
-            ))}
-
-            {isEditing ? (
-              <div className="flex gap-2 items-center">
-                <Input
-                  value={newSkill}
-                  onChange={(e) => setNewSkill(e.target.value)}
-                  placeholder="Enter skill"
-                  className="border-[#d8d8d8] w-48"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      handleAddSkill();
-                    }
-                  }}
-                />
-                <Button
-                  onClick={handleAddSkill}
-                  className="bg-blue-800 text-white hover:bg-[#143d65] px-4 py-2"
-                >
-                  Save
-                </Button>
-                <Button
-                  onClick={handleCancelSkill}
-                  className="bg-gray-300 text-black hover:bg-gray-400 px-4 py-2"
-                >
-                  Cancel
-                </Button>
-              </div>
-            ) : (
-              <Button
-                onClick={() => setIsEditing(true)}
-                className="px-4 py-2 border border-[#d8d8d8] bg-white text-[#232636] hover:bg-[#f5f5f5] rounded-md text-sm flex items-center gap-1"
-              >
-                <Plus size={16} />
-                Add Skill
-              </Button>
-            )}
-          </div>
-        </Card>
-
-        <Card id="goals" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <h2 className="text-2xl font-semibold text-[#232636] mb-4">My Goals</h2>
-
-          <div className="flex flex-wrap gap-2 mb-4">
-            {profileData.goals?.map((goal, index) => (
-              <span key={index} className="px-4 py-2 bg-blue-800 text-white rounded-md text-sm">
-                {goal}
-              </span>
-            ))}
-
-            {isEditingGoal ? (
-              <div className="flex gap-2 items-center">
-                <Input
-                  value={newGoal}
-                  onChange={(e) => setNewGoal(e.target.value)}
-                  placeholder="Add new goal"
-                  className="border-[#d8d8d8] w-48"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      handleAddGoal();
-                    }
-                  }}
-                />
-                <Button
-                  onClick={handleAddGoal}
-                  className="bg-blue-800 text-white hover:bg-[#143d65] px-4 py-2"
-                >
-                  Save
-                </Button>
-                <Button
-                  onClick={handleCancelGoal}
-                  className="bg-gray-300 text-black hover:bg-gray-400 px-4 py-2"
-                >
-                  Cancel
-                </Button>
-              </div>
-            ) : (
-              <Button 
-                onClick={handleGoalClick}
-                className="px-4 py-2 border border-[#d8d8d8] bg-white text-[#232636] hover:bg-[#f5f5f5] rounded-md text-sm flex items-center gap-1"
-              >
-                <Plus size={16} />
-                New Goal
-              </Button>
-            )}
-          </div>
-        </Card>
-
-        <Card id="indie-score" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <h2 className="text-2xl font-semibold text-[#232636] mb-4">Indie Score</h2>
-
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-            <div className="flex items-center gap-3 mb-4 md:mb-0">
-              <div className="text-[#fbb236]">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="8" stroke="#fbb236" strokeWidth="2" fill="#fbb236" fillOpacity="0.2" />
-                  <path d="M12 8V12L15 14" stroke="#fbb236" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </div>
-              <div>
-                <div className="text-sm text-[#676767]">Coins Earned</div>
-                <div className="text-2xl font-bold text-[#232636]">32</div>
-              </div>
-            </div>
-
-            <div className="bg-[#f9fbff] p-4 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="font-semibold">₹1 = </span>
-                <span className="flex items-center">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="8" stroke="#fbb236" strokeWidth="2" fill="#fbb236" fillOpacity="0.2" />
-                  </svg>
-                  <span className="ml-1">1 Indie Coin</span>
-                </span>
-              </div>
-              <div className="text-sm text-[#676767]">Example: If you spend ₹100, then you earn ₹100 FlexCoins</div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-4 rounded-lg border border-[#d8d8d8] shadow-md hover:shadow-lg transition-shadow duration-300">
-              <h3 className="text-lg font-semibold text-[#232636] mb-4">Pie Chart</h3>
-              <div className="h-64 relative">
-                <Doughnut data={chartData1} options={chartOptions} />
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                  <div className="text-2xl font-bold">40</div>
-                </div>
-              </div>
-              <div className="mt-4 flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#a3d7ff]"></div>
-                  <span className="text-sm">Value 1</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#fff0cc]"></div>
-                  <span className="text-sm">Value 2</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#cceeed]"></div>
-                  <span className="text-sm">Value 3</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-4 rounded-lg border border-[#d8d8d8] shadow-md hover:shadow-lg transition-shadow duration-300">
-              <h3 className="text-lg font-semibold text-[#232636] mb-4">Pie Chart</h3>
-              <div className="h-64 relative">
-                <Doughnut data={chartData2} options={chartOptions} />
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                  <div className="text-2xl font-bold">40</div>
-                </div>
-              </div>
-              <div className="mt-4 flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#a3d7ff]"></div>
-                  <span className="text-sm">Value 1</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#fff0cc]"></div>
-                  <span className="text-sm">Value 2</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#cceeed]"></div>
-                  <span className="text-sm">Value 3</span>
-                </div>
-              </div>
             </div>
           </div>
         </Card>

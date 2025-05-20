@@ -8,7 +8,6 @@ import { useAuth } from "../hooks/useAuth";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { app, auth } from "../config/firebase.js";
 import useAuthStore from "../store/authStore";
-import useExpertAuthStore from "../store/expertAuthstore";
 import useUserTypeStore from "../store/userTypeStore";
 
 const LoginPage = () => {
@@ -22,11 +21,9 @@ const LoginPage = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [timer, setTimer] = useState(0);
   const [resendActive, setResendActive] = useState(false);
-  const { isAuthenticated, fetchIsAuthenticated } = useAuthStore();
-  const { isExpertAuthenticated, fetchIsExpertAuthenticated } = useExpertAuthStore();
-  const { setUserType } = useUserTypeStore();
+  const {isAuthenticated,fetchIsAuthenticated} = useAuthStore();
   const countryCodes = ["+91", "+1", "+44", "+61", "+81"];
-  const [userRole, setUserRole] = useState("student"); // Default role is student
+  const { userType, setUserType } = useUserTypeStore();
   const [assessmentData, setAssessmentData] = useState(null);
 
   useEffect(() => {
@@ -38,25 +35,31 @@ const LoginPage = () => {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated && userRole === "student") {
+    if (isAuthenticated) {
       // If we have assessment data, submit it before redirecting
       if (assessmentData) {
+        // Submit the assessment data to your backend
         axiosInstance.post('/user/assessment', assessmentData)
           .then(() => {
+           
             localStorage.removeItem('assessmentData');
-            navigate("/dashboard");
+            // Redirect based on role
+            userType === "student" ? navigate("/dashboard") : navigate("/expert");
           })
           .catch(error => {
             console.error('Error submitting assessment:', error);
-            navigate("/dashboard");
+            // Still redirect even if assessment submission fails
+            userType === "student" ? navigate("/dashboard") : navigate("/expert");
           });
       } else {
-        navigate("/dashboard");
+        // No assessment data, just redirect
+        userType === "student" ? navigate("/dashboard") : navigate("/expert");
       }
-    } else if (isExpertAuthenticated && userRole === "expert") {
-      navigate("/expert");
     }
-  }, [isAuthenticated, isExpertAuthenticated, navigate, userRole, assessmentData]);
+    else{
+      fetchIsAuthenticated();
+    }
+  }, [isAuthenticated, navigate, userType, assessmentData]);
 
   useEffect(() => {
     let interval;
@@ -77,9 +80,9 @@ const LoginPage = () => {
     if (token && userId) {
       console.log("JWT Token:", token);
       console.log("User ID:", userId);
-      userRole === "student" ? navigate("/dashboard") : navigate("/expert");
+      userType === "student" ? navigate("/dashboard") : navigate("/expert");
     }
-  }, [navigate, userRole]);
+  }, [navigate, userType]);
 
   const handlePhoneChange = (e) => {
     const value = e.target.value.replace(/\D/g, "");
@@ -151,10 +154,10 @@ const LoginPage = () => {
       await axiosInstance.post("/user/auth/firebase-login", {
         phone: user.phoneNumber,
         firebaseToken: idToken,
-        role: userRole
+        role: userType
       });
      
-      userRole === "student" ? navigate("/dashboard") : navigate("/expert");
+      userType === "student" ? navigate("/dashboard") : navigate("/expert");
     } catch (err) {
       setErrorMessage("Invalid OTP. Please try again.");
     }
@@ -178,7 +181,7 @@ const LoginPage = () => {
     const backendUrl = import.meta.env.VITE_TYPE === "production" 
       ? import.meta.env.VITE_BACKEND_URL 
       : `${import.meta.env.VITE_BACKEND_URL}:${import.meta.env.VITE_BACKEND_PORT}`;
-    if(userRole === "student") {
+    if(userType === "student") {
     window.location.href = `${backendUrl}/api/v1/user/auth/google`;
     }
     else{
@@ -187,7 +190,6 @@ const LoginPage = () => {
   };
 
   const handleRoleChange = (role) => {
-    setUserRole(role);
     setUserType(role);
   };
 
@@ -227,7 +229,7 @@ const LoginPage = () => {
                   type="button"
                   onClick={() => handleRoleChange("student")}
                   className={`flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all ${
-                    userRole === "student"
+                    userType === "student"
                       ? "border-[#185899] bg-blue-50 text-[#185899]"
                       : "border-gray-200 hover:border-gray-300 text-gray-600"
                   }`}
@@ -239,7 +241,7 @@ const LoginPage = () => {
                   type="button"
                   onClick={() => handleRoleChange("expert")}
                   className={`flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all ${
-                    userRole === "expert"
+                    userType === "expert"
                       ? "border-[#185899] bg-blue-50 text-[#185899]"
                       : "border-gray-200 hover:border-gray-300 text-gray-600"
                   }`}

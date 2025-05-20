@@ -4,8 +4,6 @@ import Footer from '../components/layout/Footer';
 import useExpertStore from '../store/expertStore';
 import useExpertCoursesStore from '../store/expertCoursesStore';
 import useExpertCohortsStore from '../store/expertCohortsStore';
-import useUserTypeStore from '../store/userTypeStore';
-import useExpertAuthStore from '../store/expertAuthstore';
 import axiosInstance from '../config/axios.config';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
@@ -17,8 +15,6 @@ function ExpertDashboard() {
   const { expertData, fetchExpertData, isLoading, error } = useExpertStore();
   const { courses, fetchExpertCourses } = useExpertCoursesStore();
   const { cohorts, fetchExpertCohorts } = useExpertCohortsStore();
-  const { userType, setUserType } = useUserTypeStore();
-  const { isExpertAuthenticated, fetchIsExpertAuthenticated } = useExpertAuthStore();
   const navigate = useNavigate();
 
   const [showCalendarModal, setShowCalendarModal] = useState(false);
@@ -69,28 +65,9 @@ function ExpertDashboard() {
   };
 
   useEffect(() => {
-    const checkAuthAndFetchData = async () => {
+    const initializeData = async () => {
       try {
-        // First check authentication
-        const isAuthenticated = await fetchIsExpertAuthenticated();
-        
-        if (!isAuthenticated) {
-          navigate("/signup");
-          return;
-        }
-
-        // Set user type to expert after successful authentication
-        setUserType("expert");
-        if (userType === "not_signed_in") {
-          navigate("/signup");
-          return;
-        }
-        if (userType === "student") {
-          navigate("/student");
-          return;
-        }
-
-        // Then fetch all data in parallel
+        // Fetch everything in parallel
         await Promise.all([
           fetchExpertData(),
           fetchExpertCourses(),
@@ -101,8 +78,8 @@ function ExpertDashboard() {
       }
     };
 
-    checkAuthAndFetchData();
-  }, [fetchExpertData, fetchExpertCourses, fetchExpertCohorts, fetchIsExpertAuthenticated, setUserType]);
+    initializeData();
+  }, [fetchExpertData, fetchExpertCourses, fetchExpertCohorts]);
 
   if (isLoading) {
     return (
@@ -609,7 +586,7 @@ function ExpertDashboard() {
                   </svg>
                 </div>
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-2">₹{expertData.earnings.total}</div>
+              <div className="text-3xl font-bold text-gray-900 mb-2">${expertData.earnings.total}</div>
               <div className="flex items-center text-sm">
                 <span className="text-[#00b6c4] font-medium">+12% </span>
                 <span className="text-gray-600 ml-1">vs. last month</span>
@@ -617,15 +594,15 @@ function ExpertDashboard() {
               <div className="mt-4 border-t border-gray-100 pt-4">
                 <div className="flex justify-between mb-2">
                   <span className="text-xs text-gray-500">Courses</span>
-                  <span className="text-xs font-medium">₹{expertData.analytics.courses.earnings}</span>
+                  <span className="text-xs font-medium">${expertData.analytics.courses.earnings}</span>
                 </div>
                 <div className="flex justify-between mb-2">
                   <span className="text-xs text-gray-500">Sessions</span>
-                  <span className="text-xs font-medium">₹{expertData.analytics.sessions.earnings}</span>
+                  <span className="text-xs font-medium">${expertData.analytics.sessions.earnings}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-xs text-gray-500">Cohorts</span>
-                  <span className="text-xs font-medium">₹{expertData.analytics.cohorts.earnings}</span>
+                  <span className="text-xs font-medium">${expertData.analytics.cohorts.earnings}</span>
                 </div>
               </div>
             </div>

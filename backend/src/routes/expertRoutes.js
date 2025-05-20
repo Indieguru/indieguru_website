@@ -121,17 +121,19 @@ router.delete('/cohorts/:cohortId', expertAuthMiddleware, deleteCohort);
 
 router.get('/match', expertAuthMiddleware, matchExperts);
 
-router.get("/search", authMiddleware, async (req, res) => {
+router.get("/search",  async (req, res) => {
   try {
     const { filter } = req.query; 
     const query = {
       $or: [
-        { domain: { $regex: `.*${filter}.*`, $options: "i" } }, // Case-insensitive match
-        { name: { $regex: `.*${filter}.*`, $options: "i" } },
-        { description: { $regex: `.*${filter}.*`, $options: "i" } },
+      { firstName: { $regex: `.*${filter}.*`, $options: "i" } }, // Case-insensitive match
+      { lastName: { $regex: `.*${filter}.*`, $options: "i" } },
+      { title: { $regex: `.*${filter}.*`, $options: "i" } },
+      { expertise: { $regex: `.*${filter}.*`, $options: "i" } },
       ],
     };
     const experts = await Expert.find(query);
+    console.log("Experts found:", experts.length);
     res.status(200).json({ success: true, data: experts });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error", error: error.message });

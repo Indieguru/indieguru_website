@@ -20,7 +20,7 @@ export default function EmailSignIn() {
     
     try {
       await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-      window.localStorage.setItem('emailForSignIn', email);
+      sessionStorage.setItem('emailForSignIn', email);
       setStatus('success');
     } catch (err) {
       console.error(err);

@@ -7,8 +7,6 @@ import ProfileCard from "../components/sections/ProfileCard"
 import InterestsCard from "../components/sections/InterestsCard"
 import GoalsCard from "../components/sections/GoalsCard"
 import ProgressSection from "../components/sections/ProgressSection"
-import GurusSection from "../components/sections/GurusSection"
-import ExpertsSection from "../components/sections/ExpertsSection"
 import ReferSection from "../components/sections/ReferSection"
 import PreviousSessionsSection from "../components/sections/PreviousSessionsSection"
 import useUserStore from "../store/userStore";
@@ -16,37 +14,39 @@ import axiosInstance from "../config/axios.config";
 import UpcomingCourses from '../components/sections/upcomingCourses';
 import useAuthStore from '../store/authStore';
 import useUserTypeStore from '../store/userTypeStore';
+import ExpertSearch from '../components/expert/ExpertSearch';
 
 function Dashboard() {
   const { user, fetchUser } = useUserStore();
   const navigate = useNavigate();
-  const [experts, setExperts] = useState([]);
   const { isAuthenticated, fetchIsAuthenticated } = useAuthStore();
   const { userType } = useUserTypeStore();
 
   useEffect(() => {
-   
-    
-    try {
-      if (userType === "expert") {
-        navigate("/expert");
-        return;
+    const checkAuth = async () => {
+      try {
+        if (userType === "expert") {
+          navigate("/expert");
+          return;
+        }
+        await fetchIsAuthenticated();
+        if (!isAuthenticated) {
+          navigate("/signup");
+          return;
+        }
+        
+        if (userType === "not_signed_in") {
+          navigate("/signup");
+          return;
+        }
+       
+        fetchUser();
+      } catch (error) {
+        console.error("Error fetching user details:", error);
       }
-      fetchIsAuthenticated();
-      if (!isAuthenticated) {
-        navigate("/signup");
-        return;
-      }
-      
-      if (userType === "not_signed_in") {
-        navigate("/signup");
-        return;
-      }
-     
-      fetchUser();
-    } catch (error) {
-      console.error("Error fetching user details:", error);
-    }
+    };
+
+    checkAuth();
   }, [isAuthenticated, userType]);
 
   const containerVariants = {
@@ -121,22 +121,13 @@ function Dashboard() {
           <ProgressSection />
         </motion.div>
         
-        {/* Gurus Section */}
+        {/* Expert Search Section */}
         <motion.div 
           variants={itemVariants} 
           transition={{ duration: 0.3 }}
-          className="mt-16 rounded-xl overflow-hidden"
+          className="mt-16"
         >
-          <GurusSection setExperts={setExperts} />
-        </motion.div>
-        
-        {/* Experts Section */}
-        <motion.div 
-          variants={itemVariants} 
-          transition={{ duration: 0.3, delay: 0.1 }}
-          className="mt-12 rounded-xl overflow-hidden"
-        >
-          <ExpertsSection experts={experts} />
+          <ExpertSearch experts={[]} />
         </motion.div>
         
         {/* Refer Section */}

@@ -10,7 +10,7 @@ export default function FinishSignIn() {
   const { fetchUser } = useUserStore();
 
   useEffect(() => {
-    const email = window.localStorage.getItem('emailForSignIn');
+    const email = sessionStorage.getItem('emailForSignIn');
 
     if (isSignInWithEmailLink(auth, window.location.href) && email) {
       signInWithEmailLink(auth, email, window.location.href)
@@ -20,9 +20,9 @@ export default function FinishSignIn() {
             await axiosInstance.put('/user/update', { email });
             // Refresh user data
             await fetchUser();
-            window.localStorage.removeItem('emailForSignIn');
+            sessionStorage.removeItem('emailForSignIn');
             alert('Email successfully updated!');
-            navigate('/profile'); // Redirect to profile page
+            navigate('/profile');
           } catch (error) {
             console.error('Error updating email in backend:', error);
             alert('Failed to update email in backend. Please try again.');

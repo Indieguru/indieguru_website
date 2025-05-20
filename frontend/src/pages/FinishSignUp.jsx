@@ -12,32 +12,25 @@ export default function FinishSignUp() {
   useEffect(() => {
     const completeSignIn = async () => {
       if (isSignInWithEmailLink(auth, window.location.href)) {
-        let email = window.localStorage.getItem('emailForSignIn');
+        let email = sessionStorage.getItem('emailForSignIn'); // Using sessionStorage instead
         if (!email) {
-          // If email is not found, you might want to prompt the user for it
           email = window.prompt('Please provide your email for confirmation');
         }
 
         try {
           const result = await signInWithEmailLink(auth, email, window.location.href);
-          
-          // Get the Firebase ID token
           const idToken = await result.user.getIdToken();
           
-          // Send the token to your backend
           await axiosInstance.post("/user/auth/firebase-login", {
             email: result.user.email,
             firebaseToken: idToken,
           });
 
-          // Clear email from storage
-          window.localStorage.removeItem('emailForSignIn');
-          
-          // Redirect to dashboard
+          sessionStorage.removeItem('emailForSignIn');
           navigate('/dashboard');
         } catch (error) {
-          console.error('Error signing in with email link:', error);
-          setError('Failed to complete sign in. Please try again.');
+          console.error('Error signing in:', error);
+          setError('Failed to verify email. Please try again.');
         }
       } else {
         setError('Invalid verification link.');

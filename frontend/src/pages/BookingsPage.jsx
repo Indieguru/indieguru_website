@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../components/ui/button";
 import { Calendar, Clock, Users, Award, ArrowRight, Link as LinkIcon, Video } from "lucide-react";
 import Header from "../components/layout/Header";
@@ -7,10 +7,6 @@ import useExpertSessionsStore from '../store/expertSessionsStore';
 import useExpertCohortsStore from '../store/expertCohortsStore';
 import useExpertCoursesStore from '../store/expertCoursesStore';
 import useExpertStore from '../store/expertStore';
-import useAuthStore from '../store/authStore';
-import useExpertAuthStore from '../store/expertAuthstore';
-import useUserTypeStore from '../store/userTypeStore';
-import { useNavigate } from "react-router-dom";
 
 // TabIndicator component
 const TabIndicator = ({ active, label, icon, onClick }) => (
@@ -30,28 +26,11 @@ const TabIndicator = ({ active, label, icon, onClick }) => (
 );
 
 const BookingsPage = () => {
-  const navigate = useNavigate();
-  const { isAuthenticated } = useAuthStore();
-  const { isExpertAuthenticated } = useExpertAuthStore();
-  const { userType } = useUserTypeStore();
-  
-
   const [activeTab, setActiveTab] = useState("upcoming");
   const { sessions, fetchExpertSessions, isLoading: isLoadingSessions } = useExpertSessionsStore();
   const { cohorts, fetchExpertCohorts, isLoading: isLoadingCohorts } = useExpertCohortsStore();
   const { courses, fetchExpertCourses, isLoading: isLoadingCourses } = useExpertCoursesStore();
   const { expertData, fetchExpertData, isLoading: isLoadingExpert } = useExpertStore();
-
-  useEffect(() => {
-    if (userType === "not_signed_in") {
-      navigate("/signup");
-      return;
-    }
-    if (!isAuthenticated && !isExpertAuthenticated) {
-      navigate("/signup");
-      return;
-    }
-  }, [isAuthenticated, isExpertAuthenticated, userType, navigate]);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -173,7 +152,7 @@ const BookingsPage = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-baseline">
               <span className="text-2xl font-bold text-[#003265]">
-                ₹{typeof course.pricing === 'object' ? course.pricing.total : course.pricing || 0}
+                ${typeof course.pricing === 'object' ? course.pricing.total : course.pricing || 0}
               </span>
             </div>
             {new Date(course.publishingDate) < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) ? (
@@ -238,7 +217,7 @@ const BookingsPage = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-baseline">
               <span className="text-2xl font-bold text-[#003265]">
-                ₹{cohort.pricing || 0}
+                ${cohort.pricing || 0}
               </span>
             </div>
             <Button 
@@ -362,15 +341,9 @@ const BookingsPage = () => {
                 <div className="text-gray-400 text-8xl mb-6 animate-bounce">🔍</div>
                 <h3 className="text-3xl font-bold text-gray-700 mb-4">No bookings found</h3>
                 <p className="text-gray-500 text-lg mb-8">You don't have any {activeTab} bookings at the moment.</p>
-                <div className="flex justify-center">
-                  <Button 
-                    onClick={() => navigate('/all-courses')}
-                    className="bg-blue-800 text-white rounded-md px-8 py-3 text-lg font-medium hover:bg-blue-900 flex items-center gap-3"
-                  >
-                    <span>Explore Courses</span>
-                    <ArrowRight className="w-5 h-5" />
-                  </Button>
-                </div>
+                <Button className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-full px-8 py-6 text-lg hover:shadow-lg hover:shadow-blue-200 transition-all">
+                  Explore Courses
+                </Button>
               </motion.div>
             )}
           </motion.div>

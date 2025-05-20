@@ -3,8 +3,8 @@ import nodemailer from 'nodemailer';
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.ADMIN_EMAIL,
-    pass: process.env.ADMIN_EMAIL_PASS,
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
 });
 
@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
 export const sendMail = async ({ to, subject, html }) => {
   try {
     const mailOptions = {
-      from: `"Platform Name" <${process.env.ADMIN_EMAIL}>`,
+      from: `"IndieGuru" <${process.env.EMAIL_USER}>`, // Use your platform name and email
       to,
       subject,
       html,

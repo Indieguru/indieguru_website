@@ -73,26 +73,5 @@ router.post('/logout', expertAuthMiddleware, async (req, res) => {
   }
 });
 
-router.get('/check-auth', expertAuthMiddleware, async (req, res) => {
-  try {
-    const expert = await Expert.findById(req.user.id);
-    if (!expert) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-    res.status(200).json({ 
-      message: 'Authenticated',
-      expert: {
-        id: expert._id,
-        email: expert.email,
-        firstName: expert.firstName,
-        lastName: expert.lastName
-      }
-    });
-  } catch (error) {
-    console.error('Auth check error:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
 export default router;
 
