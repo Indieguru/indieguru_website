@@ -4,7 +4,7 @@ import authMiddleware from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/:sessionId/book', authMiddleware, bookSession);
+router.post('/:sessionId/book',  bookSession);
 router.get('/feedback', getSessionFeedback); // Public route to get testimonials
 
 export default router;
