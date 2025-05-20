@@ -144,11 +144,11 @@ export const getSessionFeedback = async (req, res) => {
     const sessions = await Session.find({ 
       status: 'completed',
       feedback: { $exists: true, $ne: null },
-      rating: { $exists: true, $ne: null }
+      'feedback.rating': { $gt: 0 } // Only get sessions with rating greater than 0
     })
     .populate('expert', 'firstName lastName')
     .populate('bookedBy', 'firstName lastName')
-    .sort({ rating: -1 })
+    .sort({ 'feedback.rating': -1 })
     .limit(10);
 
     res.status(200).json({ 
@@ -157,7 +157,7 @@ export const getSessionFeedback = async (req, res) => {
         _id: session._id,
         title: `Session with ${session.expert.firstName} ${session.expert.lastName}`,
         feedback: session.feedback,
-        rating: session.rating,
+        rating: session.feedback.rating,
         studentName: session.bookedBy ? `${session.bookedBy.firstName} ${session.bookedBy.lastName}` : 'Anonymous Student'
       }))
     });
@@ -166,6 +166,108 @@ export const getSessionFeedback = async (req, res) => {
     res.status(500).json({ 
       success: false, 
       message: 'Error fetching session feedback',
+      error: error.message 
+    });
+  }
+};
+
+export const getPastSessions = async (req, res) => {
+  try {
+    const sessions = await Session.find({ 
+      bookedBy: req.user.id,
+      status: 'upcoming',
+      // date: { $lt: new Date() }
+    })
+    .sort({ date: -1 });
+
+    res.status(200).json({ 
+      success: true,
+      sessions: sessions.map(session => {
+        // If rating is 0, return null for feedback
+        const hasFeedback = session.feedback && session.feedback.rating > 0;
+        return {
+          _id: session._id,
+          title: session.title,
+          expertId: session.expert._id,
+          expertName: session.expertName,
+          expertTitle: session.expertTitle,
+          expertExpertise: session.expertExpertise,
+          date: session.date,
+          startTime: session.startTime,
+          endTime: session.endTime,
+          feedback: hasFeedback ? session.feedback : null,
+          rating: hasFeedback ? session.feedback.rating : 0
+        };
+      })
+    });
+  } catch (error) {
+    console.error('Error fetching past sessions:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error fetching past sessions',
+      error: error.message 
+    });
+  }
+};
+
+export const updateSessionFeedback = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { rating, heading, description } = req.body;
+
+    // If rating is 0, treat it as no feedback
+    if (rating === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Rating must be greater than 0 to submit feedback' 
+      });
+    }
+
+    if (!rating || !heading || !description) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Rating, heading, and description are required' 
+      });
+    }
+
+    const session = await Session.findById(sessionId);
+    
+    if (!session) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Session not found' 
+      });
+    }
+
+    // Verify that the user was the one who booked this session
+    if (session.bookedBy.toString() !== req.user.id) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Not authorized to update feedback for this session' 
+      });
+    }
+
+    session.feedback = {
+      rating,
+      detail: {
+        heading,
+        description
+      }
+    };
+
+    await session.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Feedback updated successfully',
+      feedback: session.feedback
+    });
+
+  } catch (error) {
+    console.error('Error updating session feedback:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error updating feedback',
       error: error.message 
     });
   }

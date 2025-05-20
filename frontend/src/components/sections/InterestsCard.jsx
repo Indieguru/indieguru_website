@@ -2,8 +2,11 @@ import { Link } from "react-router-dom"
 import { Card } from "../ui/card"
 import { Button } from "../ui/button"
 import { motion } from "framer-motion"
+import useUserStore from "../../store/userStore"
 
 function InterestsCard() {
+  const { user } = useUserStore();
+
   return (
     <Card className="p-6 h-full border border-gray-200 shadow-md bg-white rounded-lg hover:shadow-lg transition-all duration-300">
       <div className="flex flex-col h-full">
@@ -20,24 +23,19 @@ function InterestsCard() {
           Track your interests to get personalized recommendations for courses, webinars, and expert sessions tailored to your learning journey.
         </p>
         <div className="flex flex-wrap gap-2 mb-4">
-          <motion.span 
-            whileHover={{ scale: 1.05 }}
-            className="text-xs bg-white border border-indigo-200 text-indigo-700 px-3 py-1 rounded-full hover:bg-indigo-50 transition-all duration-300"
-          >
-            UI/UX
-          </motion.span>
-          <motion.span 
-            whileHover={{ scale: 1.05 }}
-            className="text-xs bg-white border border-indigo-200 text-indigo-700 px-3 py-1 rounded-full hover:bg-indigo-50 transition-all duration-300"
-          >
-            Programming
-          </motion.span>
-          <motion.span 
-            whileHover={{ scale: 1.05 }}
-            className="text-xs bg-white border border-indigo-200 text-indigo-700 px-3 py-1 rounded-full hover:bg-indigo-50 transition-all duration-300"
-          >
-            Web Development
-          </motion.span>
+          {user?.interests?.length > 0 ? (
+            user.interests.map((interest, index) => (
+              <motion.span 
+                key={index}
+                whileHover={{ scale: 1.05 }}
+                className="text-xs bg-white border border-indigo-200 text-indigo-700 px-3 py-1 rounded-full hover:bg-indigo-50 transition-all duration-300"
+              >
+                {interest}
+              </motion.span>
+            ))
+          ) : (
+            <p className="text-sm text-gray-500">No interests added yet</p>
+          )}
         </div>
         <div className="flex-grow"></div>
         <div className="flex justify-between items-center">

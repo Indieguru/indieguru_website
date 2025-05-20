@@ -2,8 +2,11 @@ import { Link } from "react-router-dom"
 import { Card } from "../ui/card"
 import { Button } from "../ui/button"
 import { motion } from "framer-motion"
+import useUserStore from "../../store/userStore"
 
 function GoalsCard() {
+  const { user } = useUserStore();
+
   return (
     <Card className="p-6 h-full border border-gray-200 shadow-md bg-white rounded-lg hover:shadow-lg transition-all duration-300">
       <div className="flex flex-col h-full">
@@ -19,31 +22,25 @@ function GoalsCard() {
           Set and track your learning goals to stay motivated and measure your progress over time.
         </p>
         <div className="space-y-3 mb-4">
-          <div 
-            className="flex items-center p-2 rounded-lg bg-[#e8f7f7] border border-[#cceeed]"
-          >
-            <div className="w-8 h-8 rounded-full bg-[#cceeed] flex items-center justify-center mr-3">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-[#00b6c4]">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <div className="flex-grow">
-              <h4 className="text-sm font-medium text-gray-900">Complete UI/UX Course</h4>
-            </div>
-          </div>
-
-          <div 
-            className="flex items-center p-2 rounded-lg bg-[#e8f7f7] border border-[#cceeed]"
-          >
-            <div className="w-8 h-8 rounded-full bg-[#cceeed] flex items-center justify-center mr-3">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-[#00b6c4]">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <div className="flex-grow">
-              <h4 className="text-sm font-medium text-gray-900">Weekly Practice</h4>
-            </div>
-          </div>
+          {user?.goals?.length > 0 ? (
+            user.goals.map((goal, index) => (
+              <div 
+                key={index}
+                className="flex items-center p-2 rounded-lg bg-[#e8f7f7] border border-[#cceeed]"
+              >
+                <div className="w-8 h-8 rounded-full bg-[#cceeed] flex items-center justify-center mr-3">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-[#00b6c4]">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div className="flex-grow">
+                  <h4 className="text-sm font-medium text-gray-900">{goal}</h4>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-gray-500">No goals set yet</p>
+          )}
         </div>
         <div className="flex-grow"></div>
         <div className="flex justify-between items-center">

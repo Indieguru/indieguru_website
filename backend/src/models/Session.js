@@ -68,13 +68,23 @@ const SessionSchema = new mongoose.Schema({
     default: 'not booked',
   },
   feedback: {
-    type: String,
+    rating: {
+      type: Number,
+      min: 0,
+      max: 5
   },
-  rating: {
-    type: Number,
-    min: 0,
-    max: 5,
+  detail: {
+      heading: {
+          type: String,
+          required: true
+      },
+      description: {
+          type: String,
+          required: true
+      }
+  }
   },
+  
   eventId: {
     type: String, // Google Calendar event ID
   },

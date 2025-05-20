@@ -48,7 +48,35 @@ const CourseSchema = new mongoose.Schema({
     publishingDate: {
         type: Date,
         default: Date.now
-    }
+    },
+    expertName: String,
+    expertTitle: String,
+    expertExpertise: [String],
+    feedback: [{
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        rating: {
+            type: Number,
+            min: 0,
+            max: 5
+        },
+        detail: {
+            heading: {
+                type: String,
+                required: true
+            },
+            description: {
+                type: String,
+                required: true
+            }
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+    }]
 }, {
     timestamps: true
 });
@@ -57,6 +85,23 @@ const CourseSchema = new mongoose.Schema({
 CourseSchema.pre('save', function(next) {
     if (this.pricing && this.pricing.expertFee) {
         this.pricing.total = this.pricing.expertFee + (this.pricing.platformFee || 0);
+    }
+    next();
+});
+
+// Pre-save middleware to populate expert details
+CourseSchema.pre('save', async function(next) {
+    if (this.createdBy && (!this.expertName || !this.expertTitle || !this.expertExpertise)) {
+        try {
+            const expertDoc = await mongoose.model('Expert').findById(this.createdBy);
+            if (expertDoc) {
+                this.expertName = `${expertDoc.firstName} ${expertDoc.lastName}`;
+                this.expertTitle = expertDoc.title;
+                this.expertExpertise = expertDoc.expertise;
+            }
+        } catch (error) {
+            console.error('Error populating expert details:', error);
+        }
     }
     next();
 });
