@@ -64,11 +64,13 @@ const UserSchema = new mongoose.Schema({
         'Undergraduate Student',
         'Postgraduate Student',
         'Working Professional'
-      ]
+      ],
+      default: 'High School Student (Class 11-12)'
     },
     stream: {
       type: String,
-      enum: ['Science (PCM)', 'Science (PCB)', 'Commerce', 'Arts/Humanities']
+      enum: ['Science (PCM)', 'Science (PCB)', 'Commerce', 'Arts/Humanities'],
+      default: 'Science (PCM)'
     },
     degree: String,
     learningStyle: String,
