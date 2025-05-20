@@ -127,7 +127,7 @@ function Dashboard() {
           transition={{ duration: 0.3 }}
           className="mt-16"
         >
-          <ExpertSearch experts={[]} />
+          <ExpertSearch />
         </motion.div>
         
         {/* Refer Section */}

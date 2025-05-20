@@ -34,31 +34,26 @@ const router = express.Router();
 
 router.use("/auth", expertAuthRoutes);
 
-// Get expert details by ID
-router.get('/:expertId', async (req, res) => {
-  try {
-    const { expertId } = req.params;
-    const expert = await Expert.findById(expertId)
-      .select('firstName lastName title expertise'); // Only select required fields
-    
-    if (!expert) {
-      return res.status(404).json({ message: "Expert not found" });
-    }
-    
-    res.status(200).json({
-      name: `${expert.firstName} ${expert.lastName}`,
-      title: expert.title,
-      expertise: expert.expertise
-    });
-  } catch (error) {
-    console.error('Error fetching expert:', error);
-    res.status(500).json({ message: "Internal Server Error", error: error.message });
-  }
-});
-
-// Expert dashboard data
+// Expert dashboard and common routes
 router.get('/dashboard', expertAuthMiddleware, getExpertDashboardData);
 router.get('/transactions', expertAuthMiddleware, getExpertTransactions);
+router.get('/search', async (req, res) => {
+  try {
+    const { filter } = req.query; 
+    const query = {
+      $or: [
+        { firstName: { $regex: `.*${filter}.*`, $options: "i" } },
+        { lastName: { $regex: `.*${filter}.*`, $options: "i" } },
+        { title: { $regex: `.*${filter}.*`, $options: "i" } },
+        { expertise: { $regex: `.*${filter}.*`, $options: "i" } },
+      ],
+    };
+    const experts = await Expert.find(query);
+    res.status(200).json({ success: true, data: experts });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+});
 
 // Expert profile update
 router.put('/update', expertAuthMiddleware, async (req, res) => {
@@ -129,7 +124,6 @@ router.get('/sessions', expertAuthMiddleware, getExpertSessions);
 router.post('/addsession', expertAuthMiddleware, addSlot);
 router.put('/sessions/:sessionId', expertAuthMiddleware, updateSession);
 router.delete('/sessions/:sessionId', expertAuthMiddleware, deleteSession);
-router.get('/:expertId/sessions', getExpertAvailableSessions);
 
 // Expert course management routes
 router.get('/courses', expertAuthMiddleware, getExpertCourses);
@@ -145,23 +139,28 @@ router.delete('/cohorts/:cohortId', expertAuthMiddleware, deleteCohort);
 
 router.get('/match', expertAuthMiddleware, matchExperts);
 
-router.get("/search",  async (req, res) => {
+// Dynamic routes should come last
+router.get('/:expertId', async (req, res) => {
   try {
-    const { filter } = req.query; 
-    const query = {
-      $or: [
-      { firstName: { $regex: `.*${filter}.*`, $options: "i" } }, // Case-insensitive match
-      { lastName: { $regex: `.*${filter}.*`, $options: "i" } },
-      { title: { $regex: `.*${filter}.*`, $options: "i" } },
-      { expertise: { $regex: `.*${filter}.*`, $options: "i" } },
-      ],
-    };
-    const experts = await Expert.find(query);
-    console.log("Experts found:", experts.length);
-    res.status(200).json({ success: true, data: experts });
+    const { expertId } = req.params;
+    const expert = await Expert.findById(expertId)
+      .select('firstName lastName title expertise'); // Only select required fields
+    
+    if (!expert) {
+      return res.status(404).json({ message: "Expert not found" });
+    }
+    
+    res.status(200).json({
+      name: `${expert.firstName} ${expert.lastName}`,
+      title: expert.title,
+      expertise: expert.expertise
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error", error: error.message });
+    console.error('Error fetching expert:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 });
+
+router.get('/:expertId/sessions', getExpertAvailableSessions);
 
 export default router;
