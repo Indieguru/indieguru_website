@@ -24,7 +24,8 @@ import {
   deleteEducationDocument,
   deleteCertificationDocument,
   getExpertTransactions,
-  addExperience
+  addExperience,
+  getExpertAvailableSessions
 } from '../controllers/expertController.js';
 import expertAuthMiddleware from "../middlewares/expertAuthMiddleware.js";
 import upload from '../middlewares/uploadMiddleware.js';
@@ -32,6 +33,28 @@ import upload from '../middlewares/uploadMiddleware.js';
 const router = express.Router();
 
 router.use("/auth", expertAuthRoutes);
+
+// Get expert details by ID
+router.get('/:expertId', async (req, res) => {
+  try {
+    const { expertId } = req.params;
+    const expert = await Expert.findById(expertId)
+      .select('firstName lastName title expertise'); // Only select required fields
+    
+    if (!expert) {
+      return res.status(404).json({ message: "Expert not found" });
+    }
+    
+    res.status(200).json({
+      name: `${expert.firstName} ${expert.lastName}`,
+      title: expert.title,
+      expertise: expert.expertise
+    });
+  } catch (error) {
+    console.error('Error fetching expert:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+});
 
 // Expert dashboard data
 router.get('/dashboard', expertAuthMiddleware, getExpertDashboardData);
@@ -106,6 +129,7 @@ router.get('/sessions', expertAuthMiddleware, getExpertSessions);
 router.post('/addsession', expertAuthMiddleware, addSlot);
 router.put('/sessions/:sessionId', expertAuthMiddleware, updateSession);
 router.delete('/sessions/:sessionId', expertAuthMiddleware, deleteSession);
+router.get('/:expertId/sessions', getExpertAvailableSessions);
 
 // Expert course management routes
 router.get('/courses', expertAuthMiddleware, getExpertCourses);

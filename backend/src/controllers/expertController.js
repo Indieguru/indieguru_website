@@ -1098,7 +1098,8 @@ export const getExpertAvailableSessions = async (req, res) => {
       expert: expertId,
       bookedStatus: false,
       date: { $gte: new Date() }
-    }).sort({ date: 1, startTime: 1 });
+    })
+    .sort({ date: 1, startTime: 1 });
     
     res.status(200).json(sessions);
   } catch (error) {

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import { Button } from "../components/ui/button";
-import { Calendar } from "lucide-react";
+import { Calendar, CheckCircle2, ChevronRight } from "lucide-react";
 import axiosInstance from "../config/axios.config";
 import { toast } from "react-toastify";
 
@@ -18,6 +18,7 @@ const BookingPage = () => {
   const [loading, setLoading] = useState(true);
   const [showTitleModal, setShowTitleModal] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     const fetchExpertAndSessions = async () => {
@@ -63,7 +64,6 @@ const BookingPage = () => {
   const handleConfirmBooking = async () => {
     if (!selectedSession || !sessionTitle.trim()) return;
     try {
-      // Get the session with populated expert data
       const response = await axiosInstance.post(`/session/${selectedSession._id}/book`, {
         sessionTitle: sessionTitle.trim(),
       });
@@ -74,8 +74,7 @@ const BookingPage = () => {
         setSelectedDate("");
         setSelectedTime("");
         setShowTitleModal(false);
-        toast.success("Successfully booked your session!");
-        // navigate("/bookings");
+        setShowSuccessModal(true); // Show success modal instead of toast
       }
     } catch (error) {
       console.error("Error booking session:", error);
@@ -83,6 +82,10 @@ const BookingPage = () => {
     } finally {
       setShowTitleModal(false);
     }
+  };
+
+  const handleViewBookings = () => {
+    navigate("/dashboard");
   };
 
   if (loading) {
@@ -258,6 +261,35 @@ const BookingPage = () => {
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                 >
                   Confirm Booking
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showSuccessModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-8 max-w-md w-full text-center">
+              <div className="flex justify-center mb-4">
+                <CheckCircle2 className="w-16 h-16 text-green-500" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-2">Booking Successful!</h3>
+              <p className="text-gray-600 mb-6">
+                Your session has been booked successfully. You can view the details in your dashboard.
+              </p>
+              <div className="space-y-3">
+                <Button
+                  onClick={handleViewBookings}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center"
+                >
+                  View My Bookings
+                  <ChevronRight className="w-5 h-5 ml-2" />
+                </Button>
+                <button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="w-full px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg font-medium transition-colors"
+                >
+                  Close
                 </button>
               </div>
             </div>

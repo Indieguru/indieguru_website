@@ -15,7 +15,7 @@ export const bookSession = async (req, res) => {
     const user = await User.findById(req.user.id);
     const session = await Session.findById(sanitizedSessionId).populate('expert');
 
-    studentName = req.body.studentName || user.firstName || user.lastName || 'Anonymous Student'; // Default to user's name if not provided
+    const studentName = req.body.studentName || user.firstName || user.lastName || 'Anonymous Student'; // Default to user's name if not provided
     const expert = await Expert.findById(session.expert);
     if (!session) {
       return res.status(404).json({ message: 'Session not found' });

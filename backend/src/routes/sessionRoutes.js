@@ -1,6 +1,6 @@
 import express from 'express';
 import { bookSession, getSessionFeedback } from '../controllers/sessionController.js';
-import { authMiddleware } from '../middlewares/authMiddleware.js';
+import authMiddleware from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 

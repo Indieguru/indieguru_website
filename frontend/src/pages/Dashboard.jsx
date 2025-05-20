@@ -25,20 +25,20 @@ function Dashboard() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        if (userType === "expert") {
-          navigate("/expert");
-          return;
-        }
+        // if (userType === "expert") {
+        //   navigate("/expert");
+        //   return;
+        // }
         await fetchIsAuthenticated();
         if (!isAuthenticated) {
           navigate("/signup");
           return;
         }
         
-        if (userType === "not_signed_in") {
-          navigate("/signup");
-          return;
-        }
+        // if (userType === "not_signed_in") {
+        //   navigate("/signup");
+        //   return;
+        // }
        
         fetchUser();
       } catch (error) {
