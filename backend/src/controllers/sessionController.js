@@ -7,12 +7,12 @@ import { sendMail } from '../utils/sendMail.js';
 
 export const bookSession = async (req, res) => {
   try {
-      console.log(req.user)
+      console.log(req.body.user)
       const { sessionId } = req.params;
       const sanitizedSessionId = sessionId.trim(); 
-      const { sessionTitle } = req.body;
+      const { sessionTitle } = req.body
       console.log("sessionId", sessionId);
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.body.user.id);
     const session = await Session.findById(sanitizedSessionId).populate('expert');
 
     const studentName = req.body.studentName || user.firstName || user.lastName || 'Anonymous Student'; // Default to user's name if not provided
@@ -26,7 +26,7 @@ export const bookSession = async (req, res) => {
     session.title = sessionTitle || session.title; // Update session title if provided
     session.studentName = studentName || `${user.firstName} ${user.lastName}`; // Set student name
     session.bookedStatus = true;
-    session.bookedBy = req.user.id;
+    session.bookedBy = req.body.user.id;
     session.paymentStatus = 'completed';
     session.status = 'upcoming';
 
