@@ -76,11 +76,11 @@ const SessionSchema = new mongoose.Schema({
   detail: {
       heading: {
           type: String,
-          required: true
+          // required: true
       },
       description: {
           type: String,
-          required: true
+          // required: true
       }
   }
   },
@@ -90,7 +90,7 @@ const SessionSchema = new mongoose.Schema({
   },
   meetLink: {
     type: String, // Google Meet link
-    required: true,
+    // required: true,
   }
 });
 
