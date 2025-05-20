@@ -31,7 +31,12 @@ const ExpertSchema = new mongoose.Schema({
     default: false
   },
   refreshToken: String,
-  
+  rating: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 5
+  },
   expertise: [{
     type: String,
     enum: [

@@ -9,6 +9,7 @@ export default function AddCourseModal({ isOpen, onClose }) {
   const [courseData, setCourseData] = useState({
     title: '',
     description: '',
+    courseOverview: '',
     driveLink: '',
     expertFee: ''
   });
@@ -58,6 +59,20 @@ export default function AddCourseModal({ isOpen, onClose }) {
             onChange={handleInputChange}
             required
             placeholder="Enter course title"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Course Overview
+          </label>
+          <Textarea
+            name="courseOverview"
+            value={courseData.courseOverview}
+            onChange={handleInputChange}
+            required
+            placeholder="Enter a brief overview of the course"
+            rows={2}
           />
         </div>
 

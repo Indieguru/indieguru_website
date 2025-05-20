@@ -14,6 +14,10 @@ const CourseSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    courseOverview: {
+        type: String,
+        // required: true
+    },
     driveLink: {
         type: String,
         required: true
@@ -44,6 +48,11 @@ const CourseSchema = new mongoose.Schema({
         type: String,
         enum: ['approved', 'pending', 'rejected'],
         default: 'pending'
+    },
+    activityStatus: {
+        type: String,
+        enum: ['live', 'completed'],
+        default: 'live'
     },
     publishingDate: {
         type: Date,

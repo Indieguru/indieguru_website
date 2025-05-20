@@ -31,6 +31,11 @@ const CohortSchema = new mongoose.Schema({
         enum: ['approved', 'pending', 'rejected'],
         default: 'pending'
     },
+    activityStatus: {
+        type: String,
+        enum: ['live', 'completed'],
+        default: 'live'
+    },
     publishingDate: {
         type: Date,
         default: Date.now

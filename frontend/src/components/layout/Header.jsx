@@ -12,6 +12,10 @@ const Header = () => {
     return user?.userType === 'expert' ? '/expert' : '/dashboard';
   };
 
+  const getBookingsLink = () => {
+    return user?.userType === 'student' ? '/student/bookings' : '/bookings';
+  };
+
   useEffect(() => {
     console.log(isAuthenticated);
   }, [isAuthenticated]);
@@ -47,7 +51,7 @@ const Header = () => {
             )}
             {isAuthenticated ? (
               <>
-                <Link to="/bookings" className="text-gray-600 hover:text-gray-900">Bookings</Link>
+                <Link to={getBookingsLink()} className="text-gray-600 hover:text-gray-900">Bookings</Link>
                 <Link to="/profile" className="px-6 py-2 rounded-full border-2 border-primary text-primary hover:bg-indigo-900 hover:text-white hover:transition-colors">
                   Profile
                 </Link>
@@ -124,7 +128,7 @@ const Header = () => {
             )}
             {isAuthenticated ? (
               <>
-                <Link to="/bookings"
+                <Link to={getBookingsLink()}
                   className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
                   onClick={() => setIsOpen(false)}
                 >

@@ -1,48 +1,70 @@
+import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
+import axiosInstance from "../../config/axios.config";
+import { useNavigate } from "react-router-dom";
 
 function UpcomingCourses() {
-  const courses = [
-    {
-      id: 1,
-      title: "Product Management Basic - Course",
-      date: "1 - 28 July 2022",
-      students: 40,
-      price: 380,
-      originalPrice: 500,
-      image: "/rectangle-2749.png",
-      color: "#00b6c4",
-    },
-    {
-      id: 2,
-      title: "BI Data Science Professional Certificate",
-      date: "1 - 28 July 2022",
-      students: 11,
-      price: 678,
-      originalPrice: 500,
-      image: "/rectangle-2749-1.png",
-      color: "#ffc619",
-    },
-    {
-      id: 3,
-      title: "The Science of Well-Being",
-      date: "1 - 28 July 2022",
-      students: 234,
-      price: 123,
-      originalPrice: 500,
-      image: "/rectangle-2749-2.png",
-      color: "#66bcff",
-    },
-    {
-      id: 4,
-      title: "Python for Everybody Specialization",
-      date: "1 - 28 July 2022",
-      students: 342,
-      price: 567,
-      originalPrice: 500,
-      image: "/rectangle-2749-3.png",
-      color: "#00b6c4",
-    },
-  ];
+  const [courses, setCourses] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        console.log('Fetching courses...');
+        const response = await axiosInstance.get('/course');
+        console.log('Courses response:', response.data);
+        
+        // Sort courses by publishing date and take latest ones
+        const sortedCourses = response.data
+          .sort((a, b) => new Date(b.publishingDate) - new Date(a.publishingDate))
+          .slice(0, 4); // Take only first 4 courses
+        setCourses(sortedCourses.map(course => ({
+          id: course._id, // Changed from course._id to be consistent
+          title: course.title,
+          date: new Date(course.publishingDate).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          }),
+          students: course.purchasedBy?.length || 0,
+          price: course.pricing?.total || 0,
+          originalPrice: course.pricing?.total ? course.pricing.total * 1.2 : 0, // 20% higher for original price
+          image: "/rectangle-2749.png", // Default image
+          color: "#00b6c4", // Default color
+          instructor: course.expertName
+        })));
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  if (error) {
+    return (
+      <section className="mb-12 p-6 bg-gradient-to-br from-[#cceeed] to-[#e8f7f7] rounded-xl">
+        <div className="text-center text-red-600">
+          Error loading courses: {error}
+        </div>
+      </section>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <section className="mb-12 p-6 bg-gradient-to-br from-[#cceeed] to-[#e8f7f7] rounded-xl">
+        <div className="flex justify-center items-center h-48">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="mb-12 p-6 bg-gradient-to-br from-[#cceeed] to-[#e8f7f7] rounded-xl">
@@ -60,44 +82,53 @@ function UpcomingCourses() {
         Explore upcoming courses and prepare for your next learning adventure. Stay ahead with the latest offerings.
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {courses.map((course) => (
-          <div key={course.id} className="group">
-            <div className="bg-white rounded-lg overflow-hidden">
-              <div className="h-48 relative overflow-hidden" style={{ backgroundColor: course.color }}>
-                <img 
-                  src={course.image} 
-                  alt={course.title} 
-                  className="w-full h-full object-contain" 
-                />
-              </div>
-              <div className="p-4">
-                <div className="text-sm text-gray-500 mb-2 flex items-center">
-                  <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  {course.date}
+      {courses.length === 0 ? (
+        <div className="text-center text-gray-600">
+          No upcoming courses available at the moment.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {courses.map((course) => (
+            <div key={course.id} className="group">
+              <div className="bg-white rounded-lg overflow-hidden">
+                <div className="h-48 relative overflow-hidden" style={{ backgroundColor: course.color }}>
+                  <img 
+                    src={course.image} 
+                    alt={course.title} 
+                    className="w-full h-full object-contain" 
+                  />
                 </div>
-                <h3 className="text-lg font-bold text-[#003265] mb-3 line-clamp-2">
-                  {course.title}
-                </h3>
-                <p className="text-sm text-gray-600 mb-6">
-                  Sarah Johnson - Head of Product Customer Platform Gojek Indonesia
-                </p>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-baseline">
-                    <span className="text-xl font-bold text-[#003265]">₹ {course.price}</span>
-                    <span className="ml-2 text-gray-400 line-through text-sm">₹ {course.originalPrice}</span>
+                <div className="p-4">
+                  <div className="text-sm text-gray-500 mb-2 flex items-center">
+                    <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    {course.date}
                   </div>
-                  <Button className="bg-blue-800 hover:bg-[#0a2540] text-white text-xs px-4 py-2 rounded-full">
-                    Book Now
-                  </Button>
+                  <h3 className="text-lg font-bold text-[#003265] mb-3 line-clamp-2">
+                    {course.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-6">
+                    {course.instructor}
+                  </p>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-baseline">
+                      <span className="text-xl font-bold text-[#003265]">₹ {course.price}</span>
+                      <span className="ml-2 text-gray-400 line-through text-sm">₹ {Math.round(course.originalPrice)}</span>
+                    </div>
+                    <Button 
+                      onClick={() => navigate(`/course/${course.id}`)}
+                      className="bg-blue-800 hover:bg-[#0a2540] text-white text-xs px-4 py-2 rounded-full"
+                    >
+                      Book Now
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

@@ -51,6 +51,10 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  purchasedCourses: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course'
+  }],
   assessment: {
     role: {
       type: String,

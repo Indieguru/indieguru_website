@@ -10,6 +10,7 @@ import ExpertDashboard from "./pages/ExpertDashboard";
 import ExpertProfile from "./pages/ExpertProfile";
 import Loader from "./components/layout/Loader";
 import BookingsPage from "./pages/BookingsPage";
+import StudentBookingsPage from "./pages/StudentBookingsPage";
 import ExpertPayments from "./pages/PaymentsPage";
 import NotFound from "./pages/NotFound";
 import AllCoursesPage from "./pages/AllCoursesPage";
@@ -22,6 +23,8 @@ import BrowseExperts from "./pages/BrowseExperts";
 import AssessmentPage from "./pages/AssessmentPage";
 import BookingPage from "./pages/BookingPage";
 import ReferPage from "./pages/ReferPage";
+import CourseDetails from './pages/CourseDetails';
+import CohortDetails from './pages/CohortDetails';
 
 // RouteChangeTracker component to detect route changes
 const RouteChangeTracker = ({ setLoading }) => {
@@ -75,6 +78,7 @@ function App() {
           <Route path="/expert/profile" element={<ExpertProfile />} />
           <Route path="/communitypage" element={<CommunityPage />} />
           <Route path="/bookings" element={<BookingsPage />} />
+          <Route path="/student/bookings" element={<StudentBookingsPage />} />
           <Route path="/payments" element={<ExpertPayments />} />
           <Route path="/all-courses" element={<AllCoursesPage />} />
           <Route path="/browse-experts" element={<BrowseExperts />} />
@@ -82,6 +86,8 @@ function App() {
           <Route path="/assessment" element={<AssessmentPage />} />
           <Route path="/booking/:expertId" element={<BookingPage />} />
           <Route path="/refer" element={<ReferPage />} />
+          <Route path="/course/:courseId" element={<CourseDetails />} />
+          <Route path="/cohort/:cohortId" element={<CohortDetails />} />
           <Route path="*" element={<NotFound />} />
           {/* Add more routes as needed */}
           <Route path="/email-signin" element={<EmailSignIn />} />
