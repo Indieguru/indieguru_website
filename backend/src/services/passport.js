@@ -71,20 +71,19 @@ passport.use('google-expert', new GoogleStrategy({
   callbackURL: `${backendUrl}/api/v1/expert/auth/google/callback`, // Use relative path
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-   
     const existingUser = await Expert.findOne({ gid: profile.id });
     if (existingUser) {
       const token = generateToken(existingUser);
       const refreshToken = generateRefreshToken(existingUser);
       await Expert.updateOne( { _id: existingUser._id }, { $set: { refreshToken: refreshToken } }); // Store the Google refresh token
-      return done(null, { user: existingUser, token,refreshToken});
+      return done(null, { user: existingUser, token, refreshToken});
     }
+    
     // Split the display name into firstName and lastName
     const [firstName, ...lastNameParts] = profile.displayName.split(" ");
     const lastName = lastNameParts.join(" ");
-
-    const token = generateToken(newUser);
-    const refreshToken = generateRefreshToken(newUser);
+    
+    // Create new user first
     const newUser = new Expert({
       firstName,
       lastName,
@@ -93,13 +92,15 @@ passport.use('google-expert', new GoogleStrategy({
       authType: 'gmail',
       emailVerified: true,
       userType: 'expert',
-      refreshToken: refreshToken, 
-      // googleRefreshToken: refreshToken, // Store the Google refresh token
     });
 
+    // Then generate tokens
+    const token = generateToken(newUser);
+    const refreshToken = generateRefreshToken(newUser);
+    newUser.refreshToken = refreshToken;
+
     await newUser.save();
-   
-    done(null, { user: newUser, token, refreshToken  });
+    done(null, { user: newUser, token, refreshToken });
   } catch (error) {
     console.error('Error during Google expert authentication:', error);
     done(error, false);
