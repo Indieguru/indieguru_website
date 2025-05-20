@@ -175,7 +175,7 @@ export const getPastSessions = async (req, res) => {
   try {
     const sessions = await Session.find({ 
       bookedBy: req.user.id,
-      status: 'upcoming',
+      status: 'completed',
       // date: { $lt: new Date() }
     })
     .sort({ date: -1 });
