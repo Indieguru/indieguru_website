@@ -16,7 +16,7 @@ export const addSlot = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Get expert's session pricing
+    // Get expert's session pricing and details
     const expert = await Expert.findById(expertId);
     if (!expert.sessionPricing || typeof expert.sessionPricing.expertFee !== 'number') {
       return res.status(400).json({ message: "Please set your session pricing first" });
@@ -36,6 +36,9 @@ export const addSlot = async (req, res) => {
 
     const newSlot = new Session({
       expert: expertId,
+      expertName: `${expert.firstName} ${expert.lastName}`,
+      expertTitle: expert.title,
+      expertExpertise: expert.expertise,
       date: new Date(date),
       startTime,
       endTime,

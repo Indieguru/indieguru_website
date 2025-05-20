@@ -15,6 +15,9 @@ const SessionSchema = new mongoose.Schema({
     ref: 'Expert',
     required: true,
   },
+  expertName: String,
+  expertTitle: String,
+  expertExpertise: [String],
   date: {
     type: Date,
     required: true,
@@ -86,6 +89,23 @@ SessionSchema.pre('save', function(next) {
   if (this.pricing && this.pricing.expertFee) {
     // Calculate total using existing platform fee or 0
     this.pricing.total = this.pricing.expertFee + (this.pricing.platformFee || 0);
+  }
+  next();
+});
+
+// Pre-save middleware to populate expert details
+SessionSchema.pre('save', async function(next) {
+  if (this.expert && (!this.expertName || !this.expertTitle || !this.expertExpertise)) {
+    try {
+      const expertDoc = await mongoose.model('Expert').findById(this.expert);
+      if (expertDoc) {
+        this.expertName = `${expertDoc.firstName} ${expertDoc.lastName}`;
+        this.expertTitle = expertDoc.title;
+        this.expertExpertise = expertDoc.expertise;
+      }
+    } catch (error) {
+      console.error('Error populating expert details:', error);
+    }
   }
   next();
 });

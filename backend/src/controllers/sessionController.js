@@ -30,6 +30,20 @@ export const bookSession = async (req, res) => {
     session.paymentStatus = 'completed';
     session.status = 'upcoming';
 
+    // Update expert's outstanding amount
+    const sessionFee = session.pricing.expertFee || 0;
+    if (!expert.outstandingAmount) {
+      expert.outstandingAmount = {
+        sessions: 0,
+        courses: 0,
+        cohorts: 0,
+        total: 0
+      };
+    }
+    expert.outstandingAmount.sessions += sessionFee;
+    expert.outstandingAmount.total += sessionFee;
+    await expert.save();
+
     const oAuth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
