@@ -7,4 +7,3 @@ export const Button = ({ children, className, onClick }) => {
     </button>
   )
 }
-

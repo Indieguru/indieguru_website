@@ -135,7 +135,7 @@ function ExpertDashboard() {
   };
 
   const handleEducationEdit = () => {
-    navigate('/expert/profile#education');
+    navigate('/blogs');
   };
 
   const handleAddCourse = () => {
@@ -172,7 +172,7 @@ function ExpertDashboard() {
               <nav className="ml-8 flex space-x-8">
                 <Link 
                   to="/expert"
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ₹{
                     activeTab === "dashboard" ? "border-indigo-900 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
@@ -180,7 +180,7 @@ function ExpertDashboard() {
                 </Link>
                 <Link 
                   to="/blogpage"
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ₹{
                     activeTab === "blogs" ? "border-blue-700 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
@@ -188,7 +188,7 @@ function ExpertDashboard() {
                 </Link>
                 <Link 
                   to="/communitypage"
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ₹{
                     activeTab === "community" ? "border-blue-700 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
@@ -196,7 +196,7 @@ function ExpertDashboard() {
                 </Link>
                 <Link 
                   to="/bookings"
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ₹{
                     activeTab === "bookings" ? "border-blue-700 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
@@ -204,7 +204,7 @@ function ExpertDashboard() {
                 </Link>
                 <Link 
                   to="/payments"
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ₹{
                     activeTab === "payments" ? "border-blue-700 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
@@ -447,7 +447,7 @@ function ExpertDashboard() {
                 <button 
                   onClick={handleEducationEdit}
                   className="w-full bg-blue-900 hover:bg-blue-800 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
-                  Add Certification
+                  Add Blog
                 </button>
               </div>
             </div>
@@ -519,7 +519,7 @@ function ExpertDashboard() {
                 <div className="p-5">
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ₹{
                         session.type === "1-on-1" ? "bg-red-100 text-red-600" : 
                         session.type === "Cohort" ? "bg-purple-100 text-indigo-900" : 
                         "bg-blue-100 text-blue-900"
@@ -548,7 +548,7 @@ function ExpertDashboard() {
                     <button className="text-sm text-indigo-900 hover:text-purple-800 font-medium transition-colors duration-300">
                       View Details
                     </button>
-                    <button className={`text-sm ${
+                    <button className={`text-sm ₹{
                       session.type === "1-on-1" ? "text-red-600 hover:text-red-800" : 
                       session.type === "Cohort" ? "text-indigo-900 hover:text-purple-800" : 
                       "text-blue-900 hover:text-blue-900"
@@ -586,7 +586,7 @@ function ExpertDashboard() {
                   </svg>
                 </div>
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-2">${expertData.earnings.total}</div>
+              <div className="text-3xl font-bold text-gray-900 mb-2">₹{expertData.earnings.total}</div>
               <div className="flex items-center text-sm">
                 <span className="text-[#00b6c4] font-medium">+12% </span>
                 <span className="text-gray-600 ml-1">vs. last month</span>
@@ -594,15 +594,15 @@ function ExpertDashboard() {
               <div className="mt-4 border-t border-gray-100 pt-4">
                 <div className="flex justify-between mb-2">
                   <span className="text-xs text-gray-500">Courses</span>
-                  <span className="text-xs font-medium">${expertData.analytics.courses.earnings}</span>
+                  <span className="text-xs font-medium">₹{expertData.analytics.courses.earnings}</span>
                 </div>
                 <div className="flex justify-between mb-2">
                   <span className="text-xs text-gray-500">Sessions</span>
-                  <span className="text-xs font-medium">${expertData.analytics.sessions.earnings}</span>
+                  <span className="text-xs font-medium">₹{expertData.analytics.sessions.earnings}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-xs text-gray-500">Cohorts</span>
-                  <span className="text-xs font-medium">${expertData.analytics.cohorts.earnings}</span>
+                  <span className="text-xs font-medium">₹{expertData.analytics.cohorts.earnings}</span>
                 </div>
               </div>
             </div>
@@ -621,7 +621,7 @@ function ExpertDashboard() {
                 <div className="text-3xl font-bold text-gray-900 mr-2">{expertData.ratings.overall}</div>
                 <div className="flex text-yellow-500">
                   {[...Array(5)].map((_, index) => (
-                    <svg key={index} className={`w-4 h-4 ${index < Math.floor(expertData.ratings.overall) ? 'text-yellow-500' : 'text-gray-300'}`} fill="currentColor" viewBox="0 0 20 20">
+                    <svg key={index} className={`w-4 h-4 ₹{index < Math.floor(expertData.ratings.overall) ? 'text-yellow-500' : 'text-gray-300'}`} fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
                   ))}
@@ -637,7 +637,7 @@ function ExpertDashboard() {
               </div>
               <div className="mt-2">
                 <div className="w-full h-2 bg-gray-200 rounded-full mb-2">
-                  <div className="h-2 bg-blue-900 rounded-full" style={{ width: `${(expertData.ratings.overall / 5) * 100}%` }}></div>
+                  <div className="h-2 bg-blue-900 rounded-full" style={{ width: `₹{(expertData.ratings.overall / 5) * 100}%` }}></div>
                 </div>
                 <Link to="/analytics/ratings" className="text-xs text-blue-800 hover:text-yellow-800 font-medium transition-colors duration-300">
                   View detailed ratings
@@ -725,7 +725,7 @@ function ExpertDashboard() {
         </section>
 
         {/* Section 5: Testimonials and Reviews */}
-        <section className="mb-8">
+        {/* <section className="mb-8">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-semibold text-gray-800 flex items-center">
               <span className="mr-2 text-blue-900">
@@ -756,7 +756,7 @@ function ExpertDashboard() {
                       {[...Array(5)].map((_, i) => (
                         <svg 
                           key={i} 
-                          className={`w-4 h-4 ${i < session.rating ? 'text-yellow-500' : 'text-gray-300'}`} 
+                          className={`w-4 h-4 ₹{i < session.rating ? 'text-yellow-500' : 'text-gray-300'}`} 
                           fill="currentColor" 
                           viewBox="0 0 20 20"
                         >
@@ -778,10 +778,10 @@ function ExpertDashboard() {
               </div>
             ))}
           </div>
-        </section>
+        </section> */}
 
         {/* Platform Updates Section */}
-        <section>
+        {/* <section>
           <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg p-6 shadow-lg">
             <div className="flex flex-col md:flex-row items-center justify-between">
               <div className="mb-4 md:mb-0">
@@ -804,7 +804,7 @@ function ExpertDashboard() {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
       </main>
 
       {showCalendarModal && (
@@ -823,7 +823,7 @@ function ExpertDashboard() {
             </div>
 
             {message && (
-              <div className={`mb-4 p-2 rounded ${
+              <div className={`mb-4 p-2 rounded ₹{
                 message.includes('Error') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
               }`}>
                 {message}
@@ -850,7 +850,7 @@ function ExpertDashboard() {
                     <button
                       key={slot}
                       onClick={() => setSelectedTimeSlot(slot)}
-                      className={`p-2 text-sm rounded ${
+                      className={`p-2 text-sm rounded ₹{
                         selectedTimeSlot === slot
                           ? 'bg-indigo-600 text-white'
                           : 'bg-gray-100 text-gray-800 hover:bg-gray-200'

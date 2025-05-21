@@ -115,7 +115,7 @@ const CohortCard = ({ item, onJoin }) => (
         </div>
         <Button 
           onClick={() => onJoin(item)}
-          className="bg-indigo-700 hover:bg-indigo-800 text-white rounded-full px-6 py-2.5 flex items-center gap-2 shadow-md font-medium transition-all duration-200"
+          className="bg-indigo-900 hover:bg-indigo-800 text-white rounded-full px-6 py-2.5 flex items-center gap-2 shadow-md font-medium transition-all duration-200"
         >
           <span>Join Cohort</span>
           <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
@@ -191,7 +191,7 @@ const AllCoursesPage = () => {
               })}`,
               price: cohort.pricing || 0,
               image: "/rectangle-2749.png",
-              color: "#4f46e5",
+              color: "#ffffff",
               meetLink: cohort.meetLink
             }));
           setCohorts(transformedCohorts);
@@ -338,7 +338,7 @@ const AllCoursesPage = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-3 mb-16 flex gap-2 w-full max-w-md mx-auto">
+        <div className="bg-white rounded-xl shadow-xl p-3 mb-16 flex gap-2 w-full max-w-sm mx-auto">
           <TabButton 
             active={activeTab === "courses"} 
             label="Courses" 

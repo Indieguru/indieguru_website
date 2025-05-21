@@ -149,7 +149,7 @@ export default function InputBox({
                                 <>
                                     <Button
                                         onClick={handleOnSave}
-                                        className="bg-blue-800 text-white hover:bg-[#143d65]"
+                                        className="bg-blue-800 text-white hover:bg-[#143d65] px-4 py-1 rounded-md"
                                     >
                                         Verify
                                     </Button>
@@ -161,7 +161,7 @@ export default function InputBox({
                                             setError("");
                                             setOtpSent(false);
                                         }}
-                                        className="bg-gray-300 text-black hover:bg-gray-400"
+                                        className="bg-gray-300 text-black hover:bg-gray-400 px-4 py-1 rounded-md"
                                     >
                                         Cancel
                                     </Button>
@@ -178,7 +178,7 @@ export default function InputBox({
                                     )}
                                     <Button
                                         onClick={handleOnSave}
-                                        className="bg-blue-800 text-white hover:bg-[#143d65]"
+                                        className="bg-blue-800 text-white hover:bg-[#143d65] px-4 py-1 rounded-md"
                                         disabled={otpRequired && !otpSent}
                                     >
                                         Save
@@ -191,7 +191,7 @@ export default function InputBox({
                                             setError("");
                                             setOtpSent(false);
                                         }}
-                                        className="bg-gray-300 text-black hover:bg-gray-400"
+                                        className="bg-gray-300 text-black hover:bg-gray-400 px-4 py-1 rounded-md"
                                     >
                                         Cancel
                                     </Button>

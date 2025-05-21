@@ -298,21 +298,29 @@ function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-white pt-24">
+    <div className="min-h-screen bg-gray-50 pt-24">
       <ErrorPopup message={errorMessage} onClose={() => setErrorMessage("")} />
       <Header className="sticky top-0 z-50 bg-white shadow-md" />
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-8">
-        <Card id="basic-info" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <h2 className="text-2xl font-semibold text-[#232636] mb-6">Basic Information</h2>
+        <Card id="basic-info" className="p-8 mb-8 border border-gray-200 rounded-xl bg-white">
+          <h2 className="text-2xl font-semibold text-[#232636] mb-6 border-b border-gray-200 pb-3 flex items-center">
+            <span className="bg-blue-100 text-blue-700 p-1.5 rounded-full mr-2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+            Basic Information
+          </h2>
 
           <div className="flex flex-col md:flex-row gap-6">
             <div className="md:w-1/4 flex flex-col items-center">
-              <div className="w-40 h-40 rounded-full overflow-hidden mb-4">
+              <div className="w-40 h-40 rounded-full overflow-hidden mb-4 border-2 border-blue-300 p-1 bg-white">
                 <img
                   src={user.profilePicture || "/imagecopy.png"}
                   alt="Profile"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover rounded-full"
                 />
               </div>
             </div>
@@ -344,23 +352,31 @@ function Profile() {
 
         {userType === "student" ? (
           <>
-            <Card id="skills" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <h2 className="text-2xl font-semibold text-[#232636] mb-4">My Skills</h2>
+            <Card id="skills" className="p-8 mb-8 border border-gray-200 rounded-xl bg-white">
+              <h2 className="text-2xl font-semibold text-[#232636] mb-4 border-b border-gray-200 pb-3 flex items-center">
+                <span className="bg-blue-100 text-blue-700 p-1.5 rounded-full mr-2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+                My Skills
+              </h2>
 
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="flex flex-wrap gap-3 mb-5 items-center">
                 {profileData.skills?.map((skill, index) => (
-                  <span key={index} className="px-4 py-2 bg-blue-800 text-white rounded-md text-sm">
+                  <span key={index} className="px-5 py-2.5 mt-2 bg-blue-600 text-white rounded-lg text-sm font-medium border border-blue-700 flex items-center h-10">
                     {skill}
                   </span>
                 ))}
 
                 {isEditing ? (
-                  <div className="flex gap-2 items-center">
+                  <div className="flex gap-3 items-center mt-4 w-full">
                     <Input
                       value={newSkill}
                       onChange={(e) => setNewSkill(e.target.value)}
                       placeholder="Enter skill"
-                      className="border-[#d8d8d8] w-48"
+                      className="border border-blue-300 rounded-lg w-64 focus:ring-2 focus:ring-blue-500 focus:border-blue-400"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           handleAddSkill();
@@ -369,13 +385,13 @@ function Profile() {
                     />
                     <Button
                       onClick={handleAddSkill}
-                      className="bg-blue-800 text-white hover:bg-[#143d65] px-4 py-2"
+                      className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium"
                     >
                       Save
                     </Button>
                     <Button
                       onClick={handleCancelSkill}
-                      className="bg-gray-300 text-black hover:bg-gray-400 px-4 py-2"
+                      className="bg-white text-gray-700 px-6 py-2.5 rounded-lg font-medium border border-gray-300"
                     >
                       Cancel
                     </Button>
@@ -383,7 +399,7 @@ function Profile() {
                 ) : (
                   <Button
                     onClick={() => setIsEditing(true)}
-                    className="px-4 py-2 border border-[#d8d8d8] bg-white text-[#232636] hover:bg-[#f5f5f5] rounded-md text-sm flex items-center gap-1"
+                    className="px-5 py-2.5 border border-blue-300 bg-white text-blue-700 rounded-lg text-sm font-medium flex items-center gap-1.5 mt-3"
                   >
                     <Plus size={16} />
                     Add Skill
@@ -391,23 +407,30 @@ function Profile() {
                 )}
               </div>
             </Card>
-            <Card id="goals" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <h2 className="text-2xl font-semibold text-[#232636] mb-4">My Goals</h2>
+            <Card id="goals" className="p-8 mb-8 border border-gray-200 rounded-xl bg-white">
+              <h2 className="text-2xl font-semibold text-[#232636] mb-4 border-b border-gray-200 pb-3 flex items-center">
+                <span className="bg-green-100 text-[#00b6c4] p-1.5 rounded-full mr-2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2v16z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+                My Goals
+              </h2>
 
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="flex flex-wrap gap-3 mb-5">
                 {profileData.goals?.map((goal, index) => (
-                  <span key={index} className="px-4 py-2 bg-blue-800 text-white rounded-md text-sm">
+                  <span key={index} className="px-5 py-2.5 bg-[#00b6c4] text-white rounded-lg text-sm font-medium border border-[#00b6c4] mb-1">
                     {goal}
                   </span>
                 ))}
 
                 {isEditingGoal ? (
-                  <div className="flex gap-2 items-center">
+                  <div className="flex gap-3 items-center mt-4 w-full">
                     <Input
                       value={newGoal}
                       onChange={(e) => setNewGoal(e.target.value)}
                       placeholder="Add new goal"
-                      className="border-[#d8d8d8] w-48"
+                      className="border border-green-300 rounded-lg w-64 focus:ring-2 focus:ring-green-500 focus:border-green-400"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           handleAddGoal();
@@ -416,13 +439,13 @@ function Profile() {
                     />
                     <Button
                       onClick={handleAddGoal}
-                      className="bg-blue-800 text-white hover:bg-[#143d65] px-4 py-2"
+                      className="bg-[#00b6c4] text-white px-6 py-2.5 rounded-lg font-medium"
                     >
                       Save
                     </Button>
                     <Button
                       onClick={handleCancelGoal}
-                      className="bg-gray-300 text-black hover:bg-gray-400 px-4 py-2"
+                      className="bg-white text-gray-700 px-6 py-2.5 rounded-lg font-medium border border-gray-300"
                     >
                       Cancel
                     </Button>
@@ -430,7 +453,7 @@ function Profile() {
                 ) : (
                   <Button 
                     onClick={handleGoalClick}
-                    className="px-4 py-2 border border-[#d8d8d8] bg-white text-[#232636] hover:bg-[#f5f5f5] rounded-md text-sm flex items-center gap-1"
+                    className="px-5 py-2.5 border border-green-300 bg-white text-[#00b6c4] rounded-lg text-sm font-medium flex items-center gap-1.5 h-10"
                   >
                     <Plus size={16} />
                     New Goal
@@ -441,37 +464,75 @@ function Profile() {
           </>
         ) : (
           <>
-            <Card id="expertise" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <h2 className="text-2xl font-semibold text-[#232636] mb-6">Expertise & Skills</h2>
+            <Card id="expertise" className="p-8 mb-8 border border-gray-200 rounded-xl bg-white">
+              <h2 className="text-2xl font-semibold text-[#232636] mb-4 border-b border-gray-200 pb-3 flex items-center">
+                <span className="bg-blue-100 text-blue-700 p-1.5 rounded-full mr-2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+                Expertise & Skills
+              </h2>
               {/* ...existing expertise content... */}
             </Card>
-            <Card id="education" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <h2 className="text-2xl font-semibold text-[#232636] mb-6">Education</h2>
+            <Card id="education" className="p-8 mb-8 border border-gray-200 rounded-xl bg-white">
+              <h2 className="text-2xl font-semibold text-[#232636] mb-4 border-b border-gray-200 pb-3 flex items-center">
+                <span className="bg-amber-100 text-amber-700 p-1.5 rounded-full mr-2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+                Education
+              </h2>
               {/* ...existing education content... */}
             </Card>
-            <Card id="experience" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <h2 className="text-2xl font-semibold text-[#232636] mb-6">Experience</h2>
+            <Card id="experience" className="p-8 mb-8 border border-gray-200 rounded-xl bg-white">
+              <h2 className="text-2xl font-semibold text-[#232636] mb-4 border-b border-gray-200 pb-3 flex items-center">
+                <span className="bg-green-100 text-[#00b6c4] p-1.5 rounded-full mr-2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M3.29 7L12 12l8.71-5M12 22V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+                Experience
+              </h2>
               {/* ...existing experience content... */}
             </Card>
           </>
         )}
 
-        <Card id="progress" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <h2 className="text-2xl font-semibold text-[#232636] mb-4">My Progress</h2>
+        <Card id="progress" className="p-8 mb-8 border border-gray-200 rounded-xl bg-white">
+          <h2 className="text-2xl font-semibold text-[#232636] mb-4 border-b border-gray-200 pb-3 flex items-center">
+            <span className="bg-blue-100 text-blue-700 p-1.5 rounded-full mr-2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+            My Progress
+          </h2>
 
-          <div className="mb-4">
-            <div className="h-2 w-full bg-[#f5f5f5] rounded-full overflow-hidden">
-              <div className="h-full bg-[#143d65]" style={{ width: `${completionPercentage}%` }}></div>
+          <div className="mb-8">
+            <div className="flex justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">Profile completion</span>
+              <span className="text-sm font-medium text-blue-700">{completionPercentage.toFixed(0)}%</span>
             </div>
-            <div className="text-sm text-[#676767] mt-1">
-              Profile completion: {profileData.completedSteps}/{profileData.totalSteps} steps completed
+            <div className="h-3 w-full bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-full bg-blue-600 rounded-full" style={{ width: `${completionPercentage}%` }}></div>
+            </div>
+            <div className="text-sm text-gray-600 mt-2 flex items-center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              {profileData.completedSteps}/{profileData.totalSteps} steps completed
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <div className="flex items-center gap-2 text-[#232636] mb-1">
-                <div className="text-[#143d65]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-blue-50 p-5 rounded-lg border border-blue-200">
+              <div className="flex items-center gap-2 text-[#232636] mb-3">
+                <div className="text-blue-700 bg-white p-1.5 rounded-full border border-blue-200">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                       d="M3 17L9 11L13 15L21 7"
@@ -489,14 +550,14 @@ function Profile() {
                     />
                   </svg>
                 </div>
-                <span className="text-sm">Profile Level</span>
+                <span className="text-sm font-medium">Profile Level</span>
               </div>
               <div className="text-2xl font-bold text-[#232636]">{profileData.completedSteps}/{profileData.totalSteps}</div>
             </div>
 
-            <div>
-              <div className="flex items-center gap-2 text-[#232636] mb-1">
-                <div className="text-[#143d65]">
+            <div className="bg-amber-50 p-5 rounded-lg border border-amber-200">
+              <div className="flex items-center gap-2 text-[#232636] mb-3">
+                <div className="text-amber-700 bg-white p-1.5 rounded-full border border-amber-200">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                       d="M3 17L9 11L13 15L21 7"
@@ -514,14 +575,14 @@ function Profile() {
                     />
                   </svg>
                 </div>
-                <span className="text-sm">Courses Enrolled</span>
+                <span className="text-sm font-medium">Courses Enrolled</span>
               </div>
               <div className="text-2xl font-bold text-[#232636]">4</div>
             </div>
 
-            <div>
-              <div className="flex items-center gap-2 text-[#232636] mb-1">
-                <div className="text-[#143d65]">
+            <div className="bg-green-50 p-5 rounded-lg border border-green-200">
+              <div className="flex items-center gap-2 text-[#232636] mb-3">
+                <div className="text-[#00b6c4] bg-white p-1.5 rounded-full border border-green-200">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                       d="M3 17L9 11L13 15L21 7"
@@ -539,32 +600,17 @@ function Profile() {
                     />
                   </svg>
                 </div>
-                <span className="text-sm">Skills Learned</span>
+                <span className="text-sm font-medium">Skills Learned</span>
               </div>
               <div className="text-2xl font-bold text-[#232636]">4</div>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2 text-[#232636] mb-1">
-                <div className="text-[#fbb236]">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                      fill="#fbb236"
-                      stroke="#fbb236"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-                <span className="text-sm">Daily Streak</span>
-              </div>
-              <div className="text-2xl font-bold text-[#232636]">100</div>
             </div>
           </div>
         </Card>
-        <Button onClick={handleLogout} className="bg-red-600 text-white hover:bg-red-700 mt-4 px-6 py-2 rounded-md shadow-md">
+        <Button onClick={handleLogout} className="bg-red-600 text-white mt-4 px-8 py-3 rounded-lg font-medium flex items-center gap-2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
           Logout
         </Button>
       </main>
