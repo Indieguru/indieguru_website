@@ -12,11 +12,13 @@ import useExpertStore from "../store/expertStore";
 import useExpertSessionStore from "../store/expertSessionsStore";
 import useExpertCourseStore from "../store/expertCoursesStore";
 import useExpertCohortStore from "../store/expertCohortsStore";
+import useUserTypeStore from '../store/userTypeStore';
 
 function ExpertProfile() {
   const location = useLocation();
   const navigate = useNavigate();
   const { expertData, fetchExpertData } = useExpertStore();
+  const { userType,setUserType } = useUserTypeStore();
   const resetExpertStore = useExpertStore((state) => state.reset);
   const resetSessionStore = useExpertSessionStore((state) => state.reset);
   const resetCourseStore = useExpertCourseStore((state) => state.reset);
@@ -66,6 +68,33 @@ function ExpertProfile() {
   }, []);
 
   useEffect(() => {
+    const checkAuth = async () => {
+          try {
+            if (userType === "student") {
+              navigate("/dashboard");
+              return;
+            }
+            
+            if (userType === "not_signed_in") {
+              const res = await axiosInstance.get("/expert/auth/check-auth")
+              if (res.status === 200) {
+                setUserType("expert");
+                console.log(userType);
+              } else {  
+                console.log(res); 
+                setUserType("not_signed_in");
+                console.log(userType);
+               navigate("/signup");
+              return;
+            }
+          }
+            // fetchUser();
+          } catch (error) {
+            setUserType("not_signed_in");
+            console.error("Error fetching user details:", error);
+          }
+        };
+    checkAuth();
     if (expertData) {
       setProfileData(prev => ({
         ...prev,
@@ -89,7 +118,7 @@ function ExpertProfile() {
         phone: expertData.phoneNo || ""
       }));
     }
-  }, [expertData]);
+  }, [expertData, userType]);
 
   const handleEditField = (field) => {
     setEditingField(field);
@@ -310,7 +339,8 @@ function ExpertProfile() {
   const handleLogout = async () => {
     try {
       await axiosInstance.post("/expert/auth/logout");
-      
+      setUserType("not_signed_in");
+      console.log(userType)
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);

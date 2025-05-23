@@ -81,6 +81,10 @@ const CourseSchema = new mongoose.Schema({
                 required: true
             }
         },
+        studentName: {
+            type: String,
+            required: false
+        },
         createdAt: {
             type: Date,
             default: Date.now

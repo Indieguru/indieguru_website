@@ -12,42 +12,40 @@ import PreviousSessionsSection from "../components/sections/PreviousSessionsSect
 import useUserStore from "../store/userStore";
 import axiosInstance from "../config/axios.config";
 import UpcomingCourses from '../components/sections/upcomingCourses';
-import useAuthStore from '../store/authStore';
 import useUserTypeStore from '../store/userTypeStore';
 import ExpertSearch from '../components/expert/ExpertSearch';
 
 function Dashboard() {
   const { user, fetchUser } = useUserStore();
   const navigate = useNavigate();
-  const { isAuthenticated, fetchIsAuthenticated } = useAuthStore();
-  const { userType } = useUserTypeStore();
+  const { userType,setUserType } = useUserTypeStore();
 
   useEffect(() => {
+    fetchUser();
     const checkAuth = async () => {
       try {
-        // if (userType === "expert") {
-        //   navigate("/expert");
-        //   return;
-        // }
-        await fetchIsAuthenticated();
-        if (!isAuthenticated) {
-          navigate("/signup");
+        if (userType === "expert") {
+          navigate("/expert");
           return;
         }
-        
-        // if (userType === "not_signed_in") {
-        //   navigate("/signup");
-        //   return;
-        // }
-       
-        fetchUser();
+          const res = await axiosInstance.get("/user/auth/check-auth")
+          console.log(res);
+          if (res.status === 200) {
+            setUserType("student");
+          } 
+          else {  
+          setUserType("not_signed_in");
+          navigate("/signup");
+          return; 
+        }
       } catch (error) {
+        // setUsertype("not_signed_in");
         console.error("Error fetching user details:", error);
       }
     };
 
     checkAuth();
-  }, [isAuthenticated, userType]);
+  }, [userType]);
 
   const containerVariants = {
     hidden: { opacity: 0 },

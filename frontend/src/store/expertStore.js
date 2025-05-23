@@ -68,7 +68,7 @@ const useExpertStore = create((set) => ({
     set({ isLoading: true });
     try {
       const response = await axiosInstance.get('/expert/dashboard');
-      console.log('Expert data fetched:', response.data);
+      // console.log('Expert data fetched:', response.data);
       if (response.status === 200) {
         set({ 
           expertData: response.data,

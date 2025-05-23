@@ -2,7 +2,7 @@ import React from 'react';
 import HeroSection from "../components/sections/HeroSection";
 import HowItWorks from "../components/sections/HowItWorks";
 import EducationalPlatform from "../components/sections/EducationalPlatform";
-import CategoryBrowser from "../components/sections/catrgory-browser"; // Ensure the file extension is correct
+import CategoryBrowser from "../components/sections/catrgory-browser";
 import TestimonialsSection from "../components/sections/testimonials-section";
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useNavigate, useLocation } from "react-router-dom"
 import Header from "../components/layout/Header"
 import Footer from "../components/layout/Footer"
 import { Button } from "../components/ui/button"
@@ -11,31 +12,31 @@ import { Doughnut } from "react-chartjs-2"
 import "chart.js/auto"
 import useUserStore from "../store/userStore"
 import InputBox from "../components/util/InputBox"
-import { useNavigate, useLocation } from "react-router-dom";
 import { ErrorPopup } from "../components/ui/error-popup"
 import axiosInstance from "../config/axios.config"
-import useAuthStore from "../store/authStore"
 import useUserTypeStore from "../store/userTypeStore"
 
 function Profile() {
   const { user, fetchUser } = useUserStore()
   const navigate = useNavigate();
   const location = useLocation();
-  const {isAuthenticated, fetchIsAuthenticated} = useAuthStore();
-  const { userType } = useUserTypeStore();
+  const { userType,setUserType } = useUserTypeStore();
 
   useEffect(() => {
-    try {
-      fetchIsAuthenticated();
-      if(!isAuthenticated) {
-        navigate("/signup");
+    const checkAuth = async () => {
+      try {
+        if (userType === "not_signed_in") {
+          navigate("/signup");
+          return;
+        }
+        fetchUser();
+      } catch (error) {
+        console.error("Error fetching user details:", error);
       }
-      fetchUser();
-      
-    } catch (error) {
-      console.error("Error fetching user details:", error);
-    }
-  }, []);
+    };
+
+    checkAuth();
+  }, [userType]);
 
   useEffect(() => {
     // Handle hash routing
@@ -285,10 +286,12 @@ function Profile() {
   const handleLogout = async () => {
     // Clear user session or token logic here
     try{
-      await axiosInstance.post("/user/auth/signout");
+      const res = await axiosInstance.post("/user/auth/signout");
+      if(res.status === 200)
+        setUserType("not_signed_in");
       fetchUser();
-      fetchIsAuthenticated();
       navigate("/");
+  
     }
     catch(err){
       console.error("Logout error:", err);
@@ -318,7 +321,7 @@ function Profile() {
             <div className="md:w-1/4 flex flex-col items-center">
               <div className="w-40 h-40 rounded-full overflow-hidden mb-4 border-2 border-blue-300 p-1 bg-white">
                 <img
-                  src={user.profilePicture || "/imagecopy.png"}
+                  src={user?.profilePicture || "/imagecopy.png"}
                   alt="Profile"
                   className="w-full h-full object-cover rounded-full"
                 />

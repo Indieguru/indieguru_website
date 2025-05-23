@@ -7,6 +7,7 @@ import Header from "../components/layout/Header";
 import { Modal } from "../components/modals/modal";
 import { BookingModal } from "../components/modals/BookingModal";
 import useAuthStore from "../store/authStore";
+import useUserTypeStore from "../store/userTypeStore";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../config/axios.config";
 import ExpertSearch from '../components/expert/ExpertSearch';
@@ -127,7 +128,9 @@ const CohortCard = ({ item, onJoin }) => (
 
 const AllCoursesPage = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, fetchIsAuthenticated } = useAuthStore();
+  const { fetchIsAuthenticated } = useAuthStore();
+  const { userType } = useUserTypeStore();
+  const isAuthenticated = userType !== "not_signed_in";
   const [activeTab, setActiveTab] = useState("courses");
   const [searchTerm, setSearchTerm] = useState(""); // Add search state
   const [isModalOpen, setIsModalOpen] = useState(false);

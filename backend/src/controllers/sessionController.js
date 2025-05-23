@@ -173,17 +173,32 @@ export const getSessionFeedback = async (req, res) => {
 
 export const getPastSessions = async (req, res) => {
   try {
+    const currentDate = new Date();
+    
+    // Find sessions where the date and time are in the past
     const sessions = await Session.find({ 
       bookedBy: req.user.id,
-      status: 'completed',
-      // date: { $lt: new Date() }
+      $or: [
+        // If date is earlier than today
+        { date: { $lt: new Date(currentDate.toDateString()) } },
+        // If date is today but time is in the past
+        {
+          date: new Date(currentDate.toDateString()),
+          endTime: { 
+            $lt: currentDate.toLocaleTimeString('en-US', { 
+              hour12: false, 
+              hour: '2-digit', 
+              minute: '2-digit'
+            })
+          }
+        }
+      ]
     })
-    .sort({ date: -1 });
+    .sort({ date: -1, endTime: -1 });
 
     res.status(200).json({ 
       success: true,
       sessions: sessions.map(session => {
-        // If rating is 0, return null for feedback
         const hasFeedback = session.feedback && session.feedback.rating > 0;
         return {
           _id: session._id,
@@ -249,6 +264,7 @@ export const updateSessionFeedback = async (req, res) => {
 
     session.feedback = {
       rating,
+      studentName: session.studentName || `${req.user.firstName} ${req.user.lastName}`,
       detail: {
         heading,
         description

@@ -10,14 +10,16 @@ import Loader from '../components/layout/Loader';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Clock, Award, Calendar, CheckCircle2, Wallet, BookOpen, Users, Shield, AlertCircle, Stars, GraduationCap, BookMarked } from 'lucide-react';
+import useUserStore from '../store/userStore';
+import useUserTypeStore from '../store/userTypeStore';
 
 export default function CourseDetails() {
-  const { courseId } = useParams();
-  const navigate = useNavigate();
-  const { isAuthenticated } = useAuthStore();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [purchasing, setPurchasing] = useState(false);
+  const { courseId } = useParams();
+  const navigate = useNavigate();
+  const { user } = useUserStore();
+  const { userType } = useUserTypeStore();
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -49,6 +51,13 @@ export default function CourseDetails() {
       navigate('/signup');
       return;
     }
+  };
+  
+  const handleEnroll = async () => {
+    if (userType === "not_signed_in") {
+      navigate("/signup");
+      return;
+    }
 
     try {
       setPurchasing(true);
@@ -63,8 +72,12 @@ export default function CourseDetails() {
         closeOnClick: true,
         pauseOnHover: true,
       });
-    } finally {
+    } try {
       setPurchasing(false);
+      await axiosInstance.post(`/course/enroll/${courseId}`);
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error enrolling in course:', error);
     }
   };
   
@@ -298,6 +311,12 @@ export default function CourseDetails() {
                     By registering, you agree to our terms of service and privacy policy
                   </p>
                 </div>
+                <Button
+                  onClick={handleEnroll}
+                  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Enroll Now
+                </Button>
               </div>
             </div>
           </div>

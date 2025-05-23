@@ -1,69 +1,81 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth'; // Assuming the hook is located here
 import useUserStore from '../../store/userStore';
+import useUserTypeStore from '../../store/userTypeStore';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { isAuthenticated } = useAuth(); // Use the useAuth hook to check login status
   const { user } = useUserStore();
-  
+  const { userType } = useUserTypeStore();
+
   const getDashboardLink = () => {
-    return user?.userType === 'expert' ? '/expert' : '/dashboard';
+    return userType === 'expert' ? '/expert' : '/dashboard';
   };
 
   const getBookingsLink = () => {
-    return user?.userType === 'student' ? '/student/bookings' : '/bookings';
+    return userType === 'student' ? '/student/bookings' : '/bookings';
   };
 
-  useEffect(() => {
-    console.log(isAuthenticated);
-  }, [isAuthenticated]);
+  const isAuthenticated = userType !== "not_signed_in";
 
   return (
     <nav className="fixed top-4 left-20 right-20 z-50 bg-white/90 backdrop-blur-sm rounded-full shadow-lg px-4 md:px-6">
-      <div className="max-w-5xl mx-auto w-full"> {/* Reduced width with max-w-5xl */}
+      <div className="max-w-5xl mx-auto w-full">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-        
-            {isAuthenticated ? (
-              <Link to={getDashboardLink()} className="flex items-center">
-              <img src="/logo.svg" alt="IndieGuru" className="h-8 w-8 object-contain rounded-full" />
-              <span className="ml-2 text-lg font-semibold text-gray-900">IndieGuru</span>
-            </Link>
-            ) : (
             <Link to="/" className="flex items-center">
-              <img src="/logo.svg" alt="IndieGuru" className="h-8 w-8 object-contain rounded-full" />
-              <span className="ml-2 text-lg font-semibold text-gray-900">IndieGuru</span>
+              <img src="/logo.svg" alt="IndieGuru Logo" className="h-8 w-auto" />
             </Link>
-            )}
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/blogpage" className="text-gray-600 hover:text-gray-900">Blogs</Link>
-            <Link to="/communitypage" className="text-gray-600 hover:text-gray-900">Community</Link>
-            <Link to="/all-courses" className="text-gray-600 hover:text-gray-900">All Courses</Link>
-            <Link to="/browse-experts" className="text-gray-600 hover:text-gray-900">Find Experts</Link>
-            {isAuthenticated && (
-              <Link to={getDashboardLink()} className="text-gray-600 hover:text-gray-900">Dashboard</Link>
-            )}
             {isAuthenticated ? (
               <>
-                <Link to={getBookingsLink()} className="text-gray-600 hover:text-gray-900">Bookings</Link>
-                <Link to="/profile" className="px-6 py-2 rounded-full border-2 border-primary text-primary hover:bg-indigo-900 hover:text-white hover:transition-colors">
-                  Profile
+                <Link to={getDashboardLink()} className="text-[#232636] hover:text-[#003265] transition-colors">
+                  Dashboard
+                </Link>
+                <Link to="/community" className="text-[#232636] hover:text-[#003265] transition-colors">
+                  Community
+                </Link>
+                <Link to="/blog" className="text-[#232636] hover:text-[#003265] transition-colors">
+                  Blog
+                </Link>
+                <Link to="/all-courses" className="text-[#232636] hover:text-[#003265] transition-colors">
+                  Courses
+                </Link>
+                <Link to={getBookingsLink()} className="text-[#232636] hover:text-[#003265] transition-colors">
+                  Sessions
+                </Link>
+                <Link 
+                  to={userType === "student" ? "/profile" : "/expert/profile"}
+                  className="flex items-center gap-2 text-[#232636] hover:text-[#003265] transition-colors"
+                >
+                  <img 
+                    src={user?.profilePicture || "/imagecopy.png"} 
+                    alt="Profile" 
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                  <span>{user?.firstName || "Profile"}</span>
                 </Link>
               </>
             ) : (
-              <Link to="/signup" className="px-6 py-2 rounded-full border-2 border-primary bg-blue-900 text-white hover:bg-indigo-900 hover:bg-blue-800 hover:text-white transition-colors">
-                SignUp
-              </Link>
+              <>
+                <Link to="/blog" className="text-[#232636] hover:text-[#003265] transition-colors">
+                  Blog
+                </Link>
+                <Link to="/community" className="text-[#232636] hover:text-[#003265] transition-colors">
+                  Community
+                </Link>
+                <Link to="/signup" className="text-[#232636] hover:text-[#003265] transition-colors">
+                  Login
+                </Link>
+              </>
             )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile Menu Button */}
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
@@ -91,67 +103,71 @@ const Header = () => {
       </div>
 
       {/* Mobile Navigation */}
-      {isOpen && (
-        <div className="md:hidden absolute top-20 left-0 right-0 mt-2 bg-white shadow-lg rounded-lg overflow-hidden">
-          <div className="flex flex-col py-2">
-            <Link to="/blogpage" 
-              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
-              onClick={() => setIsOpen(false)}
-            >
-              Blogs
-            </Link>
-            <Link to="/browse-experts" 
-              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
-              onClick={() => setIsOpen(false)}
-            >
-              Find Experts
-            </Link>
-            <Link to="/about" 
-              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
-              onClick={() => setIsOpen(false)}
-            >
-              About
-            </Link>
-            <Link to="/communitypage" 
-              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
-              onClick={() => setIsOpen(false)}
-            >
-              Community
-            </Link>
-            {isAuthenticated && (
-              <Link to={getDashboardLink()}
-                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
-                onClick={() => setIsOpen(false)}
+      <div className={`md:hidden ${isOpen ? 'block' : 'hidden'}`}>
+        <div className="px-2 pt-2 pb-3 space-y-1 bg-white rounded-lg mt-2 shadow-lg">
+          {isAuthenticated ? (
+            <>
+              <Link
+                to={getDashboardLink()}
+                className="block px-3 py-2 rounded-md text-base font-medium text-[#232636] hover:text-[#003265] hover:bg-gray-50"
               >
                 Dashboard
               </Link>
-            )}
-            {isAuthenticated ? (
-              <>
-                <Link to={getBookingsLink()}
-                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-6 py-3 border-b border-gray-100"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Bookings
-                </Link>
-                <Link to="/profile" 
-                  className="text-primary hover:bg-primary hover:text-white px-6 py-3 transition-colors"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Profile
-                </Link>
-              </>
-            ) : (
-              <Link to="/login" 
-                className="text-primary hover:bg-primary hover:text-white px-6 py-3 transition-colors"
-                onClick={() => setIsOpen(false)}
+              <Link
+                to="/community"
+                className="block px-3 py-2 rounded-md text-base font-medium text-[#232636] hover:text-[#003265] hover:bg-gray-50"
+              >
+                Community
+              </Link>
+              <Link
+                to="/blog"
+                className="block px-3 py-2 rounded-md text-base font-medium text-[#232636] hover:text-[#003265] hover:bg-gray-50"
+              >
+                Blog
+              </Link>
+              <Link
+                to="/all-courses"
+                className="block px-3 py-2 rounded-md text-base font-medium text-[#232636] hover:text-[#003265] hover:bg-gray-50"
+              >
+                Courses
+              </Link>
+              <Link
+                to={getBookingsLink()}
+                className="block px-3 py-2 rounded-md text-base font-medium text-[#232636] hover:text-[#003265] hover:bg-gray-50"
+              >
+                Sessions
+              </Link>
+              <Link
+                to={userType === "student" ? "/profile" : "/expert/profile"}
+                className="block px-3 py-2 rounded-md text-base font-medium text-[#232636] hover:text-[#003265] hover:bg-gray-50"
+              >
+                Profile
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/blog"
+                className="block px-3 py-2 rounded-md text-base font-medium text-[#232636] hover:text-[#003265] hover:bg-gray-50"
+              >
+                Blog
+              </Link>
+              <Link
+                to="/community"
+                className="block px-3 py-2 rounded-md text-base font-medium text-[#232636] hover:text-[#003265] hover:bg-gray-50"
+              >
+                Community
+              </Link>
+              <Link
+                to="/signup"
+                className="block px-3 py-2 rounded-md text-base font-medium text-[#232636] hover:text-[#003265] hover:bg-gray-50"
               >
                 Login
               </Link>
-            )}
-          </div>
+            </>
+          )}
         </div>
-      )}
+      </div>
     </nav>
   );
 };

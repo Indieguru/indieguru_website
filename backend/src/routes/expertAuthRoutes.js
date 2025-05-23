@@ -14,11 +14,11 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'your_jwt_refresh_s
 
 
 const generateToken = (user) => {
-  return jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  return jwt.sign({ id: user._id }, process.env.JWT_ESECRET, { expiresIn: '1h' });
 };
 
 const generateRefreshToken = (user) => {
-  return jwt.sign({ id: user._id },process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ id: user._id },process.env.JWT_EREFRESH_SECRET, { expiresIn: '7d' });
 };
 
 
@@ -71,6 +71,12 @@ router.post('/logout', expertAuthMiddleware, async (req, res) => {
     console.error('Logout error:', error);
     res.status(500).json({ message: 'Error during logout', error: error.message });
   }
+});
+
+router.get('/check-auth', expertAuthMiddleware,(req, res) => {
+  // console.log("User ID from authMiddleware:", req.user.id);
+  console.log("User ID from authMiddleware:", req.user.id);
+  res.status(200).json({ message: 'Authenticated'});
 });
 
 export default router;

@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Users, Video, Book, GraduationCap } from "lucide-react";
 import axiosInstance from '../config/axios.config';
 import useUserStore from '../store/userStore';
-import useAuthStore from '../store/authStore';
 import useUserTypeStore from '../store/userTypeStore';
 import Header from '../components/layout/Header';
 import { Button } from "../components/ui/button";
@@ -33,49 +32,43 @@ const StudentBookingsPage = () => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useUserStore();
-  const navigate = useNavigate();
-  const { isAuthenticated, fetchIsAuthenticated } = useAuthStore();
   const { userType } = useUserTypeStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      await fetchIsAuthenticated();
-      if (!isAuthenticated) {
-        navigate('/signup');
+    const checkAccess = () => {
+      if (userType === "not_signed_in") {
+        navigate("/signup");
         return;
       }
-      if (userType !== 'student') {
-        navigate('/bookings');
+      if (userType !== "student") {
+        navigate("/dashboard");
         return;
       }
-    };
-    checkAuth();
-  }, [isAuthenticated, userType, navigate, fetchIsAuthenticated]);
-
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        setLoading(true);
-        const [cohortsRes, coursesRes, sessionsRes] = await Promise.all([
-          axiosInstance.get('/cohort/student/bookings'),
-          axiosInstance.get('/course/student/bookings'),
-          axiosInstance.get('/session/student/bookings')
-        ]);
-
-        setCohorts(cohortsRes.data || []);
-        setCourses(coursesRes.data || []);
-        setSessions(sessionsRes.data || []);
-      } catch (error) {
-        console.error('Error fetching bookings:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (isAuthenticated && userType === 'student') {
       fetchBookings();
+    };
+
+    checkAccess();
+  }, [userType]);
+
+  const fetchBookings = async () => {
+    try {
+      setLoading(true);
+      const [cohortsRes, coursesRes, sessionsRes] = await Promise.all([
+        axiosInstance.get('/cohort/student/bookings'),
+        axiosInstance.get('/course/student/bookings'),
+        axiosInstance.get('/session/student/bookings')
+      ]);
+
+      setCohorts(cohortsRes.data || []);
+      setCourses(coursesRes.data || []);
+      setSessions(sessionsRes.data || []);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [isAuthenticated, userType]);
+  };
 
   // Animation variants
   const containerVariants = {

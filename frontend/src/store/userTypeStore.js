@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 const useUserTypeStore = create((set) => ({
-  userType: "student", // default value
+  userType: "not_signed_in", // default value
   setUserType: (type) => set({ userType: type }),
 }));
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { useAuth } from '../../hooks/useAuth';
+import useUserTypeStore from "../../store/userTypeStore";
 import IndustryDropdown from './IndustryDropdown';
 
 const ExpertRecommendation = ({ formData, onExpertSelect }) => {
@@ -9,7 +9,7 @@ const ExpertRecommendation = ({ formData, onExpertSelect }) => {
   const [experts, setExperts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { token } = useAuth();
+  const { userType } = useUserTypeStore();
 
   const submitAssessment = useCallback(async () => {
     if (!formData) return;
@@ -23,11 +23,6 @@ const ExpertRecommendation = ({ formData, onExpertSelect }) => {
         {
           ...formData,
           industry: selectedIndustry
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
         }
       );
 
@@ -35,38 +30,22 @@ const ExpertRecommendation = ({ formData, onExpertSelect }) => {
         setExperts(response.data.experts);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Error fetching expert recommendations');
+      setError(err.response?.data?.message || "Failed to submit assessment");
       console.error('Error submitting assessment:', err);
     } finally {
       setLoading(false);
     }
-  }, [formData, selectedIndustry, token]);
+  }, [formData, selectedIndustry]);
 
   useEffect(() => {
-    const industryRequiredGuidance = [
-      'To know about a particular profession',
-      'One-on-one expert mentorship to advance my career path',
-      'How to pivot to a different career/Industry'
-    ];
-    const needsIndustry = industryRequiredGuidance.includes(formData?.guidanceFor);
-    setShowIndustryDropdown(needsIndustry);
-    
-    if (!needsIndustry) {
-      submitAssessment();
-    }
-  }, [formData?.guidanceFor, submitAssessment]);
-
-  useEffect(() => {
-    if (showIndustryDropdown && selectedIndustry) {
-      submitAssessment();
-    }
-  }, [selectedIndustry, showIndustryDropdown, submitAssessment]);
+    submitAssessment();
+  }, [selectedIndustry, submitAssessment]);
 
   if (error) {
     return (
-      <div className="p-4 bg-red-50 rounded-lg text-red-600">
-        <p>{error}</p>
-        <button 
+      <div className="text-center py-8">
+        <p className="text-red-600 mb-4">{error}</p>
+        <button
           onClick={submitAssessment}
           className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
         >
@@ -97,39 +76,30 @@ const ExpertRecommendation = ({ formData, onExpertSelect }) => {
               onClick={() => onExpertSelect(expert)}
               className="p-6 rounded-xl bg-white shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
             >
-              <div className="flex items-start space-x-4">
+              <div className="flex items-center gap-4 mb-4">
                 <img
-                  src={expert.avatar || '/placeholder-user.jpg'}
+                  src={expert.avatar || "/placeholder.jpg"}
                   alt={expert.name}
                   className="w-16 h-16 rounded-full object-cover"
                 />
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">{expert.name}</h3>
-                  <p className="text-sm text-gray-600">{expert.domain}</p>
-                  <div className="mt-2 flex items-center space-x-2">
-                    <span className="text-yellow-400">★</span>
-                    <span className="text-sm text-gray-600">{expert.ratings?.toFixed(1) || '4.5'}</span>
-                    <span className="text-sm text-gray-400">({expert.sessionCount || '0'} sessions)</span>
-                  </div>
+                <div>
+                  <h3 className="font-semibold text-lg">{expert.name}</h3>
+                  <p className="text-gray-600">{expert.title}</p>
                 </div>
               </div>
-              
-              <p className="mt-4 text-sm text-gray-600 line-clamp-3">{expert.description}</p>
-              
-              <div className="mt-4 flex flex-wrap gap-2">
+
+              <div className="flex flex-wrap gap-2">
                 {expert.expertise.slice(0, 3).map((expertise, index) => (
                   <span
                     key={index}
                     className="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs"
                   >
-                    {expertise.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    {expertise}
                   </span>
                 ))}
               </div>
 
-              <button
-                className="mt-4 w-full px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-              >
+              <button className="mt-4 w-full px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">
                 Book Session
               </button>
             </div>

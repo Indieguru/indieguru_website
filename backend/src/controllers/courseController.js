@@ -1,6 +1,8 @@
 import Course from '../models/Course.js';
 import User from '../models/User.js';
 import Expert from '../models/Expert.js';
+import Session from '../models/Session.js';
+import Cohort from '../models/Cohort.js';
 import { sendMail } from '../utils/sendMail.js';
 
 export const createCourse = async (req, res) => {
@@ -56,7 +58,7 @@ export const getCourseById = async (req, res) => {
 
 export const addFeedback = async (req, res) => {
     try {
-        const { rating, heading, description } = req.body;
+        const { rating, heading, description, name } = req.body;
         const course = await Course.findById(req.params.courseId);
         
         if (!course) {
@@ -77,6 +79,7 @@ export const addFeedback = async (req, res) => {
         course.feedback.push({
             user: req.user.id,
             rating,
+            studentName: name,
             detail: {
                 heading,
                 description
@@ -193,5 +196,65 @@ export const purchaseCourse = async (req, res) => {
   } catch (error) {
     console.error('Error in purchaseCourse:', error);
     res.status(500).json({ message: 'Error purchasing course', error: error.message });
+  }
+};
+
+export const getCombinedTestimonials = async (req, res) => {
+  try {
+    const [courseFeedbacks, sessionFeedbacks, cohortFeedbacks] = await Promise.all([
+      Course.aggregate([
+        { $unwind: "$feedback" },
+        { $project: { 
+          rating: "$feedback.rating",
+          content: "$feedback.comment",
+          author: "$feedback.userName",
+          type: { $literal: "Course" },
+          title: "$name",
+          createdAt: "$feedback.createdAt"
+        }}
+      ]),
+      Session.aggregate([
+        { $unwind: "$feedback" },
+        { $project: { 
+          rating: "$feedback.rating",
+          content: "$feedback.comment",
+          author: "$feedback.userName",
+          type: { $literal: "Session" },
+          title: "$title",
+          createdAt: "$feedback.createdAt"
+        }}
+      ]),
+      Cohort.aggregate([
+        { $unwind: "$feedback" },
+        { $project: { 
+          rating: "$feedback.rating",
+          content: "$feedback.comment",
+          author: "$feedback.userName",
+          type: { $literal: "Cohort" },
+          title: "$name",
+          createdAt: "$feedback.createdAt"
+        }}
+      ])
+    ]);
+
+    // Combine all feedbacks
+    let allFeedbacks = [...courseFeedbacks, ...sessionFeedbacks, ...cohortFeedbacks];
+    
+    // Sort by rating (highest first) and limit to 30
+    allFeedbacks = allFeedbacks
+      .sort((a, b) => b.rating - a.rating)
+      .slice(0, 30);
+
+    res.status(200).json({
+      success: true,
+      testimonials: allFeedbacks
+    });
+  } catch (error) {
+    console.error('Error in getCombinedTestimonials:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching testimonials',
+      error: error.message
+    });
   }
 };

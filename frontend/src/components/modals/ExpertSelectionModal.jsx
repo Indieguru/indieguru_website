@@ -6,7 +6,8 @@ import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import axiosInstance from "../../config/axios.config";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
+import useUserTypeStore from "../../store/userTypeStore";
+import useUserStore from "../../store/userStore";
 import Loader from "../layout/Loader";
 import * as Motion from "framer-motion";
 
@@ -29,7 +30,10 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
   const [experts, setExperts] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { user } = useUserStore();
+  const { userType } = useUserTypeStore();
+
+  const isAuthenticated = !!user?.firstName;
 
   const filteredIndustries = industries.filter(industry =>
     industry.name.toLowerCase().includes(categorySearch.toLowerCase())
@@ -56,7 +60,7 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
   };
 
   const handleExpertSelect = (expert) => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || userType !== 'student') {
       navigate("/signup");
       onClose();
       return;

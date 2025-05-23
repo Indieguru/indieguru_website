@@ -3,11 +3,11 @@ import Expert from '../models/Expert.js';
 import mongoose from 'mongoose';
 
 const generateToken = (user) => {
-  return jwt.sign({ id: user.id, userType: user.userType }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  return jwt.sign({ id: user.id, userType: user.userType }, process.env.JWT_ESECRET, { expiresIn: '1h' });
 };
 
 const generateRefreshToken = (user) => {
-  return jwt.sign({ id: user.id, userType: user.userType }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ id: user.id, userType: user.userType }, process.env.JWT_EREFRESH_SECRET, { expiresIn: '7d' });
 };
 
 const expertAuthMiddleware = async (req, res, next) => {
@@ -19,7 +19,7 @@ const expertAuthMiddleware = async (req, res, next) => {
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_ESECRET);
         // Convert the decoded ID to a string if it's a Buffer
         req.user = {
             ...decoded,
@@ -29,7 +29,7 @@ const expertAuthMiddleware = async (req, res, next) => {
     } catch (err) {
         if (refreshToken) {
             try {
-                const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+                const decoded = jwt.verify(refreshToken, process.env.JWT_EREFRESH_SECRET);
                 const user = await Expert.findById(decoded.id);
                 if (!user || user.refreshToken !== refreshToken) {
                     return res.status(403).json({ message: 'Invalid refresh token.' });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/layout/Footer';
 import useExpertStore from '../store/expertStore';
@@ -9,6 +9,7 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import AddCourseModal from '../components/modals/AddCourseModal';
 import AddCohortModal from '../components/modals/AddCohortModal';
+import useUserTypeStore from '../store/userTypeStore';
 
 function ExpertDashboard() {
   const [activeTab] = useState("dashboard");
@@ -16,7 +17,7 @@ function ExpertDashboard() {
   const { courses, fetchExpertCourses } = useExpertCoursesStore();
   const { cohorts, fetchExpertCohorts } = useExpertCohortsStore();
   const navigate = useNavigate();
-
+   const { userType,setUserType } = useUserTypeStore();
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
@@ -65,6 +66,34 @@ function ExpertDashboard() {
   };
 
   useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        if (userType === "student") {
+          navigate("/dashboard");
+          return;
+        }
+        
+        if (userType === "not_signed_in") {
+          const res = await axiosInstance.get("/expert/auth/check-auth")
+          if (res.status === 200) {
+            setUserType("expert");
+            console.log(userType);
+          } else {  
+            console.log(res); 
+            setUserType("not_signed_in");
+            console.log(userType);
+           navigate("/signup");
+          return;
+        }
+      }
+        // fetchUser();
+      } catch (error) {
+        setUserType("not_signed_in");
+        console.error("Error fetching user details:", error);
+      }
+    };
+
+    
     const initializeData = async () => {
       try {
         // Fetch everything in parallel
@@ -77,9 +106,9 @@ function ExpertDashboard() {
         console.error('Error initializing data:', err);
       }
     };
-
+    checkAuth();
     initializeData();
-  }, [fetchExpertData, fetchExpertCourses, fetchExpertCohorts]);
+  }, [fetchExpertData, fetchExpertCourses, fetchExpertCohorts,userType]);
 
   if (isLoading) {
     return (

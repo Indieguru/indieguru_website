@@ -57,7 +57,7 @@ export const getCohortById = async (req, res) => {
 
 export const addFeedback = async (req, res) => {
     try {
-        const { rating, heading, description } = req.body;
+        const { rating, heading, description, name } = req.body;
         const cohort = await Cohort.findById(req.params.cohortId);
         
         if (!cohort) {
@@ -78,6 +78,7 @@ export const addFeedback = async (req, res) => {
         cohort.feedback.push({
             user: req.user.id,
             rating,
+            studentName: name,
             detail: {
                 heading,
                 description

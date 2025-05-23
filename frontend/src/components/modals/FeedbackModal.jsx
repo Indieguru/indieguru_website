@@ -39,7 +39,8 @@ export default function FeedbackModal({ isOpen, onClose, session }) {
 
       if (response.data) {
         toast.success('Feedback submitted successfully!');
-        onClose();
+        // Reload the page to refresh sessions
+        window.location.reload();
       }
     } catch (error) {
       console.error('Feedback submission error:', error);

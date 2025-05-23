@@ -2,94 +2,33 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Star, SmilePlus, Smile, Frown } from "lucide-react"
+import axiosInstance from "../../config/axios.config"
 
 const TestimonialsSection = () => {
   const [isFirstRowHovered, setIsFirstRowHovered] = useState(false)
   const [isSecondRowHovered, setIsSecondRowHovered] = useState(false)
+  const [testimonials, setTestimonials] = useState([])
+  const [loading, setLoading] = useState(true)
 
   const firstRowRef = useRef(null)
   const secondRowRef = useRef(null)
 
-  // Sample testimonial data
-  const testimonials = [
-    {
-      id: 1,
-      title: "Direct yet Friendly Tone",
-      content:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Quis ipsum suspendisse ultrices",
-      rating: 5,
-      author: "Kavya Sharma",
-      role: "happy customer",
-      emoji: "smile-plus",
-    },
-    {
-      id: 2,
-      title: "Direct yet Friendly Tone",
-      content:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Quis ipsum suspendisse ultrices",
-      rating: 3,
-      author: "Kavya Sharma",
-      role: "happy customer",
-      emoji: "smile",
-    },
-    {
-      id: 3,
-      title: "Direct yet Friendly Tone",
-      content:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Quis ipsum suspendisse ultrices",
-      rating: 4,
-      author: "Kavya Sharma",
-      role: "happy customer",
-    },
-    {
-      id: 4,
-      title: "Direct yet Friendly Tone",
-      content:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Quis ipsum suspendisse ultrices",
-      rating: 1,
-      author: "Kavya Sharma",
-      role: "happy customer",
-      emoji: "frown",
-    },
-    {
-      id: 5,
-      title: "Direct yet Friendly Tone",
-      content:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Quis ipsum suspendisse ultrices",
-      rating: 5,
-      author: "Kavya Sharma",
-      role: "happy customer",
-    },
-    {
-      id: 6,
-      title: "Direct yet Friendly Tone",
-      content:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Quis ipsum suspendisse ultrices",
-      rating: 2,
-      author: "Kavya Sharma",
-      role: "happy customer",
-      emoji: "frown",
-    },
-    {
-      id: 7,
-      title: "Direct yet Friendly Tone",
-      content:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Quis ipsum suspendisse ultrices",
-      rating: 5,
-      author: "Kavya Sharma",
-      role: "happy customer",
-      emoji: "smile",
-    },
-    {
-      id: 8,
-      title: "Direct yet Friendly Tone",
-      content:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Quis ipsum suspendisse ultrices",
-      rating: 4,
-      author: "Kavya Sharma",
-      role: "happy customer",
-    },
-  ]
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        const { data } = await axiosInstance.get('/course/testimonials')
+        if (data.success) {
+          setTestimonials(data.testimonials)
+        }
+      } catch (error) {
+        console.error('Error fetching testimonials:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTestimonials()
+  }, [])
 
   // Duplicate testimonials for infinite scrolling effect
   const firstRowTestimonials = [...testimonials, ...testimonials]
@@ -107,78 +46,102 @@ const TestimonialsSection = () => {
       ))
   }
 
+  // Emoji mapping based on rating
+  const getEmoji = (rating) => {
+    if (rating >= 4) return "smile-plus"
+    if (rating >= 3) return "smile"
+    return "frown"
+  }
+
   // Render emoji
   const renderEmoji = (type) => {
     switch (type) {
       case "smile-plus":
-        return <SmilePlus className="w-12 h-12 text-blue-500" />
+        return <SmilePlus className="w-6 h-6 text-green-500" />
       case "smile":
-        return <Smile className="w-12 h-12 text-blue-500" />
+        return <Smile className="w-6 h-6 text-blue-500" />
       case "frown":
-        return <Frown className="w-12 h-12 text-blue-500" />
+        return <Frown className="w-6 h-6 text-gray-400" />
       default:
         return null
     }
   }
 
-  // Animation for infinite scrolling
   useEffect(() => {
-    const firstRow = firstRowRef.current
-    const secondRow = secondRowRef.current
-  
-    let firstRowAnimation
-    let secondRowAnimation
-  
+    if (!firstRowRef.current || !secondRowRef.current || loading) return
+    
+    let firstRowAnimation;
+    let secondRowAnimation;
+    const firstRow = firstRowRef.current;
+    const secondRow = secondRowRef.current;
+
     const animateFirstRow = () => {
-      if (!firstRow || isFirstRowHovered) return
-  
-      let position = firstRow.scrollLeft
-      const speed = 0.5
-  
+      if (!firstRow || isFirstRowHovered) return;
+
+      let position = firstRow.scrollLeft;
+      const speed = 0.5;
+
       const step = () => {
-        if (isFirstRowHovered) return
-        position += speed
+        if (isFirstRowHovered) return;
+        position += speed;
         if (position >= firstRow.scrollWidth / 2) {
-          position = 0
+          position = 0;
         }
-        firstRow.scrollLeft = position
-        firstRowAnimation = requestAnimationFrame(step)
-      }
-  
-      step()
-    }
-  
+        firstRow.scrollLeft = position;
+        firstRowAnimation = requestAnimationFrame(step);
+      };
+
+      step();
+    };
+
     const animateSecondRow = () => {
-      if (!secondRow || isSecondRowHovered) return
-  
-      let position = secondRow.scrollLeft || secondRow.scrollWidth / 2
-      const speed = 0.5
-  
+      if (!secondRow || isSecondRowHovered) return;
+
+      let position = secondRow.scrollLeft || secondRow.scrollWidth / 2;
+      const speed = 0.5;
+
       const step = () => {
-        if (isSecondRowHovered) return
-        position -= speed
+        if (isSecondRowHovered) return;
+        position -= speed;
         if (position <= 0) {
-          position = secondRow.scrollWidth / 2
+          position = secondRow.scrollWidth / 2;
         }
-        secondRow.scrollLeft = position
-        secondRowAnimation = requestAnimationFrame(step)
-      }
-  
-      step()
-    }
-  
-    animateFirstRow()
-    animateSecondRow()
-  
+        secondRow.scrollLeft = position;
+        secondRowAnimation = requestAnimationFrame(step);
+      };
+
+      step();
+    };
+
+    // Start both animations
+    animateFirstRow();
+    animateSecondRow();
+
+    // Cleanup animations on unmount
     return () => {
-      cancelAnimationFrame(firstRowAnimation)
-      cancelAnimationFrame(secondRowAnimation)
-    }
-  }, [isFirstRowHovered, isSecondRowHovered])
-  
+      if (firstRowAnimation) cancelAnimationFrame(firstRowAnimation);
+      if (secondRowAnimation) cancelAnimationFrame(secondRowAnimation);
+    };
+  }, [isFirstRowHovered, isSecondRowHovered, loading]);
+
+  if (loading) {
+    return (
+      <section className="py-16 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-bold text-[#003265] mb-2">Testimonials</h2>
+          <div className="w-48 h-1 bg-blue-800 mx-auto"></div>
+          <div className="mt-12">Loading testimonials...</div>
+        </div>
+      </section>
+    )
+  }
+
+  if (testimonials.length === 0) {
+    return null;
+  }
 
   return (
-    <section className="max-w-[100vw] my-20 px-4 overflow-hidden">
+    <section className="py-16 relative overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold text-[#003265] mb-2">Testimonials</h2>
@@ -186,11 +149,11 @@ const TestimonialsSection = () => {
         </div>
   
         <div className="relative bg-[#dfefff] rounded-2xl p-6 md:p-10 overflow-hidden">
-        {/* ⬅️ Fade Left */}
-        <div className="pointer-events-none absolute left-0 top-0 w-32 h-full bg-gradient-to-r from-[#dfefff] via-[#dfefff]/80 to-transparent z-20" />
+          {/* ⬅️ Fade Left */}
+          <div className="pointer-events-none absolute left-0 top-0 w-32 h-full bg-gradient-to-r from-[#dfefff] via-[#dfefff]/80 to-transparent z-20" />
 
-        {/* ➡️ Fade Right */}
-        <div className="pointer-events-none absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-[#dfefff] via-[#dfefff]/80 to-transparent z-20" />
+          {/* ➡️ Fade Right */}
+          <div className="pointer-events-none absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-[#dfefff] via-[#dfefff]/80 to-transparent z-20" />
     
           {/* First row - left to right */}
           <div className="relative mb-8">
@@ -199,10 +162,11 @@ const TestimonialsSection = () => {
               className="flex overflow-x-hidden gap-4 pb-4"
               onMouseEnter={() => setIsFirstRowHovered(true)}
               onMouseLeave={() => setIsFirstRowHovered(false)}
+              style={{ scrollBehavior: 'auto' }}
             >
               {firstRowTestimonials.map((testimonial, index) => (
                 <div
-                  key={`row1-${testimonial.id}-${index}`}
+                  key={`row1-${index}`}
                   className="min-w-[280px] md:min-w-[320px] bg-white rounded-lg p-4 shadow-md flex flex-col"
                 >
                   <h3 className="text-lg font-semibold text-[#003265] mb-2">{testimonial.title}</h3>
@@ -212,10 +176,10 @@ const TestimonialsSection = () => {
                       <div className="flex mb-2">{renderStars(testimonial.rating)}</div>
                       <div>
                         <p className="font-medium">- {testimonial.author}</p>
-                        <p className="text-sm text-gray-400">{testimonial.role}</p>
+                        <p className="text-sm text-gray-400">{testimonial.type}</p>
                       </div>
                     </div>
-                    {testimonial.emoji && <div className="ml-2">{renderEmoji(testimonial.emoji)}</div>}
+                    <div className="ml-2">{renderEmoji(getEmoji(testimonial.rating))}</div>
                   </div>
                 </div>
               ))}
@@ -229,10 +193,11 @@ const TestimonialsSection = () => {
               className="flex overflow-x-hidden gap-4"
               onMouseEnter={() => setIsSecondRowHovered(true)}
               onMouseLeave={() => setIsSecondRowHovered(false)}
+              style={{ scrollBehavior: 'auto' }}
             >
               {secondRowTestimonials.map((testimonial, index) => (
                 <div
-                  key={`row2-${testimonial.id}-${index}`}
+                  key={`row2-${index}`}
                   className="min-w-[280px] md:min-w-[320px] bg-white rounded-lg p-4 shadow-md flex flex-col"
                 >
                   <h3 className="text-lg font-semibold text-[#003265] mb-2">{testimonial.title}</h3>
@@ -242,10 +207,10 @@ const TestimonialsSection = () => {
                       <div className="flex mb-2">{renderStars(testimonial.rating)}</div>
                       <div>
                         <p className="font-medium">- {testimonial.author}</p>
-                        <p className="text-sm text-gray-400">{testimonial.role}</p>
+                        <p className="text-sm text-gray-400">{testimonial.type}</p>
                       </div>
                     </div>
-                    {testimonial.emoji && <div className="ml-2">{renderEmoji(testimonial.emoji)}</div>}
+                    <div className="ml-2">{renderEmoji(getEmoji(testimonial.rating))}</div>
                   </div>
                 </div>
               ))}
@@ -255,6 +220,6 @@ const TestimonialsSection = () => {
       </div>
     </section>
   )
-}  
+}
 
 export default TestimonialsSection

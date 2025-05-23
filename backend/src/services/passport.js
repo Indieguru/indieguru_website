@@ -16,6 +16,13 @@ const generateToken = (user) => {
 const generateRefreshToken = (user) => {
   return jwt.sign({ id: user.id, userType: user.userType }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
 };
+const generateToken2 = (user) => {
+  return jwt.sign({ id: user.id, userType: user.userType }, process.env.JWT_ESECRET, { expiresIn: '1h' });
+};
+
+const generateRefreshToken2 = (user) => {
+  return jwt.sign({ id: user.id, userType: user.userType }, process.env.JWT_EREFRESH_SECRET, { expiresIn: '7d' });
+};
 let backendUrl = (process.env.TYPE === 'production') ? process.env.BACKEND_URL : `${process.env.BACKEND_URL}:${process.env.PORT}`;
 let callbackURL = '/api/v1/user/auth/google/callback'; // Use relative path
 if(process.env.TYPE === 'production') 
@@ -73,8 +80,8 @@ passport.use('google-expert', new GoogleStrategy({
   try {
     const existingUser = await Expert.findOne({ gid: profile.id });
     if (existingUser) {
-      const token = generateToken(existingUser);
-      const refreshToken = generateRefreshToken(existingUser);
+      const token = generateToken2(existingUser);
+      const refreshToken = generateRefreshToken2(existingUser);
       await Expert.updateOne( { _id: existingUser._id }, { $set: { refreshToken: refreshToken } }); // Store the Google refresh token
       return done(null, { user: existingUser, token, refreshToken});
     }
@@ -95,8 +102,8 @@ passport.use('google-expert', new GoogleStrategy({
     });
 
     // Then generate tokens
-    const token = generateToken(newUser);
-    const refreshToken = generateRefreshToken(newUser);
+    const token = generateToken2(newUser);
+    const refreshToken = generateRefreshToken2(newUser);
     newUser.refreshToken = refreshToken;
 
     await newUser.save();

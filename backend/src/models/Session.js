@@ -72,17 +72,21 @@ const SessionSchema = new mongoose.Schema({
       type: Number,
       min: 0,
       max: 5
-  },
-  detail: {
+    },
+    detail: {
       heading: {
-          type: String,
-          // required: true
+        type: String,
+        // required: true
       },
       description: {
-          type: String,
-          // required: true
+        type: String,
+        // required: true
       }
-  }
+    },
+    studentName: {
+      type: String,
+      required: false
+    }
   },
   
   eventId: {
