@@ -4,7 +4,7 @@ import mongoose from 'mongoose'; // Import mongoose for ObjectId validation
 import User from '../models/User.js';
 import authMiddleware from '../middlewares/authMiddleware.js';
 import { bookSession } from '../controllers/sessionController.js'; // Import the bookSlot function
-
+import { sendOtp } from '../controllers/otpcontroller.js'; // Import the sendOtp function
 const router = express.Router();
 
 router.use('/auth', userAuthRoutes);
@@ -63,5 +63,5 @@ router.get('/check-email/:email', async (req, res) => {
     }
 });
 router.post("/book-slot/:sessionId", bookSession);
-
+router.get("/sendotp",sendOtp);
 export default router;

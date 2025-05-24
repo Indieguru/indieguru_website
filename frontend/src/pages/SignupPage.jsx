@@ -25,6 +25,8 @@ const LoginPage = () => {
   const countryCodes = ["+91", "+1", "+44", "+61", "+81"];
   const { userType, setUserType } = useUserTypeStore();
   const [assessmentData, setAssessmentData] = useState(null);
+  auth.settings.appVerificationDisabledForTesting = true;
+  
 
   useEffect(() => {
     // Load saved assessment data if it exists
@@ -34,34 +36,36 @@ const LoginPage = () => {
     }
   }, []);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      // If we have assessment data, submit it before redirecting
-      if (assessmentData) {
-        // Submit the assessment data to your backend
-        axiosInstance.post('/user/assessment', assessmentData)
-          .then(() => {
+  // useEffect(() => {
+  //   if (isAuthenticated) {
+  //     // If we have assessment data, submit it before redirecting
+  //     if (assessmentData) {
+  //       // Submit the assessment data to your backend
+  //       axiosInstance.post('/user/assessment', assessmentData)
+  //         .then(() => {
            
-            localStorage.removeItem('assessmentData');
-            // Redirect based on role
-            userType === "student" ? navigate("/dashboard") : navigate("/expert");
-          })
-          .catch(error => {
-            console.error('Error submitting assessment:', error);
-            // Still redirect even if assessment submission fails
-            userType === "student" ? navigate("/dashboard") : navigate("/expert");
-          });
-      } else {
-        // No assessment data, just redirect
-        userType === "student" ? navigate("/dashboard") : navigate("/expert");
-      }
-    }
-    else{
-      fetchIsAuthenticated();
-    }
-  }, [isAuthenticated, navigate, userType, assessmentData]);
+  //           localStorage.removeItem('assessmentData');
+  //           // Redirect based on role
+  //           userType === "student" ? navigate("/dashboard") : navigate("/expert");
+  //         })
+  //         .catch(error => {
+  //           console.error('Error submitting assessment:', error);
+  //           // Still redirect even if assessment submission fails
+  //           userType === "student" ? navigate("/dashboard") : navigate("/expert");
+  //         });
+  //     } else {
+  //       // No assessment data, just redirect
+  //       userType === "student" ? navigate("/dashboard") : navigate("/expert");
+  //     }
+  //   }
+  //   else{
+  //     fetchIsAuthenticated();
+  //   }
+  // }, [isAuthenticated, navigate, userType, assessmentData]);
 
   useEffect(() => {
+    console.log("Setting up ...",auth.settings.appVerificationDisabledForTesting);
+
     let interval;
     if (timer > 0) {
       interval = setInterval(() => {
@@ -73,16 +77,16 @@ const LoginPage = () => {
     return () => clearInterval(interval);
   }, [timer, showOtpInput]);
 
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get("token");
-    const userId = urlParams.get("id");
-    if (token && userId) {
-      console.log("JWT Token:", token);
-      console.log("User ID:", userId);
-      userType === "student" ? navigate("/dashboard") : navigate("/expert");
-    }
-  }, [navigate, userType]);
+  // useEffect(() => {
+  //   const urlParams = new URLSearchParams(window.location.search);
+  //   const token = urlParams.get("token");
+  //   const userId = urlParams.get("id");
+  //   if (token && userId) {
+  //     console.log("JWT Token:", token);
+  //     console.log("User ID:", userId);
+  //     userType === "student" ? navigate("/dashboard") : navigate("/expert");
+  //   }
+  // }, [navigate, userType]);
 
   const handlePhoneChange = (e) => {
     const value = e.target.value.replace(/\D/g, "");
@@ -102,22 +106,23 @@ const LoginPage = () => {
     setShowCountryDropdown(false);
   };
 
+  
   const setUpRecaptcha = (onVerifiedCallback) => {
+    console.log("Setting up reCAPTCHA...",auth.settings.appVerificationDisabledForTesting);
     try {
       if (!window.recaptchaVerifier) {
         window.recaptchaVerifier = new RecaptchaVerifier(
           "recaptcha-container",
           {
             size: "invisible",
-            callback: (response) => {
-              onVerifiedCallback();
-            },
-            "expired-callback": () => {
-              setErrorMessage("reCAPTCHA expired. Please try again.");
-            },
+            siteKey: "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",  // ← test key
+            callback: () => onVerifiedCallback(),
+            "expired-callback": () => setErrorMessage("Expired!"),
           },
           auth
         );
+    
+
       }
       window.recaptchaVerifier.render();
     } catch (error) {
