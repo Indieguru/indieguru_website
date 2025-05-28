@@ -58,7 +58,7 @@ export const getCourseById = async (req, res) => {
 
 export const addFeedback = async (req, res) => {
     try {
-        const { rating, heading, description, name } = req.body;
+        const { rating, heading, description } = req.body;
         const course = await Course.findById(req.params.courseId);
         
         if (!course) {
@@ -66,7 +66,8 @@ export const addFeedback = async (req, res) => {
         }
 
         // Check if user has purchased the course
-        if (!course.purchasedBy.includes(req.user.id)) {
+        const user = await User.findById(req.user.id);
+        if (!user || !user.purchasedCourses.includes(course._id)) {
             return res.status(403).json({ message: 'You must purchase the course to leave feedback' });
         }
 
@@ -76,35 +77,67 @@ export const addFeedback = async (req, res) => {
             return res.status(400).json({ message: 'You have already left feedback for this course' });
         }
 
+        // Add new feedback with user reference
         course.feedback.push({
             user: req.user.id,
             rating,
-            studentName: name,
+            studentName: `${user.firstName} ${user.lastName}`,
             detail: {
                 heading,
                 description
-            }
+            },
+            createdAt: new Date()
         });
 
         await course.save();
-        res.status(201).json(course);
+        
+        res.status(201).json({ 
+            success: true,
+            message: 'Feedback added successfully',
+            course 
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error adding course feedback:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Error adding feedback',
+            error: error.message 
+        });
     }
 };
 
 export const getCourseFeedback = async (req, res) => {
     try {
         const course = await Course.findById(req.params.courseId)
-            .populate('feedback.user', 'firstName lastName');
+            .populate({
+                path: 'feedback.user',
+                select: 'firstName lastName'
+            });
 
         if (!course) {
             return res.status(404).json({ message: 'Course not found' });
         }
 
-        res.json(course.feedback);
+        const feedback = course.feedback.map(f => ({
+            id: f._id,
+            rating: f.rating,
+            detail: f.detail,
+            studentName: f.studentName,
+            createdAt: f.createdAt,
+            user: f.user
+        }));
+
+        res.status(200).json({ 
+            success: true,
+            feedback
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error fetching course feedback:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Error fetching feedback',
+            error: error.message 
+        });
     }
 };
 

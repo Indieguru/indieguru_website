@@ -55,6 +55,10 @@ const UserSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Course'
   }],
+  purchasedCohorts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Cohort'
+  }],
   assessment: {
     role: {
       type: String,

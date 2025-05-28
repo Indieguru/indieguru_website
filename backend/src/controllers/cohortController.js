@@ -45,7 +45,12 @@ export const getCohorts = async (req, res) => {
 
 export const getCohortById = async (req, res) => {
     try {
-        const cohort = await Cohort.findById(req.params.id);
+        const cohort = await Cohort.findById(req.params.id)
+            .populate({
+                path: 'feedback.user',
+                select: 'firstName lastName'
+            });
+            
         if (!cohort) {
             return res.status(404).json({ message: 'Cohort not found' });
         }
@@ -57,7 +62,7 @@ export const getCohortById = async (req, res) => {
 
 export const addFeedback = async (req, res) => {
     try {
-        const { rating, heading, description, name } = req.body;
+        const { rating, heading, description } = req.body;
         const cohort = await Cohort.findById(req.params.cohortId);
         
         if (!cohort) {
@@ -65,45 +70,83 @@ export const addFeedback = async (req, res) => {
         }
 
         // Check if user has purchased the cohort
-        if (!cohort.purchasedBy.includes(req.user.id)) {
+        const user = await User.findById(req.user.id);
+        if (!user || !cohort.purchasedBy?.includes(req.user.id)) {
             return res.status(403).json({ message: 'You must be enrolled in the cohort to leave feedback' });
         }
 
         // Check if user has already left feedback
-        const existingFeedback = cohort.feedback.find(f => f.user.toString() === req.user.id);
+        const existingFeedback = cohort.feedback?.find(f => f.user.toString() === req.user.id);
         if (existingFeedback) {
             return res.status(400).json({ message: 'You have already left feedback for this cohort' });
         }
 
-        cohort.feedback.push({
+        // Add new feedback
+        const newFeedback = {
             user: req.user.id,
             rating,
-            studentName: name,
+            studentName: `${user.firstName} ${user.lastName}`,
             detail: {
                 heading,
                 description
-            }
-        });
+            },
+            createdAt: new Date()
+        };
+
+        if (!cohort.feedback) {
+            cohort.feedback = [];
+        }
+        cohort.feedback.push(newFeedback);
 
         await cohort.save();
-        res.status(201).json(cohort);
+        
+        res.status(201).json({ 
+            success: true,
+            message: 'Feedback added successfully',
+            feedback: newFeedback
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error adding cohort feedback:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Error adding feedback',
+            error: error.message 
+        });
     }
 };
 
 export const getCohortFeedback = async (req, res) => {
     try {
         const cohort = await Cohort.findById(req.params.cohortId)
-            .populate('feedback.user', 'firstName lastName');
+            .populate({
+                path: 'feedback.user',
+                select: 'firstName lastName'
+            });
 
         if (!cohort) {
             return res.status(404).json({ message: 'Cohort not found' });
         }
 
-        res.json(cohort.feedback);
+        const feedback = cohort.feedback?.map(f => ({
+            id: f._id,
+            rating: f.rating,
+            detail: f.detail,
+            studentName: f.studentName,
+            createdAt: f.createdAt,
+            user: f.user
+        })) || [];
+
+        res.status(200).json({ 
+            success: true,
+            feedback
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error fetching cohort feedback:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Error fetching feedback',
+            error: error.message 
+        });
     }
 };
 

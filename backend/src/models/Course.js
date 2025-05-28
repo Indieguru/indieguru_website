@@ -16,7 +16,6 @@ const CourseSchema = new mongoose.Schema({
     },
     courseOverview: {
         type: String,
-        // required: true
     },
     driveLink: {
         type: String,
@@ -64,10 +63,12 @@ const CourseSchema = new mongoose.Schema({
     feedback: [{
         user: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
+            ref: 'User',
+            required: true
         },
         rating: {
             type: Number,
+            required: true,
             min: 0,
             max: 5
         },
@@ -81,10 +82,7 @@ const CourseSchema = new mongoose.Schema({
                 required: true
             }
         },
-        studentName: {
-            type: String,
-            required: false
-        },
+        studentName: String,
         createdAt: {
             type: Date,
             default: Date.now

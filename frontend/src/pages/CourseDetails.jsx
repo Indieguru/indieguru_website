@@ -16,10 +16,12 @@ import useUserTypeStore from '../store/userTypeStore';
 export default function CourseDetails() {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [purchasing, setPurchasing] = useState(false);
   const { courseId } = useParams();
   const navigate = useNavigate();
   const { user } = useUserStore();
   const { userType } = useUserTypeStore();
+  const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -62,7 +64,9 @@ export default function CourseDetails() {
     try {
       setPurchasing(true);
       await axiosInstance.post(`/course/${courseId}/purchase`);
+      await axiosInstance.post(`/course/enroll/${courseId}`);
       setShowSuccessModal(true);
+      navigate('/dashboard');
     } catch (error) {
       console.error('Error purchasing course:', error);
       toast.error(error.response?.data?.message || 'Failed to register for the course. Please try again.', {
@@ -72,12 +76,8 @@ export default function CourseDetails() {
         closeOnClick: true,
         pauseOnHover: true,
       });
-    } try {
+    } finally {
       setPurchasing(false);
-      await axiosInstance.post(`/course/enroll/${courseId}`);
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Error enrolling in course:', error);
     }
   };
   

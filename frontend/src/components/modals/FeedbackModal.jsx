@@ -13,34 +13,89 @@ export default function FeedbackModal({ isOpen, onClose, session }) {
   const [rating, setRating] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingFeedback, setExistingFeedback] = useState(null);
+  const [errors, setErrors] = useState({
+    heading: false,
+    description: false
+  });
 
   useEffect(() => {
-    if (session?.feedback) {
-      setExistingFeedback({
-        rating: session.feedback.rating || 0,
-        detail: session.feedback.detail || { heading: '', description: '' }
+    if (isOpen && session) {
+      setRating(0);
+      setFeedbackData({
+        heading: '',
+        description: ''
       });
+      setErrors({
+        heading: false,
+        description: false
+      });
+      
+      if (session.feedback) {
+        if (session.type === 'courses' || session.type === 'cohorts') {
+          // For courses and cohorts, check if user has already given feedback
+          const userFeedback = Array.isArray(session.feedback) ? 
+            session.feedback.find(f => f?.detail?.heading && f?.rating > 0) : null;
+          
+          if (userFeedback) {
+            setExistingFeedback({
+              rating: userFeedback.rating,
+              detail: userFeedback.detail
+            });
+          } else {
+            setExistingFeedback(null);
+          }
+        } else {
+          // For regular sessions
+          if (session.feedback.rating > 0 && session.feedback.detail) {
+            setExistingFeedback({
+              rating: session.feedback.rating,
+              detail: session.feedback.detail
+            });
+          } else {
+            setExistingFeedback(null);
+          }
+        }
+      } else {
+        setExistingFeedback(null);
+      }
     }
-  }, [session]);
+  }, [isOpen, session]);
+
+  const validateInput = () => {
+    const newErrors = {
+      heading: !feedbackData.heading.trim(),
+      description: !feedbackData.description.trim()
+    };
+    setErrors(newErrors);
+    return !newErrors.heading && !newErrors.description;
+  };
 
   const handleSubmit = async () => {
-    if (!feedbackData.heading || !feedbackData.description || rating === 0) {
-      toast.error('Please provide heading, description and rating');
+    if (!validateInput() || rating === 0) {
+      toast.error('Please provide a rating, heading, and detailed feedback');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const response = await axiosInstance.post(`/session/${session._id}/feedback`, {
+      let endpoint;
+      if (session.type === 'courses') {
+        endpoint = `/course/${session._id}/feedback`;
+      } else if (session.type === 'cohorts') {
+        endpoint = `/cohort/${session._id}/feedback`;
+      } else {
+        endpoint = `/session/${session._id}/feedback`;
+      }
+
+      const response = await axiosInstance.post(endpoint, {
         rating,
-        heading: feedbackData.heading,
-        description: feedbackData.description
+        heading: feedbackData.heading.trim(),
+        description: feedbackData.description.trim()
       });
 
-      if (response.data) {
+      if (response.status === 200 || response.status === 201) {
         toast.success('Feedback submitted successfully!');
-        // Reload the page to refresh sessions
-        window.location.reload();
+        onClose();
       }
     } catch (error) {
       console.error('Feedback submission error:', error);
@@ -51,7 +106,7 @@ export default function FeedbackModal({ isOpen, onClose, session }) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Session Feedback">
+    <Modal isOpen={isOpen} onClose={onClose} title="Feedback">
       <div className="p-6">
         {existingFeedback ? (
           <div className="space-y-4">
@@ -79,12 +134,13 @@ export default function FeedbackModal({ isOpen, onClose, session }) {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Rate your experience
+                Rate your experience<span className="text-red-500">*</span>
               </label>
               <div className="flex items-center gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
+                    type="button"
                     onClick={() => setRating(star)}
                     className="focus:outline-none"
                   >
@@ -102,33 +158,49 @@ export default function FeedbackModal({ isOpen, onClose, session }) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Feedback Heading
+                Feedback Heading<span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={feedbackData.heading}
-                onChange={(e) => setFeedbackData(prev => ({ ...prev, heading: e.target.value }))}
+                onChange={(e) => {
+                  setFeedbackData(prev => ({ ...prev, heading: e.target.value }));
+                  setErrors(prev => ({ ...prev, heading: false }));
+                }}
                 placeholder="Give a brief title to your feedback..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                  errors.heading ? 'border-red-500' : 'border-gray-300'
+                }`}
               />
+              {errors.heading && (
+                <p className="text-red-500 text-xs mt-1">Please provide a heading</p>
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Detailed Feedback
+                Detailed Feedback<span className="text-red-500">*</span>
               </label>
               <textarea
                 value={feedbackData.description}
-                onChange={(e) => setFeedbackData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Share your detailed experience about this session..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[120px]"
+                onChange={(e) => {
+                  setFeedbackData(prev => ({ ...prev, description: e.target.value }));
+                  setErrors(prev => ({ ...prev, description: false }));
+                }}
+                placeholder="Share your detailed experience..."
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 min-h-[120px] ${
+                  errors.description ? 'border-red-500' : 'border-gray-300'
+                }`}
               />
+              {errors.description && (
+                <p className="text-red-500 text-xs mt-1">Please provide detailed feedback</p>
+              )}
             </div>
 
             <Button
               onClick={handleSubmit}
-              disabled={isSubmitting || !feedbackData.heading || !feedbackData.description || rating === 0}
-              className="w-full bg-blue-600 text-white hover:bg-blue-700"
+              disabled={isSubmitting}
+              className="w-full bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300"
             >
               {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
             </Button>

@@ -21,6 +21,7 @@ import BlogPost from './pages/BlogPost';
 import BrowseExperts from "./pages/BrowseExperts";
 import CourseDetails from "./pages/CourseDetails";
 import BookingPage from "./pages/BookingPage";
+import CohortDetails from "./pages/CohortDetails";
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
         <Route path="/student/bookings" element={<StudentBookingsPage />} />
         <Route path="/all-courses" element={<AllCoursesPage />} />
         <Route path="/course/:courseId" element={<CourseDetails />} />
+        <Route path="/cohort/:cohortId" element={<CohortDetails />} />
         <Route path="/booking/:expertId" element={<BookingPage />} />
         <Route path="/finish-signup" element={<FinishSignUp />} />
         <Route path="/finish-signin" element={<FinishSignIn />} />
