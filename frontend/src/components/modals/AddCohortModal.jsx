@@ -10,7 +10,7 @@ export default function AddCohortModal({ isOpen, onClose }) {
     title: '',
     description: '',
     meetLink: '',
-    pricing: '',
+    expertFee: '',
     startDate: '',
     endDate: ''
   });
@@ -93,17 +93,25 @@ export default function AddCohortModal({ isOpen, onClose }) {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Pricing (INR)
+            Expert Fee (INR)
           </label>
           <Input
             type="number"
-            name="pricing"
-            value={cohortData.pricing}
+            name="expertFee"
+            value={cohortData.expertFee}
             onChange={handleInputChange}
             required
             min="0"
-            placeholder="Enter cohort fee"
+            placeholder="Enter your expert fee"
           />
+          <div className="mt-2 p-3 bg-blue-50 rounded-md">
+            <p className="text-xs text-blue-700 font-medium mb-1">Pricing Structure:</p>
+            <ul className="text-xs text-blue-600 space-y-1">
+              <li>• Expert Fee: What you'll earn per enrollment</li>
+              <li>• Platform Fee: Added automatically by IndieGuru</li>
+              <li>• Total Price: Sum of expert fee and platform fee</li>
+            </ul>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">

@@ -37,9 +37,9 @@ passport.use('google-user', new GoogleStrategy({
   try {
     const role = req.query.role || 'student'; // Get role from query parameter
     const existingUser = await User.findOne({ gid: profile.id, authType: 'gmail' });
-
+    
     if (existingUser) {
-  
+    
       const token = generateToken(existingUser);
       const refreshToken = generateRefreshToken(existingUser);
       existingUser.refreshToken = refreshToken; // Store the Google refresh token
@@ -80,6 +80,7 @@ passport.use('google-expert', new GoogleStrategy({
   try {
     const existingUser = await Expert.findOne({ gid: profile.id });
     if (existingUser) {
+      // console.log("new"+refreshToken);
       const token = generateToken2(existingUser);
       const refreshToken = generateRefreshToken2(existingUser);
       await Expert.updateOne( { _id: existingUser._id }, { $set: { refreshToken: refreshToken } }); // Store the Google refresh token

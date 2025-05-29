@@ -23,8 +23,22 @@ const CohortSchema = new mongoose.Schema({
         ref: 'User'
     }],
     pricing: {
-        type: Number,
-        required: true
+        expertFee: {
+            type: Number,
+            required: true
+        },
+        platformFee: {
+            type: Number,
+            default: 0
+        },
+        total: {
+            type: Number,
+            required: true
+        },
+        currency: {
+            type: String,
+            default: 'INR'
+        }
     },
     status: {
         type: String,
@@ -81,6 +95,17 @@ const CohortSchema = new mongoose.Schema({
     }]
 }, {
     timestamps: true
+});
+
+// Pre-save hook to calculate total price and set currency
+CohortSchema.pre('save', function(next) {
+    if (this.pricing && this.pricing.expertFee) {
+        // Calculate total using existing platform fee or 0
+        this.pricing.total = this.pricing.expertFee + (this.pricing.platformFee || 0);
+        // Ensure currency is set
+        this.pricing.currency = this.pricing.currency || 'INR';
+    }
+    next();
 });
 
 // Pre-save middleware to populate expert details

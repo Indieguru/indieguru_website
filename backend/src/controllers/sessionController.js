@@ -7,29 +7,35 @@ import { sendMail } from '../utils/sendMail.js';
 
 export const bookSession = async (req, res) => {
   try {
-      console.log(req.user)
-      const { sessionId } = req.params;
-      const sanitizedSessionId = sessionId.trim(); 
-      const { sessionTitle } = req.body;
-      console.log("sessionId", sessionId);
+    console.log(req.user)
+    const { sessionId } = req.params;
+    const sanitizedSessionId = sessionId.trim(); 
+    const { sessionTitle } = req.body;
+    console.log("sessionId", sessionId);
     const user = await User.findById(req.user.id);
     const session = await Session.findById(sanitizedSessionId).populate('expert');
-
-    const studentName = req.body.studentName || user.firstName || user.lastName || 'Anonymous Student'; // Default to user's name if not provided
+    const studentName = req.body.studentName || user.firstName || user.lastName || 'Anonymous Student';
     const expert = await Expert.findById(session.expert);
+
     if (!session) {
       return res.status(404).json({ message: 'Session not found' });
     }
     if (session.bookedStatus) {
       return res.status(400).json({ message: 'Session already booked' });
     }
-    session.title = sessionTitle || session.title; // Update session title if provided
-    session.studentName = studentName || `${user.firstName} ${user.lastName}`; // Set student name
+
+    session.title = sessionTitle || session.title;
+    session.studentName = studentName;
     session.bookedStatus = true;
     session.bookedBy = req.user.id;
     session.paymentStatus = 'completed';
     session.status = 'upcoming';
 
+   
+    expert.outstandingAmount.sessions += session.pricing.expertFee;
+    expert.outstandingAmount.total += session.pricing.expertFee;
+    console.log("expert.outstandingAmount", expert.outstandingAmount);
+    await expert.save();
     const oAuth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
@@ -72,6 +78,7 @@ export const bookSession = async (req, res) => {
     session.eventId = data.id;
     session.meetLink = meetLink;
     await session.save();
+    await expert.save();
 
     // Send Email to User
     await sendMail({

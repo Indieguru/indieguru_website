@@ -29,6 +29,8 @@ const BookingPage = () => {
         ]);
         
         setExpert(expertResponse.data);
+        console.log("hi")
+        console.log(expertResponse.data);
         const availableSessions = sessionsResponse.data.filter(session => !session.bookedStatus);
         setSessions(availableSessions);
       } catch (error) {
@@ -217,7 +219,7 @@ const BookingPage = () => {
                   </h3>
                   <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg">
                     <p className="text-3xl font-bold text-blue-700">
-                      ₹{expert?.sessionPricing?.total || "0"}
+                      ₹{expert.sessionPricing?.total || "0"}
                       <span className="text-sm font-normal text-blue-600 ml-1">/hour</span>
                     </p>
                   </div>

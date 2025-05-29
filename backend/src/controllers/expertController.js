@@ -238,17 +238,33 @@ export const getExpertCohorts = async (req, res) => {
 
 export const createCohort = async (req, res) => {
   try {
-    const { title, description, meetLink, pricing, startDate, endDate } = req.body;
+    const { title, description, meetLink, expertFee, startDate, endDate } = req.body;
     const expertId = req.user.id;
+
+    // Basic validation
+    if (!title || !description || !meetLink || !expertFee || !startDate || !endDate) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Convert expertFee to number and validate
+    const expertFeeNum = Number(expertFee);
+    if (isNaN(expertFeeNum) || expertFeeNum < 0) {
+      return res.status(400).json({ message: "Expert fee must be a valid number" });
+    }
 
     const newCohort = new Cohort({
       createdBy: expertId,
       title,
       description,
       meetLink,
-      pricing,
       startDate: new Date(startDate),
-      endDate: new Date(endDate)
+      endDate: new Date(endDate),
+      pricing: {
+        expertFee: expertFeeNum,
+        platformFee: 0, // Platform fee can be set by admin later
+        total: expertFeeNum, // Set total equal to expertFee for now
+        currency: 'INR'
+      }
     });
 
     await newCohort.save();

@@ -5,15 +5,32 @@ import { sendMail } from '../utils/sendMail.js';
 
 export const createCohort = async (req, res) => {
     try {
-        const { title, description, meetLink, pricing, startDate, endDate } = req.body;
+        const { title, description, meetLink, expertFee, startDate, endDate } = req.body;
+
+        // Basic validation
+        if (!title || !description || !meetLink || !expertFee || !startDate || !endDate) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+
+        // Convert expertFee to number and validate
+        const expertFeeNum = Number(expertFee);
+        if (isNaN(expertFeeNum) || expertFeeNum < 0) {
+            return res.status(400).json({ message: "Expert fee must be a valid number" });
+        }
+
         const cohort = new Cohort({
             title,
             description,
             meetLink,
-            pricing,
             startDate,
             endDate,
-            createdBy: req.user.id
+            createdBy: req.user.id,
+            pricing: {
+                expertFee: expertFeeNum,
+                platformFee: 0, // Platform fee can be set by admin later
+                total: expertFeeNum, // Set total equal to expertFee for now
+                currency: 'INR'
+            }
         });
 
         const expert = await Expert.findById(req.user.id);
@@ -195,9 +212,15 @@ export const purchaseCohort = async (req, res) => {
 
         // Update expert's outstanding amount
         if (!expert.outstandingAmount) {
-            expert.outstandingAmount = 0;
+            expert.outstandingAmount = {
+                total: 0,
+                sessions: 0,
+                courses: 0,
+                cohorts: 0
+            };
         }
-        expert.outstandingAmount += cohort.pricing;
+        expert.outstandingAmount.cohorts += cohort.pricing.expertFee;
+        expert.outstandingAmount.total += cohort.pricing.expertFee;
 
         // Save all changes
         await Promise.all([
@@ -214,6 +237,7 @@ export const purchaseCohort = async (req, res) => {
             - Start Date: ${new Date(cohort.startDate).toLocaleDateString()}
             - End Date: ${new Date(cohort.endDate).toLocaleDateString()}
             - Meeting Link: ${cohort.meetLink}
+            - Total Amount: ₹${cohort.pricing.total}
             
             Your expert ${expert.firstName} ${expert.lastName} will be in touch with more details about the program.
             
@@ -228,6 +252,7 @@ export const purchaseCohort = async (req, res) => {
             - Email: ${user.email}
             
             Current enrollment: ${cohort.purchasedBy.length} student(s)
+            Your earnings from this enrollment: ₹${cohort.pricing.expertFee}
             ${cohort.maxParticipants ? `Maximum capacity: ${cohort.maxParticipants} students` : ''}
         `;
 

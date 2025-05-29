@@ -33,7 +33,6 @@ const CohortDetails = () => {
 
   const handleJoinCohort = async () => {
     if (!isAuthenticated) {
-      // Redirect to login
       navigate("/email-signin", { 
         state: { redirectUrl: `/cohort/${cohortId}` }
       });
@@ -42,13 +41,11 @@ const CohortDetails = () => {
 
     try {
       const response = await axiosInstance.post(`/cohort/${cohortId}/purchase`);
-      // Handle successful enrollment
       if (response.data.paymentId) {
-        // Implement Razorpay payment flow similar to course purchase
         const options = {
           key: process.env.REACT_APP_RAZORPAY_KEY_ID,
-          amount: cohort.pricing * 100,
-          currency: "INR",
+          amount: cohort.pricing.total * 100, // Amount in smallest currency unit (paise)
+          currency: cohort.pricing.currency || 'INR',
           name: "IndieGuru",
           description: `Cohort: ${cohort.title}`,
           order_id: response.data.paymentId,
@@ -58,7 +55,7 @@ const CohortDetails = () => {
                 type: "cohort",
                 details: {
                   title: cohort.title,
-                  price: cohort.pricing,
+                  price: cohort.pricing.total,
                   date: new Date(cohort.startDate).toLocaleDateString()
                 }
               }
@@ -70,7 +67,6 @@ const CohortDetails = () => {
       }
     } catch (error) {
       console.error("Error joining cohort:", error);
-      // Implement error handling
     }
   };
 
@@ -162,10 +158,13 @@ const CohortDetails = () => {
               <div className="md:col-span-1">
                 <div className="bg-gray-50 p-6 rounded-xl">
                   <div className="text-center mb-6">
-                    <div className="text-4xl font-bold text-gray-900">₹{cohort.pricing}</div>
-                    {cohort.originalPrice && (
-                      <div className="text-gray-500 line-through">₹{cohort.originalPrice}</div>
+                    <div className="text-4xl font-bold text-gray-900">₹{cohort.pricing?.total || 0}</div>
+                    {cohort.pricing?.total && (
+                      <div className="text-gray-500 line-through">₹{Math.floor(cohort.pricing.total * 1.2)}</div>
                     )}
+                    <div className="text-sm text-gray-600 mt-2">
+                      {cohort.pricing?.expertFee && `Expert Fee: ₹${cohort.pricing.expertFee}`}
+                    </div>
                   </div>
 
                   <Button

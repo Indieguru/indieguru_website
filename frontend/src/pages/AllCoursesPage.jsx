@@ -178,7 +178,7 @@ const AllCoursesPage = () => {
 
         if (cohortsRes.data && Array.isArray(cohortsRes.data)) {
           const transformedCohorts = cohortsRes.data
-            .filter(cohort =>  cohort.activityStatus === 'live')
+            .filter(cohort => cohort.activityStatus === 'live')
             .map(cohort => ({
               id: cohort._id,
               title: cohort.title,
@@ -192,10 +192,14 @@ const AllCoursesPage = () => {
                 month: 'long',
                 day: 'numeric'
               })}`,
-              price: cohort.pricing || 0,
+              price: cohort.pricing?.total || 0,
+              originalPrice: cohort.pricing?.total ? Math.floor(cohort.pricing.total * 1.2) : 0,
               image: "/rectangle-2749.png",
               color: "#ffffff",
-              meetLink: cohort.meetLink
+              meetLink: cohort.meetLink,
+              expertName: cohort.expertName,
+              expertTitle: cohort.expertTitle,
+              pricing: cohort.pricing // Pass full pricing object for future use
             }));
           setCohorts(transformedCohorts);
         }

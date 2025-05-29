@@ -37,6 +37,18 @@ const ExpertSchema = new mongoose.Schema({
     min: 0,
     max: 5
   },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false
+  },
+  rejectionReason: {
+    type: String
+  },
   expertise: [{
     type: String,
     enum: [
@@ -168,9 +180,31 @@ const ExpertSchema = new mongoose.Schema({
       type: Number,
       default: 0
     },
+    total: {
+      type: Number,
+      default: 0
+    },
     currency: {
       type: String,
       default: 'INR'
+    }
+  },
+  outstandingAmount: {
+    total: {
+      type: Number,
+      default: 0
+    },
+    sessions: {
+      type: Number,
+      default: 0
+    },
+    courses: {
+      type: Number,
+      default: 0
+    },
+    cohorts: {
+      type: Number,
+      default: 0
     }
   }
 }, {
@@ -182,6 +216,12 @@ ExpertSchema.pre('save', function(next) {
   if (this.authType === 'email' && !this.password) {
     return next(new Error('Password is required for email signup'));
   }
+  
+  // Calculate total session price
+  if (this.sessionPricing) {
+    this.sessionPricing.total = (this.sessionPricing.expertFee || 0) + (this.sessionPricing.platformFee || 0);
+  }
+  
   next();
 });
 

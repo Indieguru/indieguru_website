@@ -17,7 +17,7 @@ function ExpertDashboard() {
   const { courses, fetchExpertCourses } = useExpertCoursesStore();
   const { cohorts, fetchExpertCohorts } = useExpertCohortsStore();
   const navigate = useNavigate();
-   const { userType,setUserType } = useUserTypeStore();
+  const { userType, setUserType } = useUserTypeStore();
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
@@ -33,6 +33,11 @@ function ExpertDashboard() {
 
   const handleManageCalendar = () => {
     setShowCalendarModal(true);
+  };
+
+  const handleTimeSlotSelect = (slot) => {
+    console.log('Selecting time slot:', slot); // Debug log
+    setSelectedTimeSlot(slot);
   };
 
   const handleAddSlot = async () => {
@@ -874,15 +879,19 @@ function ExpertDashboard() {
             {selectedDate && (
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Select Time Slot</label>
-                <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2">
                   {timeSlots.map((slot) => (
                     <button
                       key={slot}
-                      onClick={() => setSelectedTimeSlot(slot)}
-                      className={`p-2 text-sm rounded ₹{
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleTimeSlotSelect(slot);
+                      }}
+                      className={`p-2 text-sm border rounded-md transition-all duration-200 ${
                         selectedTimeSlot === slot
-                          ? 'bg-indigo-600 text-white'
-                          : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                       }`}
                     >
                       {slot}

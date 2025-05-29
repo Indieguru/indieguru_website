@@ -22,6 +22,7 @@ import BrowseExperts from "./pages/BrowseExperts";
 import CourseDetails from "./pages/CourseDetails";
 import BookingPage from "./pages/BookingPage";
 import CohortDetails from "./pages/CohortDetails";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function App() {
         <Route path="/finish-signup" element={<FinishSignUp />} />
         <Route path="/finish-signin" element={<FinishSignIn />} />
         <Route path="/browse-experts" element={<BrowseExperts />} />
+        <Route path="/admin" element={<AdminDashboard />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

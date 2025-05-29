@@ -183,7 +183,7 @@ export const purchaseCourse = async (req, res) => {
     if (!expert.outstandingAmount) {
       expert.outstandingAmount = 0;
     }
-    expert.outstandingAmount += course.price;
+    expert.outstandingAmount += course.pricing.expertFee;
 
     // Save all changes
     await Promise.all([

@@ -30,6 +30,7 @@ import {
 import expertAuthMiddleware from "../middlewares/expertAuthMiddleware.js";
 import upload from '../middlewares/uploadMiddleware.js';
 
+
 const router = express.Router();
 
 router.use("/auth", expertAuthRoutes);
@@ -144,16 +145,27 @@ router.get('/:expertId', async (req, res) => {
   try {
     const { expertId } = req.params;
     const expert = await Expert.findById(expertId)
-      .select('firstName lastName title expertise'); // Only select required fields
+      .select('firstName lastName email title expertise education experience certifications sessionPricing phoneNo outstandingAmount status rejectionReason createdAt'); // Added more fields
     
     if (!expert) {
       return res.status(404).json({ message: "Expert not found" });
     }
     
     res.status(200).json({
+      id: expert._id,
       name: `${expert.firstName} ${expert.lastName}`,
+      email: expert.email,
+      phoneNo: expert.phoneNo,
       title: expert.title,
-      expertise: expert.expertise
+      expertise: expert.expertise,
+      education: expert.education,
+      experience: expert.experience,
+      certifications: expert.certifications,
+      sessionPricing: expert.sessionPricing,
+      outstandingAmount: expert.outstandingAmount,
+      status: expert.status,
+      rejectionReason: expert.rejectionReason,
+      createdAt: expert.createdAt
     });
   } catch (error) {
     console.error('Error fetching expert:', error);
