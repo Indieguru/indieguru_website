@@ -12,14 +12,22 @@ import Loader from "../layout/Loader";
 import * as Motion from "framer-motion";
 
 const industries = [
-  { id: "tech", name: "Technology & Software", color: "#beeeed", iconPath: "/group-1.png" },
-  { id: "data", name: "Data Science & Analytics", color: "#ffcccc", iconPath: "/group-2.png" },
-  { id: "design", name: "Design & Creative", color: "#bcd3eb", iconPath: "/group-2-1.png" },
-  { id: "business", name: "Business & Entrepreneurship", color: "#fff0cc", iconPath: "/group.png" },
-  { id: "marketing", name: "Marketing & Digital Media", color: "#d9f0d6", iconPath: "/group-3.png" },
-  { id: "finance", name: "Finance & Investment", color: "#ffe0cc", iconPath: "/group-1.png" },
-  { id: "education", name: "Education & Teaching", color: "#e0ccff", iconPath: "/group-2.png" },
-  { id: "health", name: "Healthcare & Wellness", color: "#ffcce6", iconPath: "/group-2-1.png" }
+  'Technology',
+  'Healthcare',
+  'Finance',
+  'Education',
+  'Engineering',
+  'Marketing',
+  'Design',
+  'Business Management',
+  'Data Science',
+  'Research & Development',
+  'Manufacturing',
+  'Consulting',
+  'Law',
+  'Media & Entertainment',
+  'Architecture',
+  'Life Sciences'
 ];
 
 const ExpertSelectionModal = ({ isOpen, onClose }) => {
@@ -36,13 +44,13 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
   const isAuthenticated = !!user?.firstName;
 
   const filteredIndustries = industries.filter(industry =>
-    industry.name.toLowerCase().includes(categorySearch.toLowerCase())
+    industry.toLowerCase().includes(categorySearch.toLowerCase())
   );
 
   const handleIndustrySelect = (industry) => {
-    setSelectedIndustry(industry);
+    setSelectedIndustry({ name: industry });
     setStep(2);
-    fetchExperts(industry.name);
+    fetchExperts(industry);
   };
 
   const fetchExperts = async (industry) => {
@@ -84,7 +92,6 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
           className="fixed inset-0 z-50 flex items-center justify-center px-4 sm:px-0"
         >
           <div className="absolute inset-0 bg-black/20 backdrop-blur-md" onClick={onClose} />
-
           <Motion.motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -180,7 +187,7 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
                           <div className="relative mb-6">
                             <Input
                               type="text"
-                              placeholder="Search categories..."
+                              placeholder="Search industries..."
                               value={categorySearch}
                               onChange={(e) => setCategorySearch(e.target.value)}
                               className="w-full pl-10 pr-4 py-3 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -190,21 +197,15 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {filteredIndustries.map((industry) => (
                               <Motion.motion.button
-                                key={industry.id}
+                                key={industry}
                                 onClick={() => handleIndustrySelect(industry)}
-                                className="group relative p-6 rounded-xl text-left transition-all duration-300 overflow-hidden"
-                                style={{ backgroundColor: industry.color + '40' }}
+                                className="group relative p-6 rounded-xl text-left transition-all duration-300 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100"
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                               >
                                 <div className="relative z-10">
-                                  <img 
-                                    src={industry.iconPath} 
-                                    alt={industry.name} 
-                                    className="w-12 h-12 mb-4"
-                                  />
                                   <h3 className="font-semibold text-gray-900 group-hover:text-gray-800">
-                                    {industry.name}
+                                    {industry}
                                   </h3>
                                 </div>
                                 <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300" />

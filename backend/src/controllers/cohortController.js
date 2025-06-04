@@ -49,11 +49,10 @@ export const createCohort = async (req, res) => {
 
 export const getCohorts = async (req, res) => {
     try {
-        const cohorts = await Cohort.find({ 
-            // status: 'approved',
-            activityStatus: 'live'
-        }).sort({ startDate: 1 }); // Sort by startDate in ascending order
-        console.log(cohorts.length);
+        const cohorts = await Cohort.find()
+            .select('+rejectionReason')
+            .sort({ startDate: 1 }); // Sort by startDate in ascending order
+        
         res.json(cohorts);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -63,6 +62,7 @@ export const getCohorts = async (req, res) => {
 export const getCohortById = async (req, res) => {
     try {
         const cohort = await Cohort.findById(req.params.id)
+            .select('+rejectionReason')
             .populate({
                 path: 'feedback.user',
                 select: 'firstName lastName'
@@ -114,6 +114,12 @@ export const addFeedback = async (req, res) => {
             cohort.feedback = [];
         }
         cohort.feedback.push(newFeedback);
+
+        // Update expert's feedback stats
+        const expert = await Expert.findById(cohort.createdBy);
+        if (expert) {
+            await expert.updateFeedback('cohorts', rating);
+        }
 
         await cohort.save();
         

@@ -8,6 +8,7 @@ import useUserTypeStore from '../store/userTypeStore';
 import Header from '../components/layout/Header';
 import { Button } from "../components/ui/button";
 import FeedbackModal from "../components/modals/FeedbackModal";
+import checkAuth from '../utils/checkAuth';
 
 // TabIndicator component
 const TabIndicator = ({ active, label, icon, onClick }) => (
@@ -26,7 +27,7 @@ const TabIndicator = ({ active, label, icon, onClick }) => (
   </motion.button>
 );
 
-const StudentBookingsPage = () => {
+function StudentBookingsPage() {
   const [activeTab, setActiveTab] = useState('cohorts');
   const [cohorts, setCohorts] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -38,24 +39,30 @@ const StudentBookingsPage = () => {
   const [selectedSession, setSelectedSession] = useState(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const { user } = useUserStore();
-  const { userType } = useUserTypeStore();
+  const { userType, setUserType } = useUserTypeStore();
   const navigate = useNavigate();
+  const [authData, setAuthData] = useState(null);
 
   useEffect(() => {
-    const checkAccess = () => {
+    const handleAuth = async () => {
+      const data = await checkAuth(setUserType, setLoading);
+      setAuthData(data);
+    };
+    handleAuth();
+  }, [setUserType]);
+
+  useEffect(() => {
+    if (authData) {
       if (userType === "not_signed_in") {
         navigate("/signup");
         return;
-      }
-      if (userType !== "student") {
+      } else if (userType !== "student") {
         navigate("/dashboard");
         return;
       }
       fetchBookings();
-    };
-
-    checkAccess();
-  }, [userType, navigate]);
+    }
+  }, [userType, navigate, authData]);
 
   const fetchBookings = async () => {
     try {
@@ -184,7 +191,7 @@ const StudentBookingsPage = () => {
     }
   };
 
-  if (loading) {
+  if (loading || !authData) {
     return (
       <>
         <Header />

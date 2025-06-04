@@ -9,6 +9,7 @@ const useExpertStore = create((set) => ({
     title: "",
     firstName: "",
     lastName: "",
+    profilePicture: "/placeholder-user.jpg", // Added default profile picture
     education: [],
     experience: [],
     certifications: [],
@@ -68,10 +69,12 @@ const useExpertStore = create((set) => ({
     set({ isLoading: true });
     try {
       const response = await axiosInstance.get('/expert/dashboard');
-      // console.log('Expert data fetched:', response.data);
       if (response.status === 200) {
         set({ 
-          expertData: response.data,
+          expertData: {
+            ...response.data,
+            profilePicture: response.data.profilePicture || "/placeholder-user.jpg" // Ensure default if not provided
+          },
           isLoading: false,
           error: null
         });
@@ -141,6 +144,20 @@ const useExpertStore = create((set) => ({
     }
   })),
 
+  updateProfilePicture: (profilePicture) => set((state) => ({
+    expertData: {
+      ...state.expertData,
+      profilePicture
+    }
+  })),
+
+  updateIndustries: (industries) => set((state) => ({
+    expertData: {
+      ...state.expertData,
+      industries
+    }
+  })),
+
   clearError: () => set({ error: null }),
 
   reset: () => set({
@@ -151,6 +168,7 @@ const useExpertStore = create((set) => ({
       title: "",
       firstName: "",
       lastName: "",
+      profilePicture: "/placeholder-user.jpg", // Added default profile picture
       education: [],
       experience: [],
       certifications: [],

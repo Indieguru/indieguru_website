@@ -6,7 +6,8 @@ import {
     addFeedback, 
     getCourseFeedback, 
     purchaseCourse,
-    getCombinedTestimonials 
+    getCombinedTestimonials,
+    markCourseAsCompleted
 } from '../controllers/courseController.js';
 import authMiddleware from '../middlewares/authMiddleware.js';
 import expertAuthMiddleware from '../middlewares/expertAuthMiddleware.js';
@@ -20,5 +21,6 @@ router.get('/:id', getCourseById);
 router.post('/:courseId/feedback', authMiddleware, addFeedback);
 router.get('/:courseId/feedback', getCourseFeedback);
 router.post('/:courseId/purchase', authMiddleware, purchaseCourse);
+router.post('/:courseId/complete', expertAuthMiddleware, markCourseAsCompleted);
 
 export default router;

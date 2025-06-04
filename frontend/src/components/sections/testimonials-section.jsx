@@ -169,15 +169,17 @@ const TestimonialsSection = () => {
                   key={`row1-${index}`}
                   className="min-w-[280px] md:min-w-[320px] bg-white rounded-lg p-4 shadow-md flex flex-col"
                 >
-                  <h3 className="text-lg font-semibold text-[#003265] mb-2">{testimonial.title}</h3>
-                  <p className="text-gray-500 text-sm mb-4 flex-grow">{testimonial.content}</p>
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <div className="flex mb-2">{renderStars(testimonial.rating)}</div>
-                      <div>
-                        <p className="font-medium">- {testimonial.author}</p>
-                        <p className="text-sm text-gray-400">{testimonial.type}</p>
-                      </div>
+                  <div className="mb-4">
+                    <p className="font-medium text-lg text-[#003265]">{testimonial.heading}</p>
+                    <p className="text-sm text-gray-400">by {testimonial.author}</p>
+                  </div>
+                  <div className="mb-2">
+                    <p className="text-gray-600 text-sm flex-grow italic">{testimonial.content}</p>
+                  </div>
+                  <div className="mt-auto pt-4 flex justify-between items-end border-t border-gray-100">
+                    <div className="flex items-center gap-2">
+                      <div className="flex">{renderStars(testimonial.rating)}</div>
+                      <span className="text-sm text-gray-400">• {testimonial.type}</span>
                     </div>
                     <div className="ml-2">{renderEmoji(getEmoji(testimonial.rating))}</div>
                   </div>
@@ -200,15 +202,17 @@ const TestimonialsSection = () => {
                   key={`row2-${index}`}
                   className="min-w-[280px] md:min-w-[320px] bg-white rounded-lg p-4 shadow-md flex flex-col"
                 >
-                  <h3 className="text-lg font-semibold text-[#003265] mb-2">{testimonial.title}</h3>
-                  <p className="text-gray-500 text-sm mb-4 flex-grow">{testimonial.content}</p>
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <div className="flex mb-2">{renderStars(testimonial.rating)}</div>
-                      <div>
-                        <p className="font-medium">- {testimonial.author}</p>
-                        <p className="text-sm text-gray-400">{testimonial.type}</p>
-                      </div>
+                  <div className="mb-4">
+                    <p className="font-medium text-lg text-[#003265]">{testimonial.heading}</p>
+                    <p className="text-sm text-gray-400">by {testimonial.author}</p>
+                  </div>
+                  <div className="mb-2">
+                    <p className="text-gray-600 text-sm flex-grow italic">{testimonial.content}</p>
+                  </div>
+                  <div className="mt-auto pt-4 flex justify-between items-end border-t border-gray-100">
+                    <div className="flex items-center gap-2">
+                      <div className="flex">{renderStars(testimonial.rating)}</div>
+                      <span className="text-sm text-gray-400">• {testimonial.type}</span>
                     </div>
                     <div className="ml-2">{renderEmoji(getEmoji(testimonial.rating))}</div>
                   </div>

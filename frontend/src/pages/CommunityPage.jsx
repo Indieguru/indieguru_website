@@ -1,26 +1,24 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowUp, Heart, MessageCircle, Share2, TrendingUp, Users, Briefcase, HelpCircle, MessageSquare } from 'lucide-react';
-import { Footer } from  "../components/layout/Footer"; // Import the Footer component
-import { Switch } from "@headlessui/react"; // Import a toggle switch component
+import { Footer } from "../components/layout/Footer";
+import { Switch } from "@headlessui/react";
 import Header from "../components/layout/Header";
+import axiosInstance from "../config/axios.config";
+import { toast } from "react-toastify";
+import useUserTypeStore from "../store/userTypeStore";
+import useUserStore from "../store/userStore";
+import checkAuth from "../utils/checkAuth";
 
 export default function CommunityPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("threads");
-  // Commented out like and comment state variables
-  /* 
-  const [likes, setLikes] = useState({});
-  const [likedPosts, setLikedPosts] = useState(new Set()); // Track liked posts
-  const [comments] = useState({});
-  const [showCommentForm, setShowCommentForm] = useState(null);
-  const [newComment, setNewComment] = useState("");
-  */
   const [showPostForm, setShowPostForm] = useState(false);
   const [newPost, setNewPost] = useState({ category: "", content: "", image: null });
-  const [isSignedIn] = useState(false); // Mock state for user authentication
   const [postAnonymously, setPostAnonymously] = useState(false);
-  
+  const [isPosting, setIsPosting] = useState(false);
+  const [showMyPosts, setShowMyPosts] = useState(false);
+
   // Animation states for page elements
   const [pageLoaded, setPageLoaded] = useState(false);
   const [headerVisible, setHeaderVisible] = useState(false);
@@ -95,104 +93,11 @@ export default function CommunityPage() {
   ];
 
   const [posts, setPosts] = useState({
-    threads: [
-      {
-        id: 1,
-        author: "Sarah Johnson",
-        avatar: "logo.jpeg",
-        role: "UX Designer",
-        time: "2 hours ago",
-        content: "Just finished a comprehensive guide on creating effective user personas. What tools do you all use for user research?",
-        likes: 24,
-        comments: 8,
-        commentsList: [],
-        image: null
-      },
-      {
-        id: 2,
-        author: "Michael Chen",
-        avatar: "logo.jpeg",
-        role: "Frontend Developer",
-        time: "5 hours ago",
-        content: "I've been experimenting with the new React Server Components. The performance improvements are impressive! Has anyone else integrated them into their workflow?",
-        likes: 42,
-        comments: 15,
-        commentsList: [],
-        image: ""
-      }
-    ],
-    referrals: [
-      {
-        id: 3,
-        author: "Emily Rodriguez",
-        avatar: "logo.jpeg",
-        role: "Product Manager",
-        time: "1 day ago",
-        content: "My company is looking for a senior backend developer with experience in Node.js and MongoDB. Great remote opportunity with competitive pay. DM me for details!",
-        likes: 18,
-        comments: 7,
-        commentsList: [],
-        company: "TechSolutions Inc.",
-        location: "Remote"
-      }
-    ],
-    freelance: [
-      {
-        id: 4,
-        author: "David Kim",
-        avatar: "logo.jpeg",
-        role: "Marketing Director",
-        time: "3 days ago",
-        content: "Looking for a graphic designer to create social media assets for our upcoming product launch. 2-week project with possibility for ongoing work.",
-        likes: 12,
-        comments: 5,
-        commentsList: [],
-        budget: "$1,000-$1,500",
-        deadline: "2 weeks"
-      }
-    ],
-    ama: [
-      {
-        id: 5,
-        author: "Dr. Lisa Wang",
-        avatar: "logo.jpeg",
-        role: "AI Research Scientist",
-        time: "1 day ago",
-        content: "I've been working on large language models for the past 5 years. Ask me anything about the current state of AI and where it's heading!",
-        likes: 87,
-        comments: 32,
-        commentsList: [],
-        expertise: "Artificial Intelligence, Machine Learning, NLP"
-      }
-    ]
+    threads: [],
+    referrals: [],
+    freelance: [],
+    ama: []
   });
-
-  const trending = [
-    {
-      id: 1,
-      title: "The future of remote work",
-      category: "Career",
-      engagement: "352 comments"
-    },
-    {
-      id: 2,
-      title: "Latest UI design trends for 2025",
-      category: "Design",
-      engagement: "128 comments"
-    },
-    {
-      id: 3,
-      title: "How to negotiate your salary",
-      category: "Career",
-      engagement: "215 comments"
-    },
-    {
-      id: 4,
-      title: "Building accessible web applications",
-      category: "Development",
-      engagement: "94 comments"
-    }
-  ];
 
   const randomFeeds = [
     {
@@ -227,108 +132,165 @@ export default function CommunityPage() {
     },
   ];
 
-  // Commented out like functionality
-  /*
-  const handleLike = (postId) => {
-    if (!likedPosts.has(postId)) {
-      setLikes((prevLikes) => ({
-        ...prevLikes,
-        [postId]: (prevLikes[postId] || 0) + 1,
-      }));
-      setLikedPosts((prevLikedPosts) => new Set(prevLikedPosts).add(postId));
-    }
-  };
-  */
-
-  // Commented out comment functionality
-  /*
-  const handleComment = (postId) => {
-    setShowCommentForm(postId);
-  };
-  */
-
   const handleShare = (postId) => {
     alert(`Post ${postId} shared!`);
   };
 
-  const handleCreatePost = () => {
-    if (!isSignedIn && !postAnonymously) {
-      navigate("/signup"); // Redirect to signup page
+  const handleCreatePost = async () => {
+    if (userType === "not_signed_in") {
+      navigate("/signup");
       return;
     }
 
-    if (newPost.category && newPost.content) {
-      const newPostData = {
-        id: Date.now(),
-        author: postAnonymously ? "Anonymous" : "You",
-        avatar: postAnonymously ? "/anonymous-avatar.png" : "https://via.placeholder.com/40",
-        role: postAnonymously ? "Guest" : "Community Member",
-        time: "Just now",
-        content: newPost.content,
-        image: newPost.image,
-        likes: 0,
-        comments: 0,
-        commentsList: [],
+    if (!newPost.content) {
+      toast.error("Please write some content for your post");
+      return;
+    }
+
+    try {
+      setIsPosting(true);
+      const categoryMap = {
+        'referrals': 'Referrals by community',
+        'freelance': 'Freelance projects',
+        'ama': 'Ask Me Anything',
+        'threads': 'Threads'
       };
-      setPosts((prevPosts) => ({
-        ...prevPosts,
-        [newPost.category]: [newPostData, ...prevPosts[newPost.category]],
-      }));
-      setNewPost({ category: "", content: "", image: null });
-      setShowPostForm(false);
-      alert("Post created successfully!");
-    } else {
-      alert("Please select a category and write some content.");
-    }
-  };
 
-  // Commented out add comment functionality
-  /*
-  const handleAddComment = (postId) => {
-    if (newComment.trim() === "") {
-      alert("Please enter a comment.");
-      return;
-    }
+      const formData = new FormData();
+      formData.append('content', newPost.content);
+      formData.append('category', categoryMap[activeTab]);
+      formData.append('isAnonymous', postAnonymously);
 
-    // Find which category the post belongs to
-    let category = "";
-    for (const [cat, postsList] of Object.entries(posts)) {
-      if (postsList.some(post => post.id === postId)) {
-        category = cat;
-        break;
+      if (newPost.image instanceof File) {
+        formData.append('images', newPost.image);
       }
-    }
 
-    if (category) {
-      setPosts(prevPosts => {
-        const updatedPosts = { ...prevPosts };
-        updatedPosts[category] = updatedPosts[category].map(post => {
-          if (post.id === postId) {
-            return {
-              ...post,
-              comments: post.comments + 1,
-              commentsList: [
-                ...post.commentsList || [],
-                {
-                  id: Date.now(),
-                  author: "You",
-                  avatar: "https://via.placeholder.com/40",
-                  time: "Just now",
-                  content: newComment
-                }
-              ]
-            };
-          }
-          return post;
-        });
-        return updatedPosts;
+      await axiosInstance.post('/community/create', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'x-user-type': userType
+        }
       });
 
-      setNewComment("");
-      setShowCommentForm(null);
+      toast.success('Post created successfully!');
+      setNewPost({ category: "", content: "", image: null });
+      setShowPostForm(false);
+      fetchPosts(); // Fetch posts instead of reloading the page
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Error creating post');
+    } finally {
+      setIsPosting(false);
     }
   };
-  */
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setNewPost(prev => ({
+        ...prev,
+        image: file  // Store the File object instead of URL
+      }));
+    }
+  };
+
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get('/community');
+      if (response.data.success && Array.isArray(response.data.posts)) {
+        const categoryMap = {
+          'threads': 'Threads',
+          'referrals': 'Referrals by community',
+          'freelance': 'Freelance projects',
+          'ama': 'Ask Me Anything'
+        };
+        
+        // Filter posts based on active tab category using the mapping
+        const filteredPosts = response.data.posts.filter(post => 
+          post.category === categoryMap[activeTab]
+        );
+        
+        setPosts(prevPosts => ({
+          ...prevPosts,
+          [activeTab]: filteredPosts
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      toast.error('Failed to fetch posts');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleShowMyPosts = async () => {
+    if (userType === "not_signed_in") {
+      navigate("/signup");
+      return;
+    }
+    setShowMyPosts(!showMyPosts);
+    try {
+      setLoading(true);
+      if (!showMyPosts) {
+        // Fetch user's posts using the new endpoint
+        const response = await axiosInstance.get('/community/user/posts', {
+          headers: {
+            'x-user-type': userType
+          }
+        });
+        if (response.data.success && Array.isArray(response.data.posts)) {
+          // Group posts by category
+          const userPosts = {
+            threads: [],
+            referrals: [],
+            freelance: [],
+            ama: []
+          };
+          
+          // Sort posts into their respective categories
+          response.data.posts.forEach(post => {
+            const categoryMap = {
+              'Threads': 'threads',
+              'Referrals by community': 'referrals',
+              'Freelance projects': 'freelance',
+              'Ask Me Anything': 'ama'
+            };
+            const category = categoryMap[post.category];
+            if (category) {
+              userPosts[category].push(post);
+            }
+          });
+          
+          setPosts(userPosts);
+        }
+      } else {
+        fetchPosts(); // Reset to show all posts
+      }
+    } catch (error) {
+      console.error('Error fetching user posts:', error);
+      toast.error('Failed to fetch your posts');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const { userType, setUserType } = useUserTypeStore();
+  const { user } = useUserStore();
+  const [loading, setLoading] = useState(true);
+  const [authData, setAuthData] = useState(null);
+  
+  useEffect(() => {
+    const handleAuth = async () => {
+      const data = await checkAuth(setUserType, setLoading);
+      setAuthData(data);
+    };
+    handleAuth();
+    fetchPosts(); // Fetch posts immediately, don't wait for auth
+  }, [setUserType]);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [activeTab]);
 
   // CSS for hiding scrollbar but allowing scroll functionality
   const scrollbarStyles = `
@@ -539,26 +501,24 @@ export default function CommunityPage() {
         <section className={`max-w-7xl mx-auto px-4 mt-6 scale-in`}>
           <div className="bg-white rounded-lg shadow-md p-6">
             <h3 className="text-xl font-bold text-[#232536] mb-4">Create a New Post</h3>
-            {!isSignedIn && (
-              <div className="mb-4 flex items-center justify-between">
-                <label className="text-sm font-medium text-[#232536]">
-                  Post Anonymously
-                </label>
-                <Switch
-                  checked={postAnonymously}
-                  onChange={setPostAnonymously}
+            <div className="mb-4 flex items-center justify-between">
+              <label className="text-sm font-medium text-[#232536]">
+                Post Anonymously
+              </label>
+              <Switch
+                checked={postAnonymously}
+                onChange={setPostAnonymously}
+                className={`${
+                  postAnonymously ? "bg-[#ffd050]" : "bg-gray-200"
+                } relative inline-flex h-6 w-11 items-center rounded-full`}
+              >
+                <span
                   className={`${
-                    postAnonymously ? "bg-[#ffd050]" : "bg-gray-200"
-                  } relative inline-flex h-6 w-11 items-center rounded-full`}
-                >
-                  <span
-                    className={`${
-                      postAnonymously ? "translate-x-6" : "translate-x-1"
-                    } inline-block h-4 w-4 transform bg-white rounded-full transition`}
-                  />
-                </Switch>
-              </div>
-            )}
+                    postAnonymously ? "translate-x-6" : "translate-x-1"
+                  } inline-block h-4 w-4 transform bg-white rounded-full transition`}
+                />
+              </Switch>
+            </div>
             <div className="mb-4">
               <label className="block text-sm font-medium text-[#232536] mb-2">Select Category</label>
               <div className="flex flex-wrap gap-2">
@@ -592,20 +552,27 @@ export default function CommunityPage() {
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => setNewPost({ ...newPost, image: URL.createObjectURL(e.target.files[0]) })}
+                onChange={handleImageChange}
                 className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
               />
             </div>
             <div className="flex gap-4">
               <button
-                className="bg-[#ffd050] text-[#232536] px-6 py-2 rounded-md font-medium"
+                className={`${
+                  isPosting ? 'bg-[#e6bb48]' : 'bg-[#ffd050]'
+                } text-[#232536] px-6 py-2 rounded-md font-medium flex items-center gap-2`}
                 onClick={handleCreatePost}
+                disabled={isPosting}
               >
-                Post
+                {isPosting && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#232536] border-t-transparent"></div>
+                )}
+                {isPosting ? 'Posting...' : 'Post'}
               </button>
               <button
                 className="bg-gray-100 text-[#6d6e76] px-6 py-2 rounded-md font-medium"
                 onClick={() => setShowPostForm(false)}
+                disabled={isPosting}
               >
                 Cancel
               </button>
@@ -662,7 +629,7 @@ export default function CommunityPage() {
 
       {/* Community Tabs */}
       <section className={`max-w-7xl mx-auto px-4 ${tabsVisible ? 'slide-in-left' : ''}`}>
-        <div className="bg-white rounded-lg p-4 mb-8 shadow-sm">
+        <div className="bg-white rounded-lg p-4 mb-8 shadow-sm flex justify-between items-center">
           <div className="flex overflow-x-auto gap-2 pb-2 no-scrollbar">
             {tabs.map((tab, index) => (
               <button
@@ -685,6 +652,18 @@ export default function CommunityPage() {
               </button>
             ))}
           </div>
+          {userType !== "not_signed_in" && (
+            <button
+              onClick={handleShowMyPosts}
+              className={`ml-4 px-4 py-2 rounded-md text-sm font-medium ${
+                showMyPosts 
+                  ? "bg-[#232536] text-white"
+                  : "bg-[#ffd050] text-[#232536]"
+              } transition-colors duration-300`}
+            >
+              {showMyPosts ? "Show All Posts" : "Show My Posts"}
+            </button>
+          )}
         </div>
       </section>
 
@@ -705,26 +684,24 @@ export default function CommunityPage() {
             <section className="mb-6 scale-in">
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="text-xl font-bold text-[#232536] mb-4">Create a New Post</h3>
-                {!isSignedIn && (
-                  <div className="mb-4 flex items-center justify-between">
-                    <label className="text-sm font-medium text-[#232536]">
-                      Post Anonymously
-                    </label>
-                    <Switch
-                      checked={postAnonymously}
-                      onChange={setPostAnonymously}
+                <div className="mb-4 flex items-center justify-between">
+                  <label className="text-sm font-medium text-[#232536]">
+                    Post Anonymously
+                  </label>
+                  <Switch
+                    checked={postAnonymously}
+                    onChange={setPostAnonymously}
+                    className={`${
+                      postAnonymously ? "bg-[#ffd050]" : "bg-gray-200"
+                    } relative inline-flex h-6 w-11 items-center rounded-full`}
+                  >
+                    <span
                       className={`${
-                        postAnonymously ? "bg-[#ffd050]" : "bg-gray-200"
-                      } relative inline-flex h-6 w-11 items-center rounded-full`}
-                    >
-                      <span
-                        className={`${
-                          postAnonymously ? "translate-x-6" : "translate-x-1"
-                        } inline-block h-4 w-4 transform bg-white rounded-full transition`}
-                      />
-                    </Switch>
-                  </div>
-                )}
+                        postAnonymously ? "translate-x-6" : "translate-x-1"
+                      } inline-block h-4 w-4 transform bg-white rounded-full transition`}
+                    />
+                  </Switch>
+                </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-[#232536] mb-2">Post Content</label>
                   <textarea
@@ -740,20 +717,27 @@ export default function CommunityPage() {
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => setNewPost({ ...newPost, image: URL.createObjectURL(e.target.files[0]) })}
+                    onChange={handleImageChange}
                     className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
                   />
                 </div>
                 <div className="flex gap-4">
                   <button
-                    className="bg-[#ffd050] text-[#232536] px-6 py-2 rounded-md font-medium"
+                    className={`${
+                      isPosting ? 'bg-[#e6bb48]' : 'bg-[#ffd050]'
+                    } text-[#232536] px-6 py-2 rounded-md font-medium flex items-center gap-2`}
                     onClick={handleCreatePost}
+                    disabled={isPosting}
                   >
-                    Post
+                    {isPosting && (
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#232536] border-t-transparent"></div>
+                    )}
+                    {isPosting ? 'Posting...' : 'Post'}
                   </button>
                   <button
                     className="bg-gray-100 text-[#6d6e76] px-6 py-2 rounded-md font-medium"
                     onClick={() => setShowPostForm(false)}
+                    disabled={isPosting}
                   >
                     Cancel
                   </button>
@@ -763,111 +747,49 @@ export default function CommunityPage() {
           )}
           {posts[activeTab]?.map((post, index) => (
             <div 
-              key={post.id} 
-              className={`post-item bg-white rounded-lg shadow-sm mb-6 overflow-hidden ${visiblePosts.has(post.id.toString()) ? 'visible' : ''}`}
-              data-post-id={post.id}
+              key={post._id} 
+              className={`post-item bg-white rounded-lg shadow-sm mb-6 overflow-hidden ${visiblePosts.has(post._id?.toString()) ? 'visible' : ''}`}
+              data-post-id={post._id}
               style={{ transitionDelay: `${index * 150}ms` }}
             >
               <div className="p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <img src={post.avatar || "/rectangle-2749.png"} alt={post.author} className="w-10 h-10 rounded-full" />
+                  <img 
+                    src={post.isAnonymous ? "/placeholder-user.jpg" : (post.authorPicture || "/placeholder-user.jpg")} 
+                    alt={post.isAnonymous ? "Anonymous User" : post.authorName} 
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
                   <div>
-                    <h3 className="font-medium text-[#232536]">{post.author}</h3>
-                    <div className="text-sm text-[#6d6e76] flex items-center gap-2">
-                      <span>{post.role}</span>
-                      <span>•</span>
-                      <span>{post.time}</span>
+                    <h3 className="font-medium text-[#232536]">
+                      {post.isAnonymous ? "Anonymous User" : post.authorName}
+                    </h3>
+                    <div className="text-sm text-[#6d6e76]">
+                      {new Date(post.date).toLocaleString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
                     </div>
                   </div>
                 </div>
                 <p className="text-[#4c4c4c] mb-4">{post.content}</p>
-                {post.image && (
-                  <img src={post.image} alt="Post image" className="w-full rounded-lg mb-4" />
+                {post.images && post.images.length > 0 && (
+                  <div className="space-y-4">
+                    {post.images.map((image, idx) => (
+                      <div key={idx} className="flex justify-center">
+                        <img 
+                          src={image} 
+                          alt={`Post image ${idx + 1}`} 
+                          className="w-1/2 rounded-lg"
+                        />
+                      </div>
+                    ))}
+                  </div>
                 )}
                 <div className="flex items-center gap-4 pt-2 border-t mt-4">
-                {/* Commented out like button 
-                <button
-                    className={`bg-white flex items-center gap-1 text-[#6d6e76] hover:text-[#00a9a5] ${
-                      likedPosts.has(post.id) ? "text-red-500" : ""
-                    }`}
-                    onClick={() => handleLike(post.id)}
-                  >
-                    <Heart className={`w-4 h-4 ${likedPosts.has(post.id) ? "fill-current" : ""}`} />
-                    <span>{likes[post.id] || post.likes}</span>
-                  </button>
-                */}
-                  {/* Commented out comment button 
-                  <button
-                    className="flex bg-white items-center gap-1 text-[#6d6e76] hover:text-[#00a9a5]"
-                    onClick={() => handleComment(post.id)}
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    <span>{comments[post.id] || post.comments}</span>
-                  </button>
-                  */}
-                  {/* <button
-                    className="flex items-center bg-white gap-1 text-[#6d6e76] hover:text-[#00a9a5] ml-auto"
-                    onClick={() => handleShare(post.id)}
-                  >
-                    <Share2 className="w-4 h-4" />
-                    <span>Share</span>
-                  </button> */}
                 </div>
-
-                {/* Comments List - Commented Out
-                {post.commentsList && post.commentsList.length > 0 && (
-                  <div className="mt-4 pt-4 border-t">
-                    <h4 className="font-medium text-[#232536] mb-3">Comments</h4>
-                    <div className="space-y-4">
-                      {post.commentsList.map((comment) => (
-                        <div key={comment.id} className="flex gap-3">
-                          <img src={comment.avatar} alt={comment.author} className="w-8 h-8 rounded-full" />
-                          <div className="bg-gray-50 p-3 rounded-lg flex-1">
-                            <div className="flex justify-between mb-1">
-                              <span className="font-medium text-[#232536]">{comment.author}</span>
-                              <span className="text-xs text-[#6d6e76]">{comment.time}</span>
-                            </div>
-                            <p className="text-sm text-[#4c4c4c]">{comment.content}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                */}
-
-                {/* Comment Form - Commented Out
-                {showCommentForm === post.id && (
-                  <div className="mt-4 pt-4 border-t scale-in">
-                    <div className="flex gap-3">
-                      <img src="https://via.placeholder.com/40" alt="Your Avatar" className="w-8 h-8 rounded-full" />
-                      <div className="flex-1">
-                        <textarea
-                          className="w-full bg-gray-50 border border-gray-200 rounded-md p-2 text-sm"
-                          rows="2"
-                          value={newComment}
-                          onChange={(e) => setNewComment(e.target.value)}
-                          placeholder="Write a comment..."
-                        ></textarea>
-                        <div className="flex justify-end gap-2 mt-2">
-                          <button
-                            className="bg-gray-100 text-[#6d6e76] px-3 py-1 rounded-md text-sm"
-                            onClick={() => setShowCommentForm(null)}
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            className="bg-[#ffd050] text-[#232536] px-3 py-1 rounded-md text-sm font-medium"
-                            onClick={() => handleAddComment(post.id)}
-                          >
-                            Post Comment
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                */}
               </div>
             </div>
           ))}
@@ -875,47 +797,12 @@ export default function CommunityPage() {
 
         {/* Sidebar */}
         <div className={`lg:col-span-1 ${sidebarVisible ? 'slide-in-right' : ''}`}>
-          {/* Trending Topics */}
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6 transform transition-all duration-500" 
-               style={{ 
-                 opacity: sidebarVisible ? 1 : 0, 
-                 transform: sidebarVisible ? 'translateX(0)' : 'translateX(20px)'
-               }}>
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="w-5 h-5 text-[#232536]" />
-              <h3 className="text-[#232536] font-bold">Trending Topics</h3>
-            </div>
-            <div className="space-y-4">
-              {trending.map((item, index) => (
-                <div 
-                  key={item.id} 
-                  className="border-b border-gray-100 pb-3 last:border-0 last:pb-0"
-                  style={{ 
-                    opacity: sidebarVisible ? 1 : 0, 
-                    transform: sidebarVisible ? 'translateY(0)' : 'translateY(10px)',
-                    transition: 'opacity 0.5s ease, transform 0.5s ease',
-                    transitionDelay: `${200 + index * 100}ms`
-                  }}
-                >
-                  <h4 className="font-medium text-[#232536] hover:text-[#00a9a5] cursor-pointer">
-                    {item.title}
-                  </h4>
-                  <div className="flex items-center justify-between mt-1 text-sm">
-                    <span className="text-[#00a9a5]">{item.category}</span>
-                    <span className="text-[#6d6e76]">{item.engagement}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Invite Friends */}
           <div 
             className="bg-[#ffd050] rounded-lg p-6 hover-shadow transform transition-all duration-500"
             style={{ 
               opacity: sidebarVisible ? 1 : 0, 
-              transform: sidebarVisible ? 'translateY(0)' : 'translateY(20px)',
-              transitionDelay: '400ms'
+              transform: sidebarVisible ? 'translateX(0)' : 'translateX(20px)'
             }}
           >
             <h3 className="text-[#232536] font-bold mb-2">Grow Your Network</h3>

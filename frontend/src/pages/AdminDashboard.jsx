@@ -5,6 +5,61 @@ import { toast } from 'react-toastify';
 import { Dialog, Transition } from '@headlessui/react';
 import { X } from 'lucide-react';
 
+const RejectionModal = ({ isOpen, onClose, onReject, type }) => {
+  const [reason, setReason] = useState('');
+
+  const handleSubmit = () => {
+    if (!reason.trim()) {
+      toast.error('Please enter a rejection reason');
+      return;
+    }
+    onReject(reason);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg p-6 w-96 max-w-full">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Reject {type}</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Reason for Rejection
+            </label>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+              rows="4"
+              placeholder="Please provide a reason for rejection..."
+            />
+          </div>
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 border rounded-md"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md"
+            >
+              Reject
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function AdminDashboard() {
   const [pendingExperts, setPendingExperts] = useState([]);
   const [expertsWithOutstanding, setExpertsWithOutstanding] = useState([]);
@@ -123,7 +178,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleContentReject = async (type, id) => {
+  const handleContentReject = async (type, id, rejectionReason) => {
     try {
       if (!rejectionReason) {
         toast.error('Please enter rejection reason');
@@ -699,46 +754,17 @@ export default function AdminDashboard() {
       )}
 
       {/* Rejection Modal */}
-      {showRejectionModal && selectedContent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 w-96">
-            <h3 className="text-lg font-semibold mb-4">
-              Reject {selectedContent.type === 'course' ? 'Course' : 'Cohort'}
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Reason for Rejection
-                </label>
-                <textarea
-                  value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md"
-                  rows="4"
-                  placeholder="Enter rejection reason"
-                />
-              </div>
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => {
-                    setShowRejectionModal(false);
-                    setRejectionReason('');
-                  }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 border rounded-md"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleContentReject(selectedContent.type, selectedContent.item._id)}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md"
-                >
-                  Reject
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <RejectionModal 
+        isOpen={showRejectionModal}
+        onClose={() => {
+          setShowRejectionModal(false);
+          setSelectedContent(null);
+        }}
+        onReject={(reason) => {
+          handleContentReject(selectedContent.type, selectedContent.item._id, reason);
+        }}
+        type={selectedContent?.type === 'course' ? 'Course' : 'Cohort'}
+      />
 
       {/* Platform Price Modal */}
       {showPlatformPriceModal && selectedContent && (

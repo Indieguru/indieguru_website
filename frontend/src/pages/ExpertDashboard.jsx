@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/layout/Footer';
 import useExpertStore from '../store/expertStore';
@@ -9,7 +9,9 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import AddCourseModal from '../components/modals/AddCourseModal';
 import AddCohortModal from '../components/modals/AddCohortModal';
+import BlogModal from '../components/modals/BlogModal';
 import useUserTypeStore from '../store/userTypeStore';
+import checkAuth from '../utils/checkAuth';
 
 function ExpertDashboard() {
   const [activeTab] = useState("dashboard");
@@ -24,6 +26,12 @@ function ExpertDashboard() {
   const [message, setMessage] = useState('');
   const [showCourseModal, setShowCourseModal] = useState(false);
   const [showCohortModal, setShowCohortModal] = useState(false);
+  const [showSessionDetailsModal, setShowSessionDetailsModal] = useState(false);
+  const [selectedSession, setSelectedSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authData, setAuthData] = useState(null);
+  const [showBlogModal, setShowBlogModal] = useState(false);
+  const [blogs, setBlogs] = useState([]);
 
   const timeSlots = [
     "09:00-10:00", "10:00-11:00", "11:00-12:00", "12:00-13:00",
@@ -70,52 +78,73 @@ function ExpertDashboard() {
     }
   };
 
+  const handlePrepare = (session) => {
+    console.log(session);
+    if (session.meetLink) {
+      window.open(session.meetLink, '_blank');
+    } else {
+      // If no meet link is available yet
+      alert('Meeting link is not available yet. It will be generated closer to the session time.');
+    }
+  };
+
+  const handleViewDetails = (session) => {
+    setSelectedSession(session);
+    setShowSessionDetailsModal(true);
+  };
+
+  const fetchExpertBlogs = async () => {
+    try {
+      const response = await axiosInstance.get('/blog/expert/blogs');
+      setBlogs(response.data.blogs);
+    } catch (error) {
+      console.error('Error fetching blogs:', error);
+    }
+  };
+
+  const handleAddBlog = () => {
+    setShowBlogModal(true);
+  };
+
+  const handleBlogModalClose = () => {
+    setShowBlogModal(false);
+    fetchExpertBlogs(); // Refresh blogs after modal closes
+  };
+
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        if (userType === "student") {
-          navigate("/dashboard");
-          return;
-        }
-        
-        if (userType === "not_signed_in") {
-          const res = await axiosInstance.get("/expert/auth/check-auth")
-          if (res.status === 200) {
-            setUserType("expert");
-            console.log(userType);
-          } else {  
-            console.log(res); 
-            setUserType("not_signed_in");
-            console.log(userType);
-           navigate("/signup");
-          return;
-        }
-      }
-        // fetchUser();
-      } catch (error) {
-        setUserType("not_signed_in");
-        console.error("Error fetching user details:", error);
-      }
+    const handleAuth = async () => {
+      const data = await checkAuth(setUserType, setAuthLoading);
+      setAuthData(data);
     };
+    handleAuth();
+  }, [setUserType]);
 
-    
-    const initializeData = async () => {
-      try {
-        // Fetch everything in parallel
-        await Promise.all([
-          fetchExpertData(),
-          fetchExpertCourses(),
-          fetchExpertCohorts()
-        ]);
-      } catch (err) {
-        console.error('Error initializing data:', err);
+  useEffect(() => {
+    if (authData) {
+      if (userType === "student") {
+        navigate("/dashboard");
+        return;
+      } else if (userType === "not_signed_in") {
+        navigate("/signup");
+        return;
       }
-    };
-    checkAuth();
-    initializeData();
-  }, [fetchExpertData, fetchExpertCourses, fetchExpertCohorts,userType]);
+      const initializeData = async () => {
+        try {
+          await Promise.all([
+            fetchExpertData(),
+            fetchExpertCourses(),
+            fetchExpertCohorts(),
+            fetchExpertBlogs()
+          ]);
+        } catch (err) {
+          console.error('Error initializing data:', err);
+        }
+      };
+      initializeData();
+    }
+  }, [userType, navigate, fetchExpertData, fetchExpertCourses, fetchExpertCohorts, authData]);
 
-  if (isLoading) {
+  if (authLoading || !authData || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-900"></div>
@@ -213,8 +242,8 @@ function ExpertDashboard() {
                   Dashboard
                 </Link>
                 <Link 
-                  to="/blogpage"
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ₹{
+                  to="/blog"
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                     activeTab === "blogs" ? "border-blue-700 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
@@ -237,8 +266,8 @@ function ExpertDashboard() {
                   Bookings
                 </Link>
                 <Link 
-                  to="/payments"
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ₹{
+                  to="/expert/payments"
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                     activeTab === "payments" ? "border-blue-700 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
@@ -249,8 +278,8 @@ function ExpertDashboard() {
             <div className="flex items-center">
               <Link to="/expert/profile" className="flex items-center">
                 <img
-                  className="h-8 w-8 rounded-full"
-                  src="https://randomuser.me/api/portraits/women/48.jpg"
+                  className="h-8 w-8 rounded-full object-cover"
+                  src={expertData.profilePicture || "/placeholder-user.jpg"}
                   alt="Expert profile"
                 />
                 <span className="ml-2 text-sm text-gray-700">{expertData.name}</span>
@@ -473,13 +502,13 @@ function ExpertDashboard() {
                 </div>
                 <h3 className="text-lg font-semibold text-blue-900 mb-1">Write Blog</h3>
                 <p className="text-xs text-center text-blue-900 mb-3">Share your knowledge and insights</p>
-                <div className="text-2xl font-bold text-blue-900 mb-2">7</div>
+                <div className="text-2xl font-bold text-blue-900 mb-2">{blogs.length}</div>
                 <p className="text-xs text-blue-900">Blogs Published</p>
               </div>
               <div className="flex-grow"></div>
               <div className="mt-4 pt-4 border-t border-blue-100">
                 <button 
-                  onClick={handleEducationEdit}
+                  onClick={handleAddBlog}
                   className="w-full bg-blue-900 hover:bg-blue-800 text-white text-xs py-2 px-4 rounded shadow-sm transition-colors duration-300">
                   Add Blog
                 </button>
@@ -553,7 +582,7 @@ function ExpertDashboard() {
                 <div className="p-5">
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ₹{
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
                         session.type === "1-on-1" ? "bg-red-100 text-red-600" : 
                         session.type === "Cohort" ? "bg-purple-100 text-indigo-900" : 
                         "bg-blue-100 text-blue-900"
@@ -573,20 +602,30 @@ function ExpertDashboard() {
                     <svg className="w-4 h-4 mr-1 text-purple-500" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
                       <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    {session.date}
+                    {new Date(session.date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
                     {session.time && (
                       <span className="ml-2 text-xs py-1 px-2 bg-gray-100 rounded-full">{session.time}</span>
                     )}
                   </div>
                   <div className="flex justify-between">
-                    <button className="text-sm text-indigo-900 hover:text-purple-800 font-medium transition-colors duration-300">
+                    <button 
+                      onClick={() => handleViewDetails(session)}
+                      className="text-sm text-indigo-900 hover:text-purple-800 font-medium transition-colors duration-300"
+                    >
                       View Details
                     </button>
-                    <button className={`text-sm ₹{
-                      session.type === "1-on-1" ? "text-red-600 hover:text-red-800" : 
-                      session.type === "Cohort" ? "text-indigo-900 hover:text-purple-800" : 
-                      "text-blue-900 hover:text-blue-900"
-                    } font-medium transition-colors duration-300`}>
+                    <button 
+                      onClick={() => handlePrepare(session)}
+                      className={`text-sm ${
+                        session.type === "1-on-1" ? "text-red-600 hover:text-red-800" : 
+                        session.type === "Cohort" ? "text-indigo-900 hover:text-purple-800" : 
+                        "text-blue-900 hover:text-blue-900"
+                      } font-medium transition-colors duration-300`}
+                    >
                       {session.type === "Course" ? "Edit Course" : "Prepare"}
                     </button>
                   </div>
@@ -595,6 +634,84 @@ function ExpertDashboard() {
             ))}
           </div>
         </section>
+
+        {/* Session Details Modal */}
+        {showSessionDetailsModal && selectedSession && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-800">Session Details</h2>
+                <button 
+                  onClick={() => setShowSessionDetailsModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-indigo-900 mb-2">{selectedSession.title}</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Student Name</p>
+                      <p className="font-medium">{selectedSession.studentName || 'Not assigned'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Session Type</p>
+                      <p className={`inline-block px-2 py-1 rounded-full text-sm font-medium ${
+                        selectedSession.type === "1-on-1" ? "bg-red-100 text-red-600" : 
+                        selectedSession.type === "Cohort" ? "bg-purple-100 text-indigo-900" : 
+                        "bg-blue-100 text-blue-900"
+                      }`}>
+                        {selectedSession.type}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Date</p>
+                      <p className="font-medium">
+                        {new Date(selectedSession.date).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Time</p>
+                      <p className="font-medium">{selectedSession.time}</p>
+                    </div>
+                  </div>
+                  
+                  {selectedSession.meetLink && (
+                    <div className="mt-4">
+                      <p className="text-sm text-gray-600 mb-1">Meeting Link</p>
+                      <a 
+                        href={selectedSession.meetLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 underline break-all"
+                      >
+                        {selectedSession.meetLink}
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setShowSessionDetailsModal(false)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-300"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Section 4: Analytics and Insights */}
         <section className="mb-8">
@@ -611,7 +728,7 @@ function ExpertDashboard() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Total Earnings Card */}
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-[0.1px] border-[#00b6c4] cursor-pointer" onClick={() => window.location.href='/payments'}>
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-[0.1px] border-[#00b6c4] cursor-pointer" onClick={() => window.location.href='/expert/payments'}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-gray-800">Total Earnings</h3>
                 <div className="bg-green-100 p-2 rounded-md">
@@ -757,88 +874,6 @@ function ExpertDashboard() {
             </div>
           </div>
         </section>
-
-        {/* Section 5: Testimonials and Reviews */}
-        {/* <section className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold text-gray-800 flex items-center">
-              <span className="mr-2 text-blue-900">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M7.5 6.5C7.5 8.981 5.5 11 3 11V13C6.866 13 10 9.866 10 6V3H3.5C2.67157 3 2 3.67157 2 4.5V6.5C2 7.32843 2.67157 8 3.5 8C4.32843 8 7.5 7.32843 7.5 6.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M21.5 6.5C21.5 8.981 19.5 11 17 11V13C20.866 13 24 9.866 24 6V3H17.5C16.6716 3 16 3.67157 16 4.5V6.5C16 7.32843 16.6716 8 17.5 8C18.3284 8 21.5 7.32843 21.5 6.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </span>
-              Student Testimonials
-            </h2>
-            <Link to="/testimonials" className="text-sm text-blue-900 hover:text-blue-900 transition-colors duration-300">
-              View All
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {expertData.completedSessions?.slice(0, 3).map((session, index) => (
-              <div key={index} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300">
-                <div className="flex items-start mb-4">
-                  <img 
-                    src={session.studentAvatar || "https://randomuser.me/api/portraits/men/32.jpg"} 
-                    alt="Student"
-                    className="w-10 h-10 rounded-full mr-3"
-                  />
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900">{session.studentName || "Anonymous Student"}</h4>
-                    <div className="flex items-center mt-1">
-                      {[...Array(5)].map((_, i) => (
-                        <svg 
-                          key={i} 
-                          className={`w-4 h-4 ₹{i < session.rating ? 'text-yellow-500' : 'text-gray-300'}`} 
-                          fill="currentColor" 
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
-                      <span className="text-xs text-gray-500 ml-2">
-                        {new Date(session.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  {session.feedback || "Great session! The expert was very knowledgeable and helpful."}
-                </p>
-                <div className="text-xs text-gray-500 italic">
-                  From: {session.title}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section> */}
-
-        {/* Platform Updates Section */}
-        {/* <section>
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg p-6 shadow-lg">
-            <div className="flex flex-col md:flex-row items-center justify-between">
-              <div className="mb-4 md:mb-0">
-                <h2 className="text-xl font-bold text-white mb-2">Amplify Your Expert Reach</h2>
-                <p className="text-blue-100 max-w-xl">
-                  Share your expertise with a wider audience by creating downloadable resources or hosting a webinar. Experts who offer free content increase their paid bookings by an average of 37%.
-                </p>
-              </div>
-              <div className="flex space-x-4">
-                <button 
-                  onClick={handleCreateResource}
-                  className="bg-white text-blue-700 px-4 py-2 rounded-lg shadow-sm hover:bg-blue-50 transition-colors duration-300 text-sm font-medium">
-                  Create Resource
-                </button>
-                <button 
-                  onClick={handleHostWebinar}
-                  className="bg-transparent text-white border border-white px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition-colors duration-300 text-sm font-medium">
-                  Host Webinar
-                </button>
-              </div>
-            </div>
-          </div>
-        </section> */}
       </main>
 
       {showCalendarModal && (
@@ -921,6 +956,11 @@ function ExpertDashboard() {
       <AddCohortModal 
         isOpen={showCohortModal} 
         onClose={handleCohortModalClose} 
+      />
+
+      <BlogModal 
+        isOpen={showBlogModal} 
+        onClose={handleBlogModalClose}
       />
 
       {/* Footer */}

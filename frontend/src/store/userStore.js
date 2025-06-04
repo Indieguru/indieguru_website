@@ -11,7 +11,7 @@ const useUserStore = create((set) => ({
       const response = await axiosInstance.get("/user/details");
       if (response.status === 200) {
         set({ user: response.data });
-        console.log(response.data);
+        // console.log(response.data);
       }
     } catch (error) {
       console.error("Error fetching user details:", error);

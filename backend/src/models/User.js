@@ -3,13 +3,24 @@ import mongoose from "mongoose";
 const UserSchema = new mongoose.Schema({
   firstName: {
     type: String,
-    required: true,
-    // default: "jfebwbi",
+    // required: true,
   },
   lastName: {
     type: String,
-    required: true,
-    // default: "cnklenenllj",
+    // required: true,
+  },
+  profilePicture: {
+    type: String,
+    default: '/placeholder-user.jpg',
+    // Add a setter to handle object values
+    set: function(value) {
+      // If value is an object with url property, extract the url
+      if (typeof value === 'object' && value !== null && value.url) {
+        return value.url;
+      }
+      // Otherwise return the value as is
+      return value;
+    }
   },
   email: {
     type: String,

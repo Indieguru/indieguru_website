@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion } from "framer-motion";
 import Header from "../components/layout/Header"
 import Footer from "../components/layout/Footer"
@@ -10,59 +10,62 @@ import ProgressSection from "../components/sections/ProgressSection"
 import ReferSection from "../components/sections/ReferSection"
 import PreviousSessionsSection from "../components/sections/PreviousSessionsSection"
 import useUserStore from "../store/userStore";
-import axiosInstance from "../config/axios.config";
 import UpcomingCourses from '../components/sections/upcomingCourses';
 import useUserTypeStore from '../store/userTypeStore';
 import ExpertSearch from '../components/expert/ExpertSearch';
+import checkAuth from '../utils/checkAuth';
 
 function Dashboard() {
   const { user, fetchUser } = useUserStore();
   const navigate = useNavigate();
-  const { userType,setUserType } = useUserTypeStore();
+  const { userType, setUserType } = useUserTypeStore();
+  const [loading, setLoading] = useState(true);
+  const [authData, setAuthData] = useState(null);
 
   useEffect(() => {
-    fetchUser();
-    const checkAuth = async () => {
-      try {
-        if (userType === "expert") {
-          navigate("/expert");
-          return;
-        }
-          const res = await axiosInstance.get("/user/auth/check-auth")
-          console.log(res);
-          if (res.status === 200) {
-            setUserType("student");
-          } 
-          else {  
-          setUserType("not_signed_in");
-          navigate("/signup");
-          return; 
-        }
-      } catch (error) {
-        // setUsertype("not_signed_in");
-        console.error("Error fetching user details:", error);
-      }
+    const handleAuth = async () => {
+      const data = await checkAuth(setUserType, setLoading);
+      setAuthData(data);
     };
+    handleAuth();
+  }, [setUserType]);
+  
+  useEffect(() => {   
+    if (authData) {
+      if (userType === "expert") {
+        navigate("/expert");
+        return;
+      } else if (userType === "not_signed_in") {
+        navigate("/signup");
+        return;
+      }
+      fetchUser();
+    }
+  }, [fetchUser, userType, navigate, authData]);
 
-    checkAuth();
-  }, [userType]);
+  if (loading || !authData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { 
       opacity: 1,
       transition: { 
-        staggerChildren: 0.15,
-        delayChildren: 0.2
+        staggerChildren: 0.15 
       }
     }
   };
 
   const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
+    hidden: { opacity: 0, y: 20 },
     visible: { 
-      y: 0, 
-      opacity: 1,
+      opacity: 1, 
+      y: 0,
       transition: {
         type: "spring",
         stiffness: 260,
@@ -72,93 +75,58 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 transition-all duration-500">
+    <div className="min-h-screen bg-gray-50">
       <Header />
-
-      <motion.main 
+      <motion.main
+        className="container mx-auto px-4 py-24"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="max-w-7xl mt-28 mx-auto px-4 md:px-6"
       >
-        {/* Greeting Section */}
-        <motion.section 
-          variants={itemVariants}
-          className="mb-8 p-6 border-l-4 border-indigo-900 bg-white rounded-lg shadow-sm transition-all duration-300"
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"
+          variants={containerVariants}
         >
-          <h1 className="text-2xl font-semibold text-gray-800">Welcome back, {user.firstName}!</h1>
-          <p className="text-sm text-gray-600 mt-1">Continue your learning journey where you left off</p>
-        </motion.section>
-
-        {/* Cards Section */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <motion.div 
-            variants={itemVariants} 
-            transition={{ duration: 0.2 }}
-          >
+          <motion.div variants={itemVariants}>
             <ProfileCard />
           </motion.div>
-          <motion.div 
-            variants={itemVariants} 
-            transition={{ duration: 0.2 }}
-          >
+          <motion.div variants={itemVariants}>
             <InterestsCard />
           </motion.div>
-          <motion.div 
-            variants={itemVariants} 
-            transition={{ duration: 0.2 }}
-          >
+          <motion.div variants={itemVariants}>
             <GoalsCard />
           </motion.div>
-        </section>
+        </motion.div>
 
         <motion.div 
-          variants={itemVariants} 
-          className="mt-12" // Increased margin for better section separation
+          className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8"
+          variants={containerVariants}
         >
-          <ProgressSection />
+          <motion.div variants={itemVariants}>
+            <ProgressSection />
+          </motion.div>
+          <motion.div variants={itemVariants}>
+            <ReferSection />
+          </motion.div>
         </motion.div>
-        
-        {/* Expert Search Section */}
+
         <motion.div 
-          variants={itemVariants} 
-          transition={{ duration: 0.3 }}
-          className="mt-16"
+          className="mt-8 grid grid-cols-1 gap-8"
+          variants={containerVariants}
         >
           <ExpertSearch />
-        </motion.div>
-        
-        {/* Refer Section */}
-        <motion.div 
-          variants={itemVariants}  
-          transition={{ duration: 0.3 }}
-          className="mt-16 rounded-xl overflow-hidden"
-        >
-          <ReferSection />
-        </motion.div>
-        
-        {/* Previous Sessions */}
-        <motion.div 
-          variants={itemVariants} 
-          transition={{ duration: 0.3 }}
-          className="mt-12 rounded-xl overflow-hidden"
-        >
-          <PreviousSessionsSection />
-        </motion.div>
-        
-        {/* Upcoming Courses */}
-        <motion.div 
-          variants={itemVariants} 
-          transition={{ duration: 0.3 }}
-          className="mt-12 mb-16 rounded-xl overflow-hidden"
-        >
-          <UpcomingCourses />
+          <motion.div variants={itemVariants}>
+            <PreviousSessionsSection />
+          </motion.div>
+          <motion.div variants={itemVariants}>
+            <UpcomingCourses />
+          </motion.div>
         </motion.div>
       </motion.main>
 
       <Footer />
     </div>
-  )
+  );
 }
 
-export default Dashboard
+export default Dashboard;

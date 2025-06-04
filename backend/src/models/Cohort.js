@@ -45,6 +45,10 @@ const CohortSchema = new mongoose.Schema({
         enum: ['approved', 'pending', 'rejected'],
         default: 'pending'
     },
+    rejectionReason: {
+        type: String,
+        default: null
+    },
     activityStatus: {
         type: String,
         enum: ['live', 'completed'],
@@ -99,12 +103,22 @@ const CohortSchema = new mongoose.Schema({
 
 // Pre-save hook to calculate total price and set currency
 CohortSchema.pre('save', function(next) {
-    if (this.pricing && this.pricing.expertFee) {
-        // Calculate total using existing platform fee or 0
-        this.pricing.total = this.pricing.expertFee + (this.pricing.platformFee || 0);
-        // Ensure currency is set
-        this.pricing.currency = this.pricing.currency || 'INR';
+    // Ensure pricing object exists
+    if (!this.pricing) {
+        this.pricing = {
+            expertFee: 0,
+            platformFee: 0,
+            total: 0,
+            currency: 'INR'
+        };
     }
+    
+    // Calculate total using existing values
+    this.pricing.expertFee = this.pricing.expertFee || 0;
+    this.pricing.platformFee = this.pricing.platformFee || 0;
+    this.pricing.total = this.pricing.expertFee + this.pricing.platformFee;
+    this.pricing.currency = this.pricing.currency || 'INR';
+    
     next();
 });
 

@@ -1,12 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import useUserStore from '../../store/userStore';
 import useUserTypeStore from '../../store/userTypeStore';
+import checkAuth from '../../utils/checkAuth';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useUserStore();
-  const { userType } = useUserTypeStore();
+  const { userType, setUserType } = useUserTypeStore();
+
+  useEffect(() => {
+    checkAuth(setUserType);
+  }, [setUserType]);
 
   const getDashboardLink = () => {
     return userType === 'expert' ? '/expert' : '/dashboard';

@@ -15,31 +15,37 @@ import InputBox from "../components/util/InputBox"
 import { ErrorPopup } from "../components/ui/error-popup"
 import axiosInstance from "../config/axios.config"
 import useUserTypeStore from "../store/userTypeStore"
+import ProfilePictureModal from "../components/modals/ProfilePictureModal"
+import checkAuth from '../utils/checkAuth'
 
 function Profile() {
   const { user, fetchUser } = useUserStore()
   const navigate = useNavigate();
   const location = useLocation();
-  const { userType,setUserType } = useUserTypeStore();
+  const { userType, setUserType } = useUserTypeStore();
+  const [loading, setLoading] = useState(true);
+  const [authData, setAuthData] = useState(null);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        if (userType === "not_signed_in") {
-          navigate("/signup");
-          return;
-        }
-        fetchUser();
-      } catch (error) {
-        console.error("Error fetching user details:", error);
-      }
+    const handleAuth = async () => {
+      const data = await checkAuth(setUserType, setLoading);
+      setAuthData(data);
     };
-
-    checkAuth();
-  }, [userType]);
+    handleAuth();
+  }, [setUserType]);
 
   useEffect(() => {
-    // Handle hash routing
+    if (authData) {
+      if (userType === "not_signed_in") {
+        navigate("/signup");
+        return;
+      }
+      fetchUser();
+    }
+  }, [userType, navigate, fetchUser, authData]);
+
+  // Handle hash routing
+  useEffect(() => {
     if (location.hash) {
       const element = document.getElementById(location.hash.slice(1));
       if (element) {
@@ -68,6 +74,7 @@ function Profile() {
   const [newGoal, setNewGoal] = useState("")
   const [isEditingGoal, setIsEditingGoal] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
+  const [isProfilePictureModalOpen, setIsProfilePictureModalOpen] = useState(false)
 
   useEffect(() => {
     setProfileData({
@@ -300,6 +307,50 @@ function Profile() {
 
   };
 
+  const handleUpdateProfilePicture = async (file) => {
+    try {
+      console.log('Uploading file:', file.name, file.size, file.type);
+      
+      const formData = new FormData();
+      formData.append('image', file);
+  
+      const response = await axiosInstance.post('/user/profile-picture', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        withCredentials: true
+      });
+  
+      if (response.status === 200) {
+        setProfileData(prev => ({
+          ...prev,
+          profilePicture: response.data.profilePicture
+        }));
+        fetchUser();
+      }
+    } catch (error) {
+      console.error('Error updating profile picture:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          'Failed to update profile picture';
+      setErrorMessage(errorMessage);
+    }
+  };
+
+  if (loading || !authData) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 pt-24">
       <ErrorPopup message={errorMessage} onClose={() => setErrorMessage("")} />
@@ -319,13 +370,19 @@ function Profile() {
 
           <div className="flex flex-col md:flex-row gap-6">
             <div className="md:w-1/4 flex flex-col items-center">
-              <div className="w-40 h-40 rounded-full overflow-hidden mb-4 border-2 border-blue-300 p-1 bg-white">
+              <div className="w-40 h-40 rounded-full overflow-hidden mb-4 border-2 border-blue-300 p-1 bg-white cursor-pointer hover:opacity-90 transition-opacity" onClick={() => setIsProfilePictureModalOpen(true)}>
                 <img
                   src={user?.profilePicture || "/imagecopy.png"}
                   alt="Profile"
                   className="w-full h-full object-cover rounded-full"
                 />
               </div>
+              <Button
+                onClick={() => setIsProfilePictureModalOpen(true)}
+                className="text-blue-700 hover:bg-blue-50"
+              >
+                Change Photo
+              </Button>
             </div>
 
             <div className="md:w-3/4">
@@ -617,6 +674,13 @@ function Profile() {
           Logout
         </Button>
       </main>
+
+      <ProfilePictureModal
+        isOpen={isProfilePictureModalOpen}
+        onClose={() => setIsProfilePictureModalOpen(false)}
+        currentPicture={user?.profilePicture || "/imagecopy.png"}
+        onSave={handleUpdateProfilePicture}
+      />
 
       <Footer />
     </div>

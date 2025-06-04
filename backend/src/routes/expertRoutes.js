@@ -25,12 +25,15 @@ import {
   deleteCertificationDocument,
   getExpertTransactions,
   addExperience,
-  getExpertAvailableSessions
+  getExpertAvailableSessions,
+  updateExpertise,
+  updateIndustries,
+  updateTargetAudience
 } from '../controllers/expertController.js';
 import expertAuthMiddleware from "../middlewares/expertAuthMiddleware.js";
-import upload from '../middlewares/uploadMiddleware.js';
-
-
+import upload from '../middlewares/upload.js'; // For image uploads
+import { cloudinary } from '../config/cloudinary.js';
+import multer from 'multer';
 const router = express.Router();
 
 router.use("/auth", expertAuthRoutes);
@@ -47,21 +50,22 @@ router.get('/search', async (req, res) => {
         { lastName: { $regex: `.*${filter}.*`, $options: "i" } },
         { title: { $regex: `.*${filter}.*`, $options: "i" } },
         { expertise: { $regex: `.*${filter}.*`, $options: "i" } },
+        { industries: { $regex: `.*${filter}.*`, $options: "i" } },
+        { targetAudience: { $regex: `.*${filter}.*`, $options: "i" } }
       ],
     };
     const experts = await Expert.find(query);
     res.status(200).json({ success: true, data: experts });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error", error: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
 // Expert profile update
 router.put('/update', expertAuthMiddleware, async (req, res) => {
   try {
-    const expertId = req.user.id;
+    const expertId = req.user.id; // Get ID from authenticated user context
     const updates = req.body;
-
     const expert = await Expert.findById(expertId);
     if (!expert) {
       return res.status(404).json({ message: "Expert not found" });
@@ -75,7 +79,48 @@ router.put('/update', expertAuthMiddleware, async (req, res) => {
     }
     if (updates.title) expert.title = updates.title;
     if (updates.phoneNo) expert.phoneNo = updates.phoneNo;
-    if (updates.expertise) expert.expertise = updates.expertise;
+    
+    // Validate expertise array - filter out empty strings and invalid values
+    if (Array.isArray(updates.expertise)) {
+      const validExpertise = [
+        'stream_selection',
+        'career_counseling',
+        'competitive_exams',
+        'study_abroad',
+        'resume_interview',
+        'entrepreneurship',
+        'higher_education',
+        'career_transition',
+        'industry_specific'
+      ];
+      expert.expertise = updates.expertise.filter(exp => 
+        exp && validExpertise.includes(exp.toLowerCase().trim())
+      );
+    }
+    
+    if (Array.isArray(updates.industries)) {
+      const validIndustries = [
+        'Technology',
+        'Healthcare',
+        'Finance',
+        'Education',
+        'Engineering',
+        'Marketing',
+        'Design',
+        'Business Management',
+        'Data Science',
+        'Research & Development',
+        'Manufacturing',
+        'Consulting',
+        'Law',
+        'Media & Entertainment',
+        'Architecture',
+        'Life Sciences'
+      ];
+      expert.industries = updates.industries.filter(ind => 
+        ind && validIndustries.map(i => i.toLowerCase()).includes(ind.toLowerCase().trim())
+      );
+    }
 
     await expert.save();
     res.status(200).json(expert);
@@ -107,12 +152,12 @@ router.post('/experience', expertAuthMiddleware, addExperience);
 // Certification routes - PDF only uploads
 router.post('/certification', 
   expertAuthMiddleware, 
-  upload.single('certificate'), // Single PDF file upload
+  upload.certificate('certificate'), // Use PDF-specific upload middleware
   addCertification
 );
 router.put('/certification/:certificationId', 
   expertAuthMiddleware, 
-  upload.single('certificate'),
+  upload.certificate('certificate'),
   updateCertification
 );
 router.delete('/certification/:certificationId/document', 
@@ -139,6 +184,40 @@ router.put('/cohorts/:cohortId', expertAuthMiddleware, updateCohort);
 router.delete('/cohorts/:cohortId', expertAuthMiddleware, deleteCohort);
 
 router.get('/match', expertAuthMiddleware, matchExperts);
+
+// Profile picture upload route
+router.post('/profile-picture', expertAuthMiddleware, upload.single('image'), async (req, res) => {
+  try {
+    const expertId = req.user.id;
+    const expert = await Expert.findById(expertId);
+    
+    if (!expert) {
+      return res.status(404).json({ message: 'Expert not found' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    expert.profilePicture = req.file.path;
+    await expert.save();
+    
+    res.status(200).json({ 
+      message: 'Profile picture updated successfully',
+      profilePicture: expert.profilePicture
+    });
+  } catch (error) {
+    console.error('Error updating profile picture:', error);
+    res.status(500).json({ message: 'Error updating profile picture', error: error.message });
+  }
+});
+
+// Update expertise route
+router.patch('/update-expertise', expertAuthMiddleware, updateExpertise);
+
+router.patch('/update-industries', expertAuthMiddleware, updateIndustries);
+
+router.patch('/update-target-audience', expertAuthMiddleware, updateTargetAudience);
 
 // Dynamic routes should come last
 router.get('/:expertId', async (req, res) => {

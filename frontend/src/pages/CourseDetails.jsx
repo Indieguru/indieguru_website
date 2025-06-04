@@ -61,6 +61,17 @@ export default function CourseDetails() {
       return;
     }
 
+    if (userType === "expert") {
+      toast.info("Please sign in as a student to purchase this course", {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+      });
+      return;
+    }
+
     try {
       setPurchasing(true);
       await axiosInstance.post(`/course/${courseId}/purchase`);

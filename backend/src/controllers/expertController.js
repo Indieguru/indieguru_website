@@ -5,6 +5,7 @@ import Cohort from "../models/Cohort.js";
 import Payment from "../models/Payment.js";
 import Withdrawal from "../models/Withdrawal.js";
 import upload from '../middlewares/uploadMiddleware.js';
+import cloudinary from 'cloudinary';
 
 export const addSlot = async (req, res) => {
   try {
@@ -393,7 +394,10 @@ export const getExpertDashboardData = async (req, res) => {
       expert: expertId,
       status: 'upcoming',
       date: { $gte: new Date() }
-    }).sort({ date: 1, startTime: 1 }).limit(5);
+    })
+    .populate('bookedBy', 'firstName lastName') // Populate student information
+    .sort({ date: 1, startTime: 1 })
+    .limit(5);
 
     // Calculate total earnings from each source
     const [coursesData, sessionsData, cohortsData] = await Promise.all([
@@ -470,9 +474,12 @@ export const getExpertDashboardData = async (req, res) => {
       title: expert.title || "",
       
       // Profile Details
+      profilePicture: expert.profilePicture || "/placeholder-user.jpg",
       profileCompletion: calculateProfileCompletion(expert),
       activeStreak: calculateActiveStreak(sessions),
       expertise: expert.expertise || [],
+      industries:expert.industries || [],
+      targetAudience: expert.targetAudience || [],
       education: expert.education || [],
       experience: expert.experience || [],
       certifications: expert.certifications || [],
@@ -484,7 +491,10 @@ export const getExpertDashboardData = async (req, res) => {
         date: session.date,
         time: session.startTime,
         students: 1,
-        type: '1-on-1'
+        type: '1-on-1',
+        studentName: session.bookedBy ? `${session.bookedBy.firstName} ${session.bookedBy.lastName}` : 'Not booked yet',
+        meetLink: session.meetLink || 'To be generated',
+        status: session.bookedStatus ? 'booked' : 'not booked'
       })),
       earnings: {
         total: calculateTotalEarnings(coursesData, sessionsData, cohortsData),
@@ -632,6 +642,8 @@ export const getDashboardData = async (req, res) => {
       activeStreak: calculateActiveStreak(sessions),
       expertise: expert.expertise || [],
       outstandingAmount,
+      industries: expert.industries || [],
+      targetAudience: expert.targetAudience || [],
       // ...rest of existing dashboard data...
     };
 
@@ -769,7 +781,7 @@ export const addCertification = async (req, res) => {
   try {
     const expertId = req.user.id;
     const { name, issuer, credentialId, expiryDate } = req.body;
-    const file = req.file; // Single PDF file upload
+    const file = req.file;
 
     if (!file) {
       return res.status(400).json({ message: "Certificate PDF file is required" });
@@ -784,6 +796,7 @@ export const addCertification = async (req, res) => {
       return res.status(404).json({ message: "Expert not found" });
     }
 
+    // The file is already uploaded to Cloudinary by multer-storage-cloudinary
     const certificationEntry = {
       name,
       issuer,
@@ -791,8 +804,8 @@ export const addCertification = async (req, res) => {
       credentialId,
       expiryDate: expiryDate ? new Date(expiryDate) : undefined,
       certificateFile: {
-        url: `/uploads/${file.filename}`,
-        filename: file.filename,
+        url: file.path, // multer-storage-cloudinary sets this to the Cloudinary URL
+        publicId: file.filename, // multer-storage-cloudinary sets this to the public ID
         uploadedAt: new Date()
       }
     };
@@ -806,7 +819,10 @@ export const addCertification = async (req, res) => {
     });
   } catch (error) {
     console.error('Error adding certification:', error);
-    res.status(500).json({ message: "Internal Server Error", error: error.message });
+    res.status(500).json({ 
+      message: "Failed to add certification", 
+      error: error.message 
+    });
   }
 };
 
@@ -877,9 +893,22 @@ export const updateCertification = async (req, res) => {
       if (file.mimetype !== 'application/pdf') {
         return res.status(400).json({ message: "Only PDF files are allowed" });
       }
+
+      // Delete old file from Cloudinary if exists
+      if (certificationEntry.certificateFile?.publicId) {
+        await cloudinary.uploader.destroy(certificationEntry.certificateFile.publicId);
+      }
+
+      // Upload new file to Cloudinary
+      const result = await cloudinary.uploader.upload(file.path, {
+        resource_type: 'raw',
+        public_id: `certifications/${expertId}_${Date.now()}`,
+        tags: ['certification', 'pdf']
+      });
+
       certificationEntry.certificateFile = {
-        url: `/uploads/${file.filename}`,
-        filename: file.filename,
+        url: result.secure_url,
+        publicId: result.public_id,
         uploadedAt: new Date()
       };
     }
@@ -925,7 +954,7 @@ export const deleteEducationDocument = async (req, res) => {
 export const deleteCertificationDocument = async (req, res) => {
   try {
     const expertId = req.user.id;
-    const { certificationId, documentId } = req.params;
+    const { certificationId } = req.params;
 
     const expert = await Expert.findById(expertId);
     if (!expert) {
@@ -937,14 +966,20 @@ export const deleteCertificationDocument = async (req, res) => {
       return res.status(404).json({ message: "Certification not found" });
     }
 
-    certificationEntry.documents = certificationEntry.documents.filter(
-      doc => doc._id.toString() !== documentId
+    // Delete file from Cloudinary if exists
+    if (certificationEntry.certificateFile?.publicId) {
+      await cloudinary.uploader.destroy(certificationEntry.certificateFile.publicId);
+    }
+
+    // Remove certification entirely
+    expert.certifications = expert.certifications.filter(
+      cert => cert._id.toString() !== certificationId
     );
 
     await expert.save();
-    res.status(200).json({ message: "Document deleted successfully" });
+    res.status(200).json({ message: "Certification deleted successfully" });
   } catch (error) {
-    console.error('Error deleting certification document:', error);
+    console.error('Error deleting certification:', error);
     res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
@@ -1123,6 +1158,132 @@ export const getExpertAvailableSessions = async (req, res) => {
     res.status(200).json(sessions);
   } catch (error) {
     console.error('Error fetching expert sessions:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+export const updateExpertise = async (req, res) => {
+  try {
+    const expertId = req.user.id;
+    const { expertise } = req.body;
+
+    if (!Array.isArray(expertise)) {
+      return res.status(400).json({ message: "Expertise must be an array" });
+    }
+
+    const validExpertise = [
+     "Stream Selection",
+      "Career Counseling",
+      "Competitive Exams",
+      "Study Abroad",
+      "Resume Interview",
+      "Entrepreneurship",
+      "Higher Education",
+     " Career Transition",
+      "Industry Specific"
+    ];
+
+    // const validatedExpertise = expertise.filter(exp => 
+    //   exp && validExpertise.includes(exp.toLowerCase().trim())
+    // );
+
+    // if (validatedExpertise.length === 0) {
+    //   return res.status(400).json({ message: "No valid expertise areas provided" });
+    // }
+
+    const expert = await Expert.findByIdAndUpdate(
+      expertId,
+      { $set: { expertise: expertise } },
+      { new: true }
+    ).select('-password -emailOtp -gid');
+
+    if (!expert) {
+      return res.status(404).json({ message: "Expert not found" });
+    }
+
+    res.status(200).json({
+      message: "Expertise updated successfully",
+      expertise: expert.expertise
+    });
+  } catch (error) {
+    console.error('Error updating expertise:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+export const updateIndustries = async (req, res) => {
+  try {
+    const expertId = req.user.id;
+    const { industries } = req.body;
+
+    if (!Array.isArray(industries)) {
+      return res.status(400).json({ message: "Industries must be an array" });
+    }
+
+    const validIndustries = [
+      'Technology',
+      'Healthcare',
+      'Finance',
+      'Education',
+      'Engineering',
+      'Marketing',
+      'Design',
+      'Business Management',
+      'Data Science',
+      'Research & Development',
+      'Manufacturing',
+      'Consulting',
+      'Law',
+      'Media & Entertainment',
+      'Architecture',
+      'Life Sciences'
+    ];
+
+    const expert = await Expert.findByIdAndUpdate(
+      expertId,
+      { $set: { industries: industries } },
+      { new: true }
+    ).select('-password -emailOtp -gid');
+
+    if (!expert) {
+      return res.status(404).json({ message: "Expert not found" });
+    }
+
+    res.status(200).json({
+      message: "Industries updated successfully",
+      industries: expert.industries
+    });
+  } catch (error) {
+    console.error('Error updating industries:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+export const updateTargetAudience = async (req, res) => {
+  try {
+    const expertId = req.user.id;
+    const { targetAudience } = req.body;
+
+    if (!Array.isArray(targetAudience)) {
+      return res.status(400).json({ message: "Target audience must be an array" });
+    }
+
+    const expert = await Expert.findByIdAndUpdate(
+      expertId,
+      { $set: { targetAudience: targetAudience } },
+      { new: true }
+    ).select('-password -emailOtp -gid');
+
+    if (!expert) {
+      return res.status(404).json({ message: "Expert not found" });
+    }
+
+    res.status(200).json({
+      message: "Target audience updated successfully",
+      targetAudience: expert.targetAudience
+    });
+  } catch (error) {
+    console.error('Error updating target audience:', error);
     res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };

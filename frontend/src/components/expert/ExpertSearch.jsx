@@ -15,7 +15,7 @@ const ExpertCard = ({ expert }) => {
       <div className="p-6">
         <div className="flex items-start gap-4">
           <img 
-            src={expert.profilePhoto || "/imagecopy.png"} 
+            src={expert.profilePicture || "/placeholder-user.jpg"} 
             alt={expert.name || `${expert.firstName} ${expert.lastName}`}
             className="w-16 h-16 rounded-full object-cover border-2 border-gray-100"
           />
@@ -31,12 +31,12 @@ const ExpertCard = ({ expert }) => {
                   <Star
                     key={index}
                     size={16}
-                    className={index < (expert.ratings?.overall || 0) ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"}
+                    className={index < (expert.rating || 0) ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"}
                   />
                 ))}
               </div>
               <span className="ml-2 text-sm text-gray-600">
-                ({expert.ratings?.total || 0})
+                ({expert.totalFeedbacks || 0} reviews)
               </span>
             </div>
           </div>

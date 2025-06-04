@@ -146,7 +146,7 @@ router.post('/courses/:courseId/approve', async (req, res) => {
         }
 
         course.status = 'approved';
-        course.platformPrice = platformPrice;
+        course.pricing.platformFee = platformPrice;
         await course.save();
 
         res.status(200).json({ 
@@ -173,7 +173,7 @@ router.post('/cohorts/:cohortId/approve', async (req, res) => {
         }
 
         cohort.status = 'approved';
-        cohort.platformPrice = platformPrice;
+        cohort.pricing.platformFee = platformPrice;
         await cohort.save();
 
         res.status(200).json({ 

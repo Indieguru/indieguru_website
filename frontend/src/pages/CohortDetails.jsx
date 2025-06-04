@@ -6,11 +6,14 @@ import { Button } from "../components/ui/button";
 import Header from "../components/layout/Header";
 import axiosInstance from "../config/axios.config";
 import useAuthStore from "../store/authStore";
+import { toast } from "react-toastify";
+import useUserTypeStore from "../store/userTypeStore";
 
 const CohortDetails = () => {
   const { cohortId } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
+  const { userType } = useUserTypeStore();
   const [cohort, setCohort] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,6 +38,17 @@ const CohortDetails = () => {
     if (!isAuthenticated) {
       navigate("/email-signin", { 
         state: { redirectUrl: `/cohort/${cohortId}` }
+      });
+      return;
+    }
+
+    if (userType === "expert") {
+      toast.info("Please sign in as a student to join this cohort", {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
       });
       return;
     }

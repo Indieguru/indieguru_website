@@ -6,9 +6,64 @@ import authMiddleware from '../middlewares/authMiddleware.js';
 import { bookSession } from '../controllers/sessionController.js'; // Import the bookSlot function
 import { sendOtp } from '../controllers/otpcontroller.js'; // Import the sendOtp function
 import { getUserBookings } from '../controllers/userController.js'; // Import the getUserBookings function
+import upload from '../middlewares/upload.js';
+import { cloudinary } from '../config/cloudinary.js';
+import multer from 'multer';
 const router = express.Router();
 
 router.use('/auth', userAuthRoutes);
+
+// Profile picture upload route
+router.post('/profile-picture', authMiddleware, (req, res, next) => {
+    upload.single('image')(req, res, function (err) {
+      if (err instanceof multer.MulterError) {
+        console.error('Multer error:', err);
+        return res.status(400).json({ message: err.message });
+      } else if (err) {
+        console.error('Unknown upload error:', err);
+        return res.status(500).json({ message: 'Upload error', error: err.message });
+      }
+      next();
+    });
+  }, async (req, res) => {
+  try {
+    console.log('File upload request received');
+    console.log('Request file:', req.file);
+    
+    if (!req.file) {
+      console.log('No file received in request');
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      console.log('User not found:', userId);
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    console.log('Cloudinary file path:', req.file.path);
+    
+    // Set the profile picture URL directly
+    user.profilePicture = req.file.path;
+    await user.save();
+    
+    console.log('Profile picture updated successfully');
+    res.status(200).json({ 
+      message: 'Profile picture updated successfully',
+      profilePicture: user.profilePicture // Return the string URL
+    });
+  } catch (error) {
+    console.error('Detailed error updating profile picture:', {
+      message: error.message,
+      stack: error.stack,
+      file: req.file,
+      user: req.user
+    });
+    res.status(500).json({ message: 'Error updating profile picture', error: error.message });
+  }
+});
 
 router.get('/details', authMiddleware, async (req, res) => {
     try {

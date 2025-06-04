@@ -6,6 +6,8 @@ import { Button } from "../components/ui/button";
 import { Calendar, CheckCircle2, ChevronRight, Star, Clock, User, Award, DollarSign, X } from "lucide-react";
 import axiosInstance from "../config/axios.config";
 import { toast, ToastContainer } from "react-toastify";
+import useUserTypeStore from '../store/userTypeStore';
+import checkAuth from '../utils/checkAuth';
 
 const BookingPage = () => {
   const { expertId } = useParams();
@@ -19,6 +21,28 @@ const BookingPage = () => {
   const [showTitleModal, setShowTitleModal] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const { userType, setUserType } = useUserTypeStore();
+  const [authData, setAuthData] = useState(null);
+
+  useEffect(() => {
+    const handleAuth = async () => {
+      const data = await checkAuth(setUserType, setLoading);
+      setAuthData(data);
+    };
+    handleAuth();
+  }, [setUserType]);
+
+  useEffect(() => {
+    if (authData) {
+      if (userType === "expert") {
+        toast.error('Please sign in as a student to book a session', {
+          position: "top-center",
+          autoClose: 5000,
+        });
+        return;
+      }
+    }
+  }, [userType, authData]);
 
   useEffect(() => {
     const fetchExpertAndSessions = async () => {
@@ -104,30 +128,25 @@ const BookingPage = () => {
       setShowTitleModal(false);
       return;
     }
-    
-    if (!sessionTitle.trim()) {
-      toast.warning('Please provide a session title', {
-        icon: "✏️",
+
+    if (userType === "expert") {
+      toast.error('Please sign in as a student to book a session', {
         position: "top-center",
+        autoClose: 5000,
       });
+      setShowTitleModal(false);
       return;
     }
-    
+
     try {
       const response = await axiosInstance.post(`/session/${selectedSession._id}/book`, {
-        sessionTitle: sessionTitle.trim(),
+        title: sessionTitle
       });
-
+      
       if (response.status === 200) {
-        setSelectedSession(null);
-        setSessionTitle("");
-        setSelectedDate("");
-        setSelectedTime("");
-        setShowTitleModal(false);
-        setShowSuccessModal(true); // Show success modal instead of toast
+        setShowSuccessModal(true);
       }
     } catch (error) {
-      console.error("Error booking session:", error);
       toast.error(error.response?.data?.message || "Failed to book session. Please try again later.", {
         icon: "❌",
         position: "top-center",
@@ -173,13 +192,13 @@ const BookingPage = () => {
                   <div className="absolute inset-0 bg-blue-100 rounded-full blur-md opacity-50"></div>
                   <img
                     src={expert?.avatar || "/placeholder-user.jpg"}
-                    alt={expert?.name}
+                    alt={expert?.name || "Expert"}
                     className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-white shadow-md"
                   />
                 </div>
                 <div className="text-center sm:text-left">
-                  <h2 className="text-2xl font-bold text-gray-800">{expert?.name}</h2>
-                  <p className="text-blue-600 font-medium">{expert?.title}</p>
+                  <h2 className="text-2xl font-bold text-gray-800">{expert?.name || "Loading..."}</h2>
+                  <p className="text-blue-600 font-medium">{expert?.title || "Expert"}</p>
                 </div>
               </div>
 
@@ -208,7 +227,7 @@ const BookingPage = () => {
                       >
                         {skill}
                       </span>
-                    ))}
+                    )) || <span className="text-gray-500">Loading expertise...</span>}
                   </div>
                 </div>
 
@@ -219,7 +238,7 @@ const BookingPage = () => {
                   </h3>
                   <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg">
                     <p className="text-3xl font-bold text-blue-700">
-                      ₹{expert.sessionPricing?.total || "0"}
+                      ₹{expert?.sessionPricing?.total || "0"}
                       <span className="text-sm font-normal text-blue-600 ml-1">/hour</span>
                     </p>
                   </div>
@@ -423,9 +442,9 @@ const BookingPage = () => {
               
               <h3 className="text-3xl font-bold text-gray-800 mb-4">Booking Successful!</h3>
               
-              <p className="text-gray-600 mb-8 text-lg">
-                Your session has been booked successfully. You can view all the details in your dashboard.
-              </p>
+              <div className="text-gray-600 mb-8 text-lg">
+                <p>Your session has been booked successfully. You can view all the details in your dashboard.</p>
+              </div>
               
               <div className="space-y-4">
                 <Button

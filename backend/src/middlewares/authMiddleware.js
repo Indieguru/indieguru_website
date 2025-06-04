@@ -13,9 +13,9 @@ const authMiddleware = async (req, res, next) => {
     const token = req.cookies?.token || req.header('Authorization')?.replace('Bearer ', '');
     const refreshToken = req.cookies?.refreshToken;
 
-    console.log("Token: ", token);
-    console.log("Refresh Token: ", refreshToken);
-    console.log("Cookies: ", req.cookies);
+    // console.log("Token: ", token);
+    // console.log("Refresh Token: ", refreshToken);
+    // console.log("Cookies: ", req.cookies);
 
     if (!token && !refreshToken) {
         return res.status(401).json({ message: 'Access denied. No token provided.' });

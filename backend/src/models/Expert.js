@@ -37,6 +37,24 @@ const ExpertSchema = new mongoose.Schema({
     min: 0,
     max: 5
   },
+  totalFeedbacks: {
+    type: Number,
+    default: 0
+  },
+  feedbackStats: {
+    sessions: {
+      count: { type: Number, default: 0 },
+      totalRating: { type: Number, default: 0 }
+    },
+    courses: {
+      count: { type: Number, default: 0 },
+      totalRating: { type: Number, default: 0 }
+    },
+    cohorts: {
+      count: { type: Number, default: 0 },
+      totalRating: { type: Number, default: 0 }
+    }
+  },
   status: {
     type: String,
     enum: ['pending', 'approved', 'rejected'],
@@ -49,50 +67,62 @@ const ExpertSchema = new mongoose.Schema({
   rejectionReason: {
     type: String
   },
+  profilePicture: {
+    type: String,
+    default: '/placeholder-user.jpg',
+    set: function(value) {
+      // If value is an object with url property, extract the url
+      if (typeof value === 'object' && value !== null && value.url) {
+        return value.url;
+      }
+      // Otherwise return the value as is
+      return value;
+    }
+  },
   expertise: [{
     type: String,
-    enum: [
-      'stream_selection',
-      'career_counseling',
-      'competitive_exams',
-      'study_abroad',
-      'resume_interview',
-      'entrepreneurship',
-      'higher_education',
-      'career_transition',
-      'industry_specific'
-    ]
+    // enum: [
+    //   "Stream Selection",
+    //   "Career Counseling",
+    //   "Competitive Exams",
+    //   "Study Abroad",
+    //   "Resume Interview",
+    //   "Entrepreneurship",
+    //   "Higher Education",
+    //  " Career Transition",
+    //   "Industry Specific"
+    // ]
   }],
   targetAudience: [{
     type: String,
-    enum: [
-      'High School Student (Class 11-12)',
-      'Secondary School Student (Class 9-10)',
-      'Undergraduate Student',
-      'Postgraduate Student',
-      'Working Professional'
-    ]
+    // enum: [
+    //   'High School Student (Class 11-12)',
+    //   'Secondary School Student (Class 9-10)',
+    //   'Undergraduate Student',
+    //   'Postgraduate Student',
+    //   'Working Professional'
+    // ]
   }],
   industries: [{
     type: String,
-    enum: [
-      'Technology',
-      'Healthcare',
-      'Finance',
-      'Education',
-      'Engineering',
-      'Marketing',
-      'Design',
-      'Business Management',
-      'Data Science',
-      'Research & Development',
-      'Manufacturing',
-      'Consulting',
-      'Law',
-      'Media & Entertainment',
-      'Architecture',
-      'Life Sciences'
-    ]
+    // enum: [
+    //   'Technology',
+    //   'Healthcare',
+    //   'Finance',
+    //   'Education',
+    //   'Engineering',
+    //   'Marketing',
+    //   'Design',
+    //   'Business Management',
+    //   'Data Science',
+    //   'Research & Development',
+    //   'Manufacturing',
+    //   'Consulting',
+    //   'Law',
+    //   'Media & Entertainment',
+    //   'Architecture',
+    //   'Life Sciences'
+    // ]
   }],
   education: [{
     degree: {
@@ -134,15 +164,15 @@ const ExpertSchema = new mongoose.Schema({
   certifications: [{
     name: {
       type: String,
-      // required: true
+      required: true
     },
     issuer: {
       type: String,
-      // required: true
+      required: true
     },
     certificateFile: {
       url: String,
-      filename: String,
+      publicId: String,
       uploadedAt: {
         type: Date,
         default: Date.now
@@ -221,9 +251,32 @@ ExpertSchema.pre('save', function(next) {
   if (this.sessionPricing) {
     this.sessionPricing.total = (this.sessionPricing.expertFee || 0) + (this.sessionPricing.platformFee || 0);
   }
+
+  // Recalculate overall rating whenever feedback stats change
+  if (this.isModified('feedbackStats')) {
+    const stats = this.feedbackStats;
+    const totalRatings = stats.sessions.totalRating + stats.courses.totalRating + stats.cohorts.totalRating;
+    const totalCount = stats.sessions.count + stats.courses.count + stats.cohorts.count;
+    this.rating = totalCount > 0 ? (totalRatings / totalCount) : 0;
+    this.totalFeedbacks = totalCount;
+  }
   
   next();
 });
+
+// Method to update feedback for any type (session/course/cohort)
+ExpertSchema.methods.updateFeedback = async function(type, rating) {
+  if (!['sessions', 'courses', 'cohorts'].includes(type)) {
+    throw new Error('Invalid feedback type');
+  }
+
+  // Update feedback stats for the specific type
+  this.feedbackStats[type].count += 1;
+  this.feedbackStats[type].totalRating += rating;
+
+  await this.save();
+  return this;
+};
 
 // Virtual for full name
 ExpertSchema.virtual('name').get(function() {

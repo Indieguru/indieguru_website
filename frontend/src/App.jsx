@@ -23,10 +23,33 @@ import CourseDetails from "./pages/CourseDetails";
 import BookingPage from "./pages/BookingPage";
 import CohortDetails from "./pages/CohortDetails";
 import AdminDashboard from "./pages/AdminDashboard";
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
     <Router>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+          success: {
+            duration: 3000,
+            theme: {
+              primary: '#4CAF50',
+            },
+          },
+          error: {
+            duration: 4000,
+            theme: {
+              primary: '#E53E3E',
+            },
+          },
+        }}
+      />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/dashboard" element={<Dashboard />} />
@@ -44,6 +67,8 @@ function App() {
         <Route path="/course/:courseId" element={<CourseDetails />} />
         <Route path="/cohort/:cohortId" element={<CohortDetails />} />
         <Route path="/booking/:expertId" element={<BookingPage />} />
+        <Route path="/browse-experts" element={<BrowseExperts />} />
+        <Route path="/browse-experts/:category" element={<BrowseExperts />} />
         <Route path="/finish-signup" element={<FinishSignUp />} />
         <Route path="/finish-signin" element={<FinishSignIn />} />
         <Route path="/browse-experts" element={<BrowseExperts />} />

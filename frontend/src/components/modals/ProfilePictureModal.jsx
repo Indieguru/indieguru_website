@@ -4,7 +4,6 @@ import { useState, useRef } from "react"
 import { Upload, Image, Loader2 } from "lucide-react"
 import { Modal } from "../ui/modal"
 import { Button } from "../ui/button"
-import { uploadToCloudinary } from "../../services/api"
 
 function ProfilePictureModal({ isOpen, onClose, currentPicture, onSave }) {
   const [selectedFile, setSelectedFile] = useState(null)
@@ -47,15 +46,8 @@ function ProfilePictureModal({ isOpen, onClose, currentPicture, onSave }) {
     setError("")
 
     try {
-      // Upload to Cloudinary (simulated)
-      const result = await uploadToCloudinary(selectedFile)
-
-      if (result.success) {
-        onSave(result.url)
-        onClose()
-      } else {
-        setError("Failed to upload image. Please try again.")
-      }
+      await onSave(selectedFile)
+      onClose()
     } catch (error) {
       console.error("Error uploading image:", error)
       setError("An error occurred while uploading. Please try again.")
@@ -64,16 +56,12 @@ function ProfilePictureModal({ isOpen, onClose, currentPicture, onSave }) {
     }
   }
 
-  const triggerFileInput = () => {
-    fileInputRef.current.click()
-  }
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Update Profile Picture">
       <div className="flex flex-col items-center">
         <div className="w-40 h-40 rounded-full overflow-hidden mb-4 border-2 border-[#d8d8d8] flex items-center justify-center bg-[#f9fbff]">
           {previewUrl ? (
-            <img src={previewUrl || "/placeholder.svg"} alt="Profile Preview" className="w-full h-full object-cover" />
+            <img src={previewUrl} alt="Profile Preview" className="w-full h-full object-cover" />
           ) : (
             <Image className="w-16 h-16 text-[#676767]" />
           )}
@@ -85,7 +73,7 @@ function ProfilePictureModal({ isOpen, onClose, currentPicture, onSave }) {
 
         <div className="flex gap-2 mb-4">
           <Button
-            onClick={triggerFileInput}
+            onClick={() => fileInputRef.current?.click()}
             className="border border-[#003265] text-[#003265] bg-white hover:bg-[#f5f5f5] flex items-center gap-2"
           >
             <Upload size={16} />

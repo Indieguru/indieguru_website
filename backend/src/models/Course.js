@@ -48,6 +48,10 @@ const CourseSchema = new mongoose.Schema({
         enum: ['approved', 'pending', 'rejected'],
         default: 'pending'
     },
+    rejectionReason: {
+        type: String,
+        default: null
+    },
     activityStatus: {
         type: String,
         enum: ['live', 'completed'],

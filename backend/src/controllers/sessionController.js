@@ -237,7 +237,6 @@ export const updateSessionFeedback = async (req, res) => {
     const { sessionId } = req.params;
     const { rating, heading, description } = req.body;
 
-    // If rating is 0, treat it as no feedback
     if (rating === 0) {
       return res.status(400).json({ 
         success: false, 
@@ -269,6 +268,15 @@ export const updateSessionFeedback = async (req, res) => {
       });
     }
 
+    // Get expert and update their feedback stats
+    const expert = await Expert.findById(session.expert);
+    if (!expert) {
+      return res.status(404).json({
+        success: false,
+        message: 'Expert not found'
+      });
+    }
+
     session.feedback = {
       rating,
       studentName: session.studentName || `${req.user.firstName} ${req.user.lastName}`,
@@ -278,6 +286,8 @@ export const updateSessionFeedback = async (req, res) => {
       }
     };
 
+    // Update expert's feedback stats
+    await expert.updateFeedback('sessions', rating);
     await session.save();
 
     res.status(200).json({

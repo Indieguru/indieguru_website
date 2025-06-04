@@ -12,9 +12,9 @@ function UpcomingCourses() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        console.log('Fetching courses...');
+        // console.log('Fetching courses...');
         const response = await axiosInstance.get('/course');
-        console.log('Courses response:', response.data);
+        // console.log('Courses response:', response.data);
         
         // Sort courses by publishing date and take latest ones
         const sortedCourses = response.data

@@ -5,21 +5,22 @@ import useUserStore from "../../store/userStore"
 import { useEffect, useState } from "react"
 
 function ProfileCard() {
-  const { user } = useUserStore();
+  const { user, fetchUser } = useUserStore();
   const [completionData, setCompletionData] = useState({
     completedSteps: 0,
     totalSteps: 8
   });
 
   useEffect(() => {
-    try{
-      fetchUser();
-    }
-    catch (error) {   
-      console.error("Error fetching user details:", error);
-    }
+    const initProfile = async () => {
+      try {
+        await fetchUser();
+      } catch (error) {   
+        console.error("Error fetching user details:", error);
+      }
+    };
 
-
+    initProfile();
 
     const calculateCompletedSteps = () => {
       let completed = 0;
@@ -38,7 +39,7 @@ function ProfileCard() {
       completedSteps: calculateCompletedSteps(),
       totalSteps: 8
     });
-  }, [user]);
+  }, [user, fetchUser]);
 
   const completionPercentage = (completionData.completedSteps / completionData.totalSteps) * 100;
   const isCompleted = completionData.completedSteps === completionData.totalSteps;

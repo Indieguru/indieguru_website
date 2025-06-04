@@ -162,7 +162,7 @@ const AllCoursesPage = () => {
             id: course._id,
             title: course.title,
             instructor: course.expertName,
-            date: new Date(course.publishingDate).toLocaleDateString('en-US', {
+            date: new Date(course.startDate).toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'long',
               day: 'numeric'

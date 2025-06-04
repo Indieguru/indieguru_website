@@ -89,6 +89,12 @@ export const addFeedback = async (req, res) => {
             createdAt: new Date()
         });
 
+        // Update expert's feedback stats
+        const expert = await Expert.findById(course.createdBy);
+        if (expert) {
+            await expert.updateFeedback('courses', rating);
+        }
+
         await course.save();
         
         res.status(201).json({ 
@@ -239,8 +245,9 @@ export const getCombinedTestimonials = async (req, res) => {
         { $unwind: "$feedback" },
         { $project: { 
           rating: "$feedback.rating",
-          content: "$feedback.comment",
-          author: "$feedback.userName",
+          content: "$feedback.detail.description",
+          heading: "$feedback.detail.heading",
+          author: "$feedback.studentName",
           type: { $literal: "Course" },
           title: "$name",
           createdAt: "$feedback.createdAt"
@@ -250,8 +257,9 @@ export const getCombinedTestimonials = async (req, res) => {
         { $unwind: "$feedback" },
         { $project: { 
           rating: "$feedback.rating",
-          content: "$feedback.comment",
-          author: "$feedback.userName",
+          content: "$feedback.detail.description",
+          heading: "$feedback.detail.heading",
+          author: "$feedback.studentName",
           type: { $literal: "Session" },
           title: "$title",
           createdAt: "$feedback.createdAt"
@@ -261,8 +269,9 @@ export const getCombinedTestimonials = async (req, res) => {
         { $unwind: "$feedback" },
         { $project: { 
           rating: "$feedback.rating",
-          content: "$feedback.comment",
-          author: "$feedback.userName",
+          content: "$feedback.detail.description",
+          heading: "$feedback.detail.heading",
+          author: "$feedback.studentName",
           type: { $literal: "Cohort" },
           title: "$name",
           createdAt: "$feedback.createdAt"
@@ -290,4 +299,42 @@ export const getCombinedTestimonials = async (req, res) => {
       error: error.message
     });
   }
+};
+
+export const markCourseAsCompleted = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        const userId = req.user.id;
+
+        // Find course and user
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({ message: 'Course not found' });
+        }
+
+        const user = await Expert.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Verify that the user has purchased the course
+       
+
+        // Update the course's activity status to completed
+        course.activityStatus = 'completed';
+        await course.save();
+
+        res.status(200).json({ 
+            success: true,
+            message: 'Course marked as completed',
+            course
+        });
+    } catch (error) {
+        console.error('Error marking course as completed:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Error marking course as completed',
+            error: error.message 
+        });
+    }
 };
