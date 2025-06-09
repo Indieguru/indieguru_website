@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import axiosInstance from '../config/axios.config';
 
@@ -56,63 +57,7 @@ function ExpertPayments() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header/Navigation */}
-      <header className="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <span className="text-2xl font-bold text-indigo-800">IndieGuru</span>
-                <span className="ml-2 px-2 py-1 text-xs bg-indigo-100 text-indigo-800 rounded-full">Expert</span>
-              </div>
-              <nav className="ml-8 flex space-x-8">
-                <a 
-                  href="/dashboard"
-                  className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                >
-                  Dashboard
-                </a>
-                <a 
-                  href="/blogpage"
-                  className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                >
-                  Blogs
-                </a>
-                <a 
-                  href="/communitypage"
-                  className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                >
-                  Community
-                </a>
-                <a 
-                  href="/bookings"
-                  className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                >
-                  Bookings
-                </a>
-                <a 
-                  href="/payments"
-                  className="inline-flex items-center px-1 pt-1 border-b-2 border-indigo-700 text-sm font-medium text-gray-900"
-                >
-                  Payments
-                </a>
-              </nav>
-            </div>
-            <div className="flex items-center">
-              <div className="ml-3 relative">
-                <div className="flex items-center">
-                  <img
-                    className="h-8 w-8 rounded-full"
-                    src="https://randomuser.me/api/portraits/women/48.jpg"
-                    alt="Expert profile"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Dr. Sarah Johnson</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="max-w-7xl mt-20 mx-auto px-4 sm:px-6 lg:px-8 py-6">

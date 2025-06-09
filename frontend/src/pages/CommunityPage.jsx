@@ -14,6 +14,7 @@ export default function CommunityPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("threads");
   const [showPostForm, setShowPostForm] = useState(false);
+  const [showInlinePostForm, setShowInlinePostForm] = useState(false);
   const [newPost, setNewPost] = useState({ category: "", content: "", image: null });
   const [postAnonymously, setPostAnonymously] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
@@ -175,6 +176,7 @@ export default function CommunityPage() {
       toast.success('Post created successfully!');
       setNewPost({ category: "", content: "", image: null });
       setShowPostForm(false);
+      setShowInlinePostForm(false);
       fetchPosts(); // Fetch posts instead of reloading the page
     } catch (error) {
       toast.error(error.response?.data?.message || 'Error creating post');
@@ -675,12 +677,12 @@ export default function CommunityPage() {
             <h2 className="text-[#232536] text-2xl font-bold">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h2>
             <button
               className="bg-[#ffd050] text-[#232536] px-6 py-2 rounded-md font-medium hover-shadow"
-              onClick={() => setShowPostForm(true)}
+              onClick={() => setShowInlinePostForm(true)}
             >
               Create Post
             </button>
           </div>
-          {showPostForm && (
+          {showInlinePostForm && (
             <section className="mb-6 scale-in">
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="text-xl font-bold text-[#232536] mb-4">Create a New Post</h3>
@@ -736,7 +738,7 @@ export default function CommunityPage() {
                   </button>
                   <button
                     className="bg-gray-100 text-[#6d6e76] px-6 py-2 rounded-md font-medium"
-                    onClick={() => setShowPostForm(false)}
+                    onClick={() => setShowInlinePostForm(false)}
                     disabled={isPosting}
                   >
                     Cancel

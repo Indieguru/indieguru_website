@@ -68,14 +68,30 @@ function UpcomingCourses() {
 
   return (
     <section className="mb-12 p-6 bg-gradient-to-br from-[#cceeed] to-[#e8f7f7] rounded-xl">
-      <div className="flex items-center mb-1">
-        <span className="mr-2 bg-amber-100 p-2 rounded-full text-amber-500">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M12 8V12L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" />
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center">
+          <span className="mr-2 bg-amber-100 p-2 rounded-full text-amber-500">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M12 8V12L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" />
+            </svg>
+          </span>
+          <h2 className="text-2xl font-semibold text-[#003265]">Upcoming Courses</h2>
+        </div>
+        <button
+          onClick={() => navigate('/all-courses')}
+          className="flex items-center text-[#003265] hover:text-blue-700 transition-colors duration-200 group"
+        >
+          <span className="underline text-sm font-medium mr-1">View All</span>
+          <svg 
+            className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
-        </span>
-        <h2 className="text-2xl font-semibold text-[#003265]">Upcoming Courses</h2>
+        </button>
       </div>
       
       <p className="text-sm text-[#6d6e76] mb-8 ml-8">

@@ -99,7 +99,7 @@ function Dashboard() {
         </motion.div>
 
         <motion.div 
-          className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8"
+          className="mt-6 grid sm:grid-rows-2 gap-4"
           variants={containerVariants}
         >
           <motion.div variants={itemVariants}>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../config/axios.config';
 import { toast } from 'react-hot-toast';
+import { Type, Tag, FileText, Image, X } from 'lucide-react';
 
 const CreateBlog = ({ onClose }) => {
   const navigate = useNavigate();
@@ -89,32 +90,36 @@ const CreateBlog = ({ onClose }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Create New Blog</h2>
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="bg-white">
+      <form onSubmit={handleSubmit} className="space-y-8 p-8">
+        {/* Title Field */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Title
+          <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 mb-3">
+            <Type className="w-4 h-4 text-[#003265]" />
+            <span>Blog Title</span>
           </label>
           <input
             type="text"
             name="title"
             value={formData.title}
             onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter an engaging title for your blog post..."
+            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#003265] focus:ring-0 transition-colors bg-gray-50 focus:bg-white"
             required
           />
         </div>
 
+        {/* Category Field */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Category
+          <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 mb-3">
+            <Tag className="w-4 h-4 text-blue-600" />
+            <span>Category</span>
           </label>
           <select
             name="category"
             value={formData.category}
             onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-600 focus:ring-0 transition-colors bg-gray-50 focus:bg-white"
             required
           >
             <option value="">Select a category</option>
@@ -126,71 +131,98 @@ const CreateBlog = ({ onClose }) => {
           </select>
         </div>
 
+        {/* Content Field */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Content
+          <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 mb-3">
+            <FileText className="w-4 h-4 text-indigo-600" />
+            <span>Content</span>
           </label>
           <textarea
             name="content"
             value={formData.content}
             onChange={handleChange}
-            rows="6"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows="8"
+            placeholder="Write your blog content here. Share your knowledge, insights, and experiences..."
+            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-indigo-600 focus:ring-0 transition-colors bg-gray-50 focus:bg-white resize-none"
             required
           />
         </div>
 
+        {/* Images Field */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Images (Max 3)
+          <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 mb-3">
+            <Image className="w-4 h-4 text-green-600" />
+            <span>Images (Optional - Max 3)</span>
           </label>
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleFileChange}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            max="3"
-          />
-          <p className="text-xs text-gray-500 mt-1">You can upload up to 3 images</p>
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50 hover:border-green-400 transition-colors">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileChange}
+              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:bg-[#003265] file:text-white hover:file:bg-[#004080] file:cursor-pointer cursor-pointer"
+              max="3"
+            />
+            <div className="mt-2 flex items-center space-x-2 text-xs text-gray-500">
+              <Image className="w-3 h-3" />
+              <span>Upload up to 3 images to enhance your blog post</span>
+            </div>
+          </div>
 
-          {/* Image previews */}
+          {/* Image Previews */}
           {imagePreviewUrls.length > 0 && (
-            <div className="mt-4 grid grid-cols-3 gap-4">
-              {imagePreviewUrls.map((url, index) => (
-                <div key={index} className="relative">
-                  <img
-                    src={url}
-                    alt={`Preview ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-lg"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 focus:outline-none"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
+            <div className="mt-6">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Image Previews</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {imagePreviewUrls.map((url, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={url}
+                      alt={`Preview ${index + 1}`}
+                      className="w-full h-40 object-cover rounded-lg border-2 border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-colors opacity-0 group-hover:opacity-100"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                      <span className="text-white text-xs font-medium">Click × to remove</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
 
-        <div className="flex justify-end gap-4">
+        {/* Action Buttons */}
+        <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+            className="px-6 py-3 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg font-medium transition-colors"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-300"
+            className="px-8 py-3 bg-[#003265] text-white hover:bg-[#004080] rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
           >
-            {loading ? 'Creating...' : 'Create Blog'}
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <span>Creating...</span>
+              </>
+            ) : (
+              <>
+                <FileText className="w-4 h-4" />
+                <span>Create Blog</span>
+              </>
+            )}
           </button>
         </div>
       </form>

@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import Footer from "../components/layout/Footer";
 import Header from "../components/layout/Header";
+import BlogModal from "../components/modals/BlogModal";
 import axiosInstance from '../config/axios.config';
 import useUserTypeStore from '../store/userTypeStore';
+import { Plus } from 'lucide-react';
 
 export default function BlogPage() {
   const navigate = useNavigate();
@@ -12,6 +14,7 @@ export default function BlogPage() {
   const [allPosts, setAllPosts] = useState([]); // Store all blogs
   const [posts, setPosts] = useState([]);
   const [showMyBlogs, setShowMyBlogs] = useState(false);
+  const [showBlogModal, setShowBlogModal] = useState(false);
   const [categories, setCategories] = useState([
     { name: "All", icon: "📚", color: "bg-white", active: true },
     { name: "Startup", icon: "🚀", color: "bg-white", active: false },
@@ -86,23 +89,26 @@ export default function BlogPage() {
     navigate(`/blog/${postId}`);
   };
 
+  const handleCreateBlog = () => {
+    setShowBlogModal(true);
+  };
+
+  const handleBlogModalClose = () => {
+    setShowBlogModal(false);
+    // Refresh blogs after modal closes
+    fetchBlogs();
+    if (showMyBlogs) {
+      // If showing only expert blogs, refresh that view
+      toggleMyBlogs();
+      toggleMyBlogs();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#fffaea] overflow-x-hidden">
       <Header />
       
-      {/* Add toggle button for experts */}
-      {userType === 'expert' && (
-        <div className="max-w-7xl mx-auto px-4 mt-24 mb-4">
-          <button 
-            onClick={toggleMyBlogs}
-            className={`${
-              showMyBlogs ? 'bg-[#232536] text-white' : 'bg-[#ffd050] text-[#232536]'
-            } px-6 py-3 rounded-lg font-medium inline-flex items-center hover:opacity-90 transition-all duration-200`}
-          >
-            {showMyBlogs ? 'Show All Blogs' : 'Show My Blogs Only'}
-          </button>
-        </div>
-      )}
+
       
       {/* Featured Post Section */}
       <section className={`transform transition-all duration-1000 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} ml-[50px] mr-20 mx-auto px-4 py-12 mt-20`}>
@@ -147,8 +153,57 @@ export default function BlogPage() {
         )}
       </section>
       
-      {/* All Posts Section */}
+      {/* Categories Section - Moved above All Posts */}
       <section className={`transform transition-all duration-1000 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} max-w-7xl mx-auto px-4 py-12`} style={{ transitionDelay: '200ms' }}>
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-[#232536] text-3xl font-bold relative before:content-[''] before:absolute before:bottom-0 before:left-0 before:w-16 before:h-1 before:bg-[#ffd050] before:-bottom-2">
+            All Categories
+          </h2>
+          
+          {/* Expert Controls - Show My Blogs and Create Blog */}
+          {userType === 'expert' && (
+            <div className="flex gap-4 items-center">
+              <button 
+                onClick={toggleMyBlogs}
+                className={`${
+                  showMyBlogs ? 'bg-[#232536] text-white' : 'bg-[#ffd050] text-[#232536]'
+                } px-6 py-3 rounded-lg font-medium inline-flex items-center hover:opacity-90 transition-all duration-200`}
+              >
+                {showMyBlogs ? 'Show All Blogs' : 'Show My Blogs Only'}
+              </button>
+              
+              <button 
+                onClick={handleCreateBlog}
+                className="bg-[#003265] hover:bg-[#004080] text-white px-6 py-3 rounded-lg font-medium inline-flex items-center space-x-2 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Create New Blog</span>
+              </button>
+            </div>
+          )}
+        </div>
+        
+        <div className="flex flex-wrap gap-3 justify-center">
+          {categories.map((category, index) => (
+            <div 
+              key={index} 
+              onClick={() => toggleCategory(index)}
+              className={`${category.color} border border-[#6d6e76]/10 p-4 rounded-lg cursor-pointer transition-all hover:shadow-md ${category.active ? 'ring-2 ring-[#ffd050]' : ''} transform hover:translate-y-[-2px] duration-300 ease-out flex items-center space-x-2 min-w-fit`}
+            >
+              <div className="text-xl transition-transform duration-300 ease-in-out transform group-hover:scale-110">
+                {category.icon}
+              </div>
+              <h3 className="text-[#232536] text-sm font-bold">{category.name}</h3>
+              {/* {category.active && (
+                <div className="inline-block bg-[#232536] text-white px-2 py-1 rounded text-xs">Active</div>
+              )} */}
+            </div>
+          ))}
+        </div>
+      </section>
+      
+      {/* All Posts Section */}
+      <section className={`transform transition-all duration-1000 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} max-w-7xl mx-auto px-4 py-12`} style={{ transitionDelay: '300ms' }}>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-[#232536] text-3xl font-bold relative before:content-[''] before:absolute before:bottom-0 before:left-0 before:w-16 before:h-1 before:bg-[#ffd050] before:-bottom-2">All posts</h2>
           <div className="flex gap-2">
@@ -215,49 +270,38 @@ export default function BlogPage() {
         </div>
       </section>
       
-      {/* Categories Section */}
-      <section className={`transform transition-all duration-1000 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} max-w-7xl mx-auto px-4 py-12`} style={{ transitionDelay: '400ms' }}>
-        <h2 className="text-[#232536] text-3xl font-bold mb-8 relative before:content-[''] before:absolute before:bottom-0 before:left-0 before:w-16 before:h-1 before:bg-[#ffd050] before:-bottom-2">
-          All Categories
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {categories.map((category, index) => (
-            <div 
-              key={index} 
-              onClick={() => toggleCategory(index)}
-              className={`${category.color} border border-[#6d6e76]/10 p-6 rounded-lg cursor-pointer transition-all hover:shadow-md ${category.active ? 'ring-2 ring-[#ffd050]' : ''} transform hover:translate-y-[-4px] duration-300 ease-out`}
-            >
-              <div className="mb-4 text-3xl transition-transform duration-300 ease-in-out transform group-hover:scale-110">
-                {category.icon}
-              </div>
-              <h3 className="text-[#232536] text-xl font-bold mb-2">{category.name}</h3>
-              <p className="text-[#6d6e76] text-sm">
-                {category.name} related articles and insights
-              </p>
-              {category.active && (
-                <div className="mt-3 inline-block bg-[#232536] text-white px-2 py-1 rounded text-xs">Active</div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
+      {/* Enhanced Call-to-Action for Experts */}
       {userType === 'expert' && (
-        <section className={`transform transition-all duration-1000 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} max-w-7xl mx-auto px-4 py-16 text-center`} style={{ transitionDelay: '600ms' }}>
-          <div className="bg-[#ffefc7] rounded-xl p-8 shadow-lg">
-            <h2 className="text-[#232536] text-3xl font-bold mb-4">Share Your Expertise<br />Write a Blog</h2>
-            <p className="text-[#6d6e76] max-w-xl mx-auto mb-8">
-              Share your knowledge and insights with the community. Help others learn from your experience.
+        <section className={`transform transition-all duration-1000 ease-out ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'} max-w-7xl mx-auto px-4 py-16 text-center`} style={{ transitionDelay: '500ms' }}>
+          <div className="bg-gradient-to-br from-[#003265] to-[#004080] rounded-2xl p-8 shadow-xl text-white">
+            <h2 className="text-3xl font-bold mb-4">Share Your Expertise<br />Write a Blog</h2>
+            <p className="text-white/90 max-w-xl mx-auto mb-8">
+              Share your knowledge and insights with the community. Help others learn from your experience and build your thought leadership.
             </p>
-            <button 
-              onClick={() => navigate('/expert')}
-              className="bg-[#ffd050] text-[#232536] px-8 py-3 font-medium hover:bg-[#f5c43e] transition-all duration-300 hover:shadow-lg hover:scale-105 rounded-md"
-            >
-              Create Blog
-            </button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button 
+                onClick={handleCreateBlog}
+                className="bg-[#ffd050] text-[#232536] px-8 py-3 font-semibold hover:bg-[#f5c43e] transition-all duration-300 hover:shadow-lg hover:scale-105 rounded-lg inline-flex items-center justify-center space-x-2"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Create Blog Post</span>
+              </button>
+              <button 
+                onClick={() => setShowMyBlogs(true)}
+                className="bg-white/20 hover:bg-white/30 text-white px-8 py-3 font-medium transition-all duration-300 rounded-lg"
+              >
+                View My Blogs
+              </button>
+            </div>
           </div>
         </section>
       )}
+
+      {/* Blog Modal */}
+      <BlogModal 
+        isOpen={showBlogModal} 
+        onClose={handleBlogModalClose}
+      />
       
       <Footer />
     </div>
