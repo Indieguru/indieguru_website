@@ -95,6 +95,20 @@ const SessionSchema = new mongoose.Schema({
   meetLink: {
     type: String, // Google Meet link
     // required: true,
+  },
+  notes: {
+    text: {
+      type: String,
+      default: ''
+    },
+    files: [{
+      url: String,
+      name: String,
+      type: String
+    }],
+    uploadedAt: {
+      type: Date
+    }
   }
 });
 

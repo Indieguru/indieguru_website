@@ -31,7 +31,7 @@ router.patch('/expert/:id', upload.blog, updateBlog);
 router.delete('/expert/:id', deleteBlog);
 
 // Admin only routes
-router.use('/admin', adminAuthMiddleware);
+// router.use('/admin', adminAuthMiddleware);
 router.get('/admin/pending', getPendingBlogs);
 router.post('/admin/:id/approve', approveBlog);
 router.post('/admin/:id/reject', rejectBlog);

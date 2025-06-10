@@ -65,6 +65,7 @@ export default function AdminDashboard() {
   const [expertsWithOutstanding, setExpertsWithOutstanding] = useState([]);
   const [pendingCourses, setPendingCourses] = useState([]);
   const [pendingCohorts, setPendingCohorts] = useState([]);
+  const [pendingBlogs, setPendingBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedExpert, setSelectedExpert] = useState(null);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
@@ -86,6 +87,7 @@ export default function AdminDashboard() {
     fetchPendingExperts();
     fetchExpertsWithOutstanding();
     fetchPendingContent();
+    fetchPendingBlogs();
   }, []);
 
   const fetchPendingExperts = async () => {
@@ -118,6 +120,15 @@ export default function AdminDashboard() {
       setPendingCohorts(response.data.cohorts);
     } catch (error) {
       toast.error('Failed to fetch pending content');
+    }
+  };
+
+  const fetchPendingBlogs = async () => {
+    try {
+      const response = await axiosInstance.get('/blog/admin/pending');
+      setPendingBlogs(response.data.blogs);
+    } catch (error) {
+      toast.error('Failed to fetch pending blogs');
     }
   };
 
@@ -198,6 +209,26 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleBlogApprove = async (blogId) => {
+    try {
+      await axiosInstance.post(`/blog/admin/${blogId}/approve`);
+      toast.success('Blog approved successfully');
+      fetchPendingBlogs();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to approve blog');
+    }
+  };
+
+  const handleBlogReject = async (blogId, reason) => {
+    try {
+      await axiosInstance.post(`/blog/admin/${blogId}/reject`, { reason });
+      toast.success('Blog rejected successfully');
+      fetchPendingBlogs();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to reject blog');
+    }
+  };
+
   const handleItemClick = async (item, type) => {
     setSelectedItem(item);
     setModalType(type);
@@ -215,6 +246,10 @@ export default function AdminDashboard() {
         setIsLoadingDetails(false);
       }
     }
+  };
+
+  const handleBlogClick = (blogId) => {
+    navigate(`/blog/${blogId}`);
   };
 
   const closeModal = () => {
@@ -702,6 +737,64 @@ export default function AdminDashboard() {
             </div>
           )}
         </div>
+
+        {/* Pending Blogs Section */}
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Pending Blogs</h2>
+          
+          {pendingBlogs.length === 0 ? (
+            <p className="text-gray-600">No pending blogs to approve</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {pendingBlogs.map((blog) => (
+                    <tr 
+                      key={blog._id} 
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() => handleBlogClick(blog._id)}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{blog.title}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{blog.authorName}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{blog.category}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => handleBlogApprove(blog._id)}
+                          className="text-indigo-600 hover:text-indigo-900 mr-4"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedContent({ type: 'blog', item: blog });
+                            setShowRejectionModal(true);
+                          }}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Reject
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Approval Modal */}
@@ -761,9 +854,14 @@ export default function AdminDashboard() {
           setSelectedContent(null);
         }}
         onReject={(reason) => {
-          handleContentReject(selectedContent.type, selectedContent.item._id, reason);
+          if (selectedContent?.type === 'blog') {
+            handleBlogReject(selectedContent.item._id, reason);
+          } else {
+            handleContentReject(selectedContent.type, selectedContent.item._id, reason);
+          }
         }}
-        type={selectedContent?.type === 'course' ? 'Course' : 'Cohort'}
+        type={selectedContent?.type === 'blog' ? 'Blog' : 
+              selectedContent?.type === 'course' ? 'Course' : 'Cohort'}
       />
 
       {/* Platform Price Modal */}

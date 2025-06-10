@@ -75,7 +75,7 @@ export default function CourseDetails() {
     try {
       setPurchasing(true);
       await axiosInstance.post(`/course/${courseId}/purchase`);
-      await axiosInstance.post(`/course/enroll/${courseId}`);
+      // await axiosInstance.post(`/course/enroll/${courseId}`);
       setShowSuccessModal(true);
       navigate('/dashboard');
     } catch (error) {

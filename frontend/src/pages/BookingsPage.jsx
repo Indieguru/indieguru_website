@@ -10,6 +10,7 @@ import useExpertStore from '../store/expertStore';
 import { toast } from "react-toastify";
 import FeedbackModal from "../components/modals/FeedbackModal";
 import RejectionReasonModal from "../components/modals/RejectionReasonModal";
+import SessionNotesModal from '../components/modals/SessionNotesModal';
 import axiosInstance from "../config/axios.config";
 
 // TabIndicator component
@@ -39,6 +40,8 @@ const BookingsPage = () => {
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [selectedCohort, setSelectedCohort] = useState(null);
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [showNotesModal, setShowNotesModal] = useState(false);
+  const [selectedSessionForNotes, setSelectedSessionForNotes] = useState(null);
   const { sessions, fetchExpertSessions, isLoading: isLoadingSessions } = useExpertSessionsStore();
   const { cohorts, fetchExpertCohorts, isLoading: isLoadingCohorts } = useExpertCohortsStore();
   const { courses, fetchExpertCourses, isLoading: isLoadingCourses } = useExpertCoursesStore();
@@ -148,6 +151,20 @@ const BookingsPage = () => {
     setSelectedSession(null);
     // Optionally refresh sessions data after feedback
     fetchExpertSessions();
+  };
+
+  const handleCompleteSession = async (formData) => {
+    try {
+      await axiosInstance.post(`/session/${selectedSessionForNotes._id}/complete`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      toast.success('Session completed successfully');
+      fetchExpertSessions(); // Refresh sessions list
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to complete session');
+    }
   };
 
   // Course card component
@@ -268,14 +285,6 @@ const BookingsPage = () => {
 
   // Session card component
   const SessionCard = ({ session }) => {
-    const handleLinkClick = (url) => {
-      if (!url) {
-        toast.error('Meet link not available');
-        return;
-      }
-      window.open(url, '_blank');
-    };
-
     const isPastSession = new Date(session.date) <= new Date();
 
     return (
@@ -298,29 +307,37 @@ const BookingsPage = () => {
             <span>{session.studentName || "Student"}</span>
           </div>
           
-          <div className="flex items-baseline mb-4">
-            <span className="text-2xl font-bold text-[#003265]">
-              ₹{session.pricing?.expertFee || 0}
-            </span>
-          </div>
-          
           <div className="mt-auto">
             {isPastSession ? (
-              <Button 
-                onClick={() => handleViewFeedback(session)}
-                className={`w-full ${
-                  session.feedback?.rating > 0
-                    ? 'bg-amber-500 hover:bg-amber-600' 
-                    : 'bg-gray-400 hover:bg-gray-500'
-                } text-white rounded-full px-6 py-3 flex items-center justify-center gap-2`}
-              >
-                <MessageSquare className="w-4 h-4" />
-                <span>{session.feedback?.rating > 0 ? 'View Feedback' : 'No Feedback'}</span>
-              </Button>
+              <div className="space-y-3">
+                {session.status !== 'completed' ? (
+                  <Button 
+                    onClick={() => {
+                      setSelectedSessionForNotes(session);
+                      setShowNotesModal(true);
+                    }}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Complete Session</span>
+                  </Button>
+                ) : null}
+                <Button 
+                  onClick={() => handleViewFeedback(session)}
+                  className={`w-full ${
+                    session.feedback?.rating > 0
+                      ? 'bg-amber-500 hover:bg-amber-600' 
+                      : 'bg-gray-400 hover:bg-gray-500'
+                  } text-white rounded-full px-6 py-3 flex items-center justify-center gap-2`}
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>{session.feedback?.rating > 0 ? 'View Feedback' : 'No Feedback'}</span>
+                </Button>
+              </div>
             ) : (
               <Button 
-                onClick={() => handleLinkClick(session.meetLink)}
-                className="w-full bg-blue-800 hover:bg-[#0a2540] text-white rounded-full px-6 py-3 flex items-center justify-center gap-2"
+                onClick={() => window.open(session.meetLink, '_blank')}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2"
               >
                 <Video className="w-4 h-4" />
                 <span>Join Session</span>
@@ -646,6 +663,15 @@ const BookingsPage = () => {
           setSelectedCourse(null);
         }}
         reason={selectedCohort?.rejectionReason || selectedCourse?.rejectionReason}
+      />
+
+      <SessionNotesModal 
+        isOpen={showNotesModal}
+        onClose={() => {
+          setShowNotesModal(false);
+          setSelectedSessionForNotes(null);
+        }}
+        onSubmit={handleCompleteSession}
       />
     </div>
   );

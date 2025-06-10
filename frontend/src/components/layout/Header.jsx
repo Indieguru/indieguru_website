@@ -54,11 +54,11 @@ const Header = () => {
                 <Link to="/blog" className="text-[#232636] font-normal hover:text-[#003265] transition-all duration-200">
                   Blog
                 </Link>
-                <Link to="/all-courses" className="text-[#232636] font-normal hover:text-[#003265] transition-all duration-200">
+                <Link to="/all-courses" className="text-[#232636] hover:text-[#003265] transition-colors">
                   All Courses
                 </Link>
-                <Link to={getBookingsLink()} className="text-[#232636] font-normal hover:text-[#003265] transition-all duration-200">
-                  Bookings
+                <Link to={getBookingsLink()} className="text-[#232636] hover:text-[#003265] transition-colors">
+                My Bookings
                 </Link>
                 <Link 
                   to={userType === "student" ? "/profile" : "/expert/profile"}
@@ -148,14 +148,14 @@ const Header = () => {
                 className="block px-3 py-2 rounded-md text-base font-normal text-[#232636] hover:text-[#003265] hover:bg-gray-50 transition-all duration-200"
                 onClick={() => setIsOpen(false)}
               >
-                Courses
+                All Courses
               </Link>
               <Link
                 to={getBookingsLink()}
                 className="block px-3 py-2 rounded-md text-base font-normal text-[#232636] hover:text-[#003265] hover:bg-gray-50 transition-all duration-200"
                 onClick={() => setIsOpen(false)}
               >
-                Sessions
+                My Bookings
               </Link>
               <Link
                 to={userType === "student" ? "/profile" : "/expert/profile"}

@@ -305,11 +305,18 @@ export const rejectBlog = async (req, res) => {
 export const getPendingBlogs = async (req, res) => {
     try {
         const blogs = await Blog.find({ status: 'pending' })
+            .populate('createdBy', 'firstName lastName title')
             .sort({ createdAt: -1 });
+        
+        // Map the populated data to include author information
+        const blogsWithAuthor = blogs.map(blog => ({
+            ...blog.toObject(),
+            authorName: blog.createdBy ? `${blog.createdBy.firstName} ${blog.createdBy.lastName}` : 'Unknown Author'
+        }));
         
         res.status(200).json({
             success: true,
-            blogs
+            blogs: blogsWithAuthor
         });
     } catch (error) {
         console.error('Error fetching pending blogs:', error);

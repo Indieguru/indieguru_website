@@ -4,6 +4,7 @@ import Expert from '../models/Expert.js';
 import User from '../models/User.js';
 import Payment from '../models/Payment.js';
 import { sendMail } from '../utils/sendMail.js';
+import { cloudinary } from '../config/cloudinary.js';
 
 export const bookSession = async (req, res) => {
   try {
@@ -301,6 +302,67 @@ export const updateSessionFeedback = async (req, res) => {
     res.status(500).json({ 
       success: false, 
       message: 'Error updating feedback',
+      error: error.message 
+    });
+  }
+};
+
+export const addNotesAndComplete = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { notes } = req.body;
+    const files = req.files;
+
+    const session = await Session.findById(sessionId);
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found' });
+    }
+
+    if (session.expert.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized to modify this session' });
+    }
+
+    // Initialize notes object
+    let notesData = {
+      text: notes || '',
+      uploadedAt: new Date(),
+      files: []
+    };
+
+    // Handle file uploads
+    if (files && files.length > 0) {
+      const uploadPromises = files.map(file => 
+        cloudinary.uploader.upload(file.path, {
+          folder: 'session_notes',
+          resource_type: 'auto'
+        })
+      );
+
+      const uploadResults = await Promise.all(uploadPromises);
+      notesData.files = uploadResults.map(result => ({
+        url: result.secure_url,
+        name: result.original_filename || 'Untitled',
+        type: result.format
+      }));
+    }
+
+    console.log(typeof notesData.files, notesData.files);
+
+    // Update session
+    session.notes = notesData;
+    session.status = 'completed';
+    
+    await session.save();
+
+    res.status(200).json({ 
+      message: 'Session completed successfully with notes',
+      session
+    });
+
+  } catch (error) {
+    console.error('Error adding notes and completing session:', error);
+    res.status(500).json({ 
+      message: 'Error completing session',
       error: error.message 
     });
   }
