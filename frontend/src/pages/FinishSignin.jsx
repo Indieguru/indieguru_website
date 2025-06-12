@@ -7,7 +7,7 @@ import useUserStore from '../store/userStore';
 
 export default function FinishSignIn() {
   const navigate = useNavigate();
-  const { fetchUser } = useUserStore();
+  const { refreshUser } = useUserStore();
 
   useEffect(() => {
     const email = sessionStorage.getItem('emailForSignIn');
@@ -18,8 +18,8 @@ export default function FinishSignIn() {
           try {
             // Update email in backend
             await axiosInstance.put('/user/update', { email });
-            // Refresh user data
-            await fetchUser();
+            // Force refresh user data after email update
+            await refreshUser();
             sessionStorage.removeItem('emailForSignIn');
             alert('Email successfully updated!');
             navigate('/profile');
@@ -33,7 +33,7 @@ export default function FinishSignIn() {
           alert('Failed to verify email. Please try again.');
         });
     }
-  }, [navigate, fetchUser]);
+  }, [navigate, refreshUser]);
 
   return <p>Verifying and updating email...</p>;
 }

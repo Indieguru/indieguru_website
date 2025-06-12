@@ -4,6 +4,7 @@ import axiosInstance from '../config/axios.config';
 import { toast } from 'react-toastify';
 import { Dialog, Transition } from '@headlessui/react';
 import { X } from 'lucide-react';
+import RefundRequestsSection from '../components/admin/RefundRequestsSection';
 
 const RejectionModal = ({ isOpen, onClose, onReject, type }) => {
   const [reason, setReason] = useState('');
@@ -66,6 +67,7 @@ export default function AdminDashboard() {
   const [pendingCourses, setPendingCourses] = useState([]);
   const [pendingCohorts, setPendingCohorts] = useState([]);
   const [pendingBlogs, setPendingBlogs] = useState([]);
+  const [cancelledSessions, setCancelledSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedExpert, setSelectedExpert] = useState(null);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
@@ -88,6 +90,7 @@ export default function AdminDashboard() {
     fetchExpertsWithOutstanding();
     fetchPendingContent();
     fetchPendingBlogs();
+    fetchCancelledSessions();
   }, []);
 
   const fetchPendingExperts = async () => {
@@ -129,6 +132,16 @@ export default function AdminDashboard() {
       setPendingBlogs(response.data.blogs);
     } catch (error) {
       toast.error('Failed to fetch pending blogs');
+    }
+  };
+
+  const fetchCancelledSessions = async () => {
+    try {
+      const response = await axiosInstance.get('/admin/cancelled-sessions');
+      setCancelledSessions(response.data);
+    } catch (error) {
+      toast.error('Failed to fetch cancelled sessions');
+      console.error('Error fetching cancelled sessions:', error);
     }
   };
 
@@ -226,6 +239,17 @@ export default function AdminDashboard() {
       fetchPendingBlogs();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to reject blog');
+    }
+  };
+
+  const handleMarkRefundProcessed = async (sessionId) => {
+    try {
+      await axiosInstance.post(`/admin/sessions/${sessionId}/refund-processed`);
+      toast.success('Session marked as refunded successfully');
+      // Remove the session from the list
+      setCancelledSessions(prevSessions => prevSessions.filter(session => session._id !== sessionId));
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to mark refund as processed');
     }
   };
 
@@ -487,6 +511,72 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>
+        
+        {/* Cancelled Sessions Section */}
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Cancelled Sessions Pending Refund</h2>
+          
+          {cancelledSessions.length === 0 ? (
+            <p className="text-gray-600">No cancelled sessions pending refund</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expert Details</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Details</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pricing</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {cancelledSessions.map((session) => (
+                    <tr key={session._id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          {new Date(session.date).toLocaleDateString()}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {session.startTime} - {session.endTime}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {session.expertDetails?.email || 'N/A'}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {session.expertDetails?.phone || 'N/A'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {session.studentDetails?.email || 'N/A'}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {session.studentDetails?.phone || 'N/A'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-600">Expert: ₹{session.pricing?.expertPrice || 0}</div>
+                        <div className="text-sm text-gray-600">Platform: ₹{session.pricing?.platformPrice || 0}</div>
+                        <div className="text-sm font-medium text-gray-900">Total: ₹{session.pricing?.totalPrice || 0}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => handleMarkRefundProcessed(session._id)}
+                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                        >
+                          Refund Done
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
         
         {/* Outstanding Amounts Section */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">
@@ -795,6 +885,9 @@ export default function AdminDashboard() {
             </div>
           )}
         </div>
+
+        {/* Refund Requests Section */}
+        <RefundRequestsSection />
       </div>
 
       {/* Approval Modal */}

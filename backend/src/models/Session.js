@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-
+delete mongoose.connection.models['Session'];
 const SessionSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -67,6 +67,37 @@ const SessionSchema = new mongoose.Schema({
     enum: ['upcoming', 'completed', 'cancelled', 'not booked'],
     default: 'not booked',
   },
+  refundProcessed: {
+    type: Boolean,
+    default: false
+  },
+  refundRequest: {
+    isRequested: {
+      type: Boolean,
+      default: false
+    },
+    reason: {
+      type: String
+    },
+    requestDate: {
+      type: Date
+    },
+    supportingDocs: [
+      {
+        url: { type: String },
+        name: { type: String },
+        type: { type: String }
+      }
+    ],
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending'
+    },
+    adminMessage: {
+      type: String
+    }
+  },
   feedback: {
     rating: {
       type: Number,
@@ -101,16 +132,18 @@ const SessionSchema = new mongoose.Schema({
       type: String,
       default: ''
     },
-    files: [{
-      url: String,
-      name: String,
-      type: String
-    }],
+    files: [
+      {
+        url: { type: String, required: true },
+        name: { type: String, required: true },
+        type: { type: String, required: true }
+      }
+    ],
     uploadedAt: {
       type: Date
     }
   }
-});
+}, { timestamps: true });
 
 // Pre-save hook to calculate total price
 SessionSchema.pre('save', function(next) {

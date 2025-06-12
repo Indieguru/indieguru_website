@@ -5,6 +5,7 @@ import Expert from "../models/Expert.js"; // Ensure this model exists and is pro
 import { 
   matchExperts, 
   addSlot, 
+  addBatchSlots,
   getExpertSessions,
   updateSession,
   deleteSession,
@@ -26,6 +27,7 @@ import {
   getExpertTransactions,
   addExperience,
   getExpertAvailableSessions,
+  getExpertByIdAvailableSessions,
   updateExpertise,
   updateIndustries,
   updateTargetAudience
@@ -167,7 +169,9 @@ router.delete('/certification/:certificationId/document',
 
 // Expert session management routes
 router.get('/sessions', expertAuthMiddleware, getExpertSessions);
+router.get('/sessions/available', expertAuthMiddleware, getExpertAvailableSessions);
 router.post('/addsession', expertAuthMiddleware, addSlot);
+router.post('/addsession/batch', expertAuthMiddleware, addBatchSlots);
 router.put('/sessions/:sessionId', expertAuthMiddleware, updateSession);
 router.delete('/sessions/:sessionId', expertAuthMiddleware, deleteSession);
 
@@ -252,6 +256,6 @@ router.get('/:expertId', async (req, res) => {
   }
 });
 
-router.get('/:expertId/sessions', getExpertAvailableSessions);
+router.get('/:expertId/sessions', getExpertByIdAvailableSessions);
 
 export default router;

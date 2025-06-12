@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../components/ui/button";
-import { Calendar, Clock, Users, Award, ArrowRight, Link as LinkIcon, Video, Book, GraduationCap, MessageSquare, X, Star, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Calendar, Clock, Users, Award, ArrowRight, Link as LinkIcon, Video, Book, GraduationCap, MessageSquare, X, Star, AlertTriangle, CheckCircle2, Download, Eye, XCircle } from "lucide-react";
 import Header from "../components/layout/Header";
 import useExpertSessionsStore from '../store/expertSessionsStore';
 import useExpertCohortsStore from '../store/expertCohortsStore';
@@ -13,7 +13,6 @@ import RejectionReasonModal from "../components/modals/RejectionReasonModal";
 import SessionNotesModal from '../components/modals/SessionNotesModal';
 import axiosInstance from "../config/axios.config";
 
-// TabIndicator component
 const TabIndicator = ({ active, label, icon, onClick }) => (
   <motion.button
     whileHover={{ scale: 1.02 }}
@@ -42,6 +41,8 @@ const BookingsPage = () => {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [selectedSessionForNotes, setSelectedSessionForNotes] = useState(null);
+  const [showFilePreviewModal, setShowFilePreviewModal] = useState(false);
+  const [previewFile, setPreviewFile] = useState(null);
   const { sessions, fetchExpertSessions, isLoading: isLoadingSessions } = useExpertSessionsStore();
   const { cohorts, fetchExpertCohorts, isLoading: isLoadingCohorts } = useExpertCohortsStore();
   const { courses, fetchExpertCourses, isLoading: isLoadingCourses } = useExpertCoursesStore();
@@ -72,7 +73,6 @@ const BookingsPage = () => {
     );
   }
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { 
@@ -100,18 +100,25 @@ const BookingsPage = () => {
     setActiveTab(tab);
   };
 
-  // Filter sessions based on date
   const filterSessions = (type) => {
     const currentDate = new Date();
     return sessions.filter(session => {
       const sessionDate = new Date(session.date);
-      return type === 'upcoming' 
-        ? sessionDate > currentDate 
-        : sessionDate <= currentDate;
+      switch(type) {
+        case 'upcoming':
+          return sessionDate > currentDate && session.status !== 'cancelled' && session.bookedStatus === true;
+        case 'completed':
+          return session.status === 'completed';
+        case 'past':
+          return sessionDate <= currentDate && session.status !== 'completed' && session.status !== 'cancelled';
+        case 'cancelled':
+          return session.status === 'cancelled';
+        default:
+          return true;
+      }
     });
   };
 
-  // Filter cohorts based on type and status
   const filterCohorts = (type) => {
     const currentDate = new Date();
     return cohorts.filter(cohort => {
@@ -131,7 +138,6 @@ const BookingsPage = () => {
     });
   };
 
-  // Filter courses based on activity status
   const filterCourses = (type) => {
     return courses.filter(course => course.activityStatus === type);
   };
@@ -149,7 +155,6 @@ const BookingsPage = () => {
   const handleCloseFeedbackModal = () => {
     setShowFeedbackModal(false);
     setSelectedSession(null);
-    // Optionally refresh sessions data after feedback
     fetchExpertSessions();
   };
 
@@ -161,13 +166,12 @@ const BookingsPage = () => {
         },
       });
       toast.success('Session completed successfully');
-      fetchExpertSessions(); // Refresh sessions list
+      fetchExpertSessions();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to complete session');
     }
   };
 
-  // Course card component
   const CourseCard = ({ course }) => {
     const handleLinkClick = (url) => {
       if (!url) {
@@ -181,7 +185,7 @@ const BookingsPage = () => {
       try {
         await axiosInstance.post(`/course/${course._id}/complete`);
         toast.success('Course marked as completed');
-        window.location.reload(); // Refresh to show updated status
+        window.location.reload();
       } catch (error) {
         toast.error(error.response?.data?.message || 'Failed to mark course as completed');
       }
@@ -200,7 +204,6 @@ const BookingsPage = () => {
       }
     };
 
-    // Calculate average rating
     const averageRating = course.feedback?.length > 0 
       ? (course.feedback.reduce((acc, curr) => acc + curr.rating, 0) / course.feedback.length).toFixed(1)
       : null;
@@ -283,9 +286,21 @@ const BookingsPage = () => {
     );
   };
 
-  // Session card component
   const SessionCard = ({ session }) => {
     const isPastSession = new Date(session.date) <= new Date();
+    const isCompleted = session.status === 'completed';
+    const isCancelled = session.status === 'cancelled';
+
+    const handleCancel = async () => {
+      try {
+        await axiosInstance.post(`/session/${session._id}/cancel`);
+        toast.success('Session cancelled successfully');
+        // Refresh sessions
+        fetchExpertSessions();
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to cancel session');
+      }
+    };
 
     return (
       <motion.div
@@ -293,6 +308,7 @@ const BookingsPage = () => {
         whileHover={{ y: -8, transition: { duration: 0.2 } }}
         className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group"
       >
+        <div className="h-2 bg-gradient-to-r from-blue-900 to-indigo-900"></div>
         <div className="p-6">
           <h3 className="text-xl font-bold text-[#003265] mb-3">{session.title}</h3>
           <div className="flex items-center text-sm text-gray-600 mb-4">
@@ -307,7 +323,45 @@ const BookingsPage = () => {
             <span>{session.studentName || "Student"}</span>
           </div>
           
-          <div className="mt-auto">
+          <div className="mt-auto space-y-3">
+            {isCompleted && session.notes && (
+              <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                {session.notes.text && (
+                  <p className="text-sm text-gray-700 mb-2">{session.notes.text}</p>
+                )}
+                {session.notes.files && session.notes.files.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-700">Uploaded Files:</h4>
+                    {session.notes.files.map((file, idx) => (
+                      <div key={idx} className="flex items-center justify-between bg-white p-2 rounded">
+                        <span className="text-xs text-gray-600 truncate flex-1">
+                          {file.name}
+                        </span>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => {
+                              setPreviewFile(file);
+                              setShowFilePreviewModal(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-800 transition-colors p-1"
+                            title="View file"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            onClick={() => window.open(file.url, '_blank')}
+                            className="text-blue-600 hover:text-blue-800 transition-colors p-1"
+                            title="Download file"
+                          >
+                            <Download className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             {isPastSession ? (
               <div className="space-y-3">
                 {session.status !== 'completed' ? (
@@ -335,13 +389,30 @@ const BookingsPage = () => {
                 </Button>
               </div>
             ) : (
-              <Button 
-                onClick={() => window.open(session.meetLink, '_blank')}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2"
-              >
-                <Video className="w-4 h-4" />
-                <span>Join Session</span>
-              </Button>
+              <div className="space-y-3">
+                <Button 
+                  onClick={() => window.open(session.meetLink, '_blank')}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2"
+                >
+                  <Video className="w-4 h-4" />
+                  <span>Join Session</span>
+                </Button>
+                {!isCancelled && (
+                  <Button 
+                    onClick={handleCancel}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2 mt-3"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    <span>Cancel Session</span>
+                  </Button>
+                )}
+                {isCancelled && (
+                  <div className="mt-3 text-red-600 flex items-center justify-center gap-2">
+                    <XCircle className="w-4 h-4" />
+                    <span>Session Cancelled</span>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -349,7 +420,6 @@ const BookingsPage = () => {
     );
   };
 
-  // Cohort card component
   const CohortCard = ({ cohort }) => {
     const handleLinkClick = (url) => {
       window.open(url, '_blank');
@@ -395,7 +465,7 @@ const BookingsPage = () => {
       const currentDate = new Date();
       const startDate = new Date(cohort.startDate);
       const endDate = new Date(cohort.endDate);
-      return startDate <= currentDate; // Show rating for live and past cohorts
+      return startDate <= currentDate;
     };
 
     const approvalStatus = getApprovalStatus();
@@ -466,7 +536,6 @@ const BookingsPage = () => {
     );
   };
 
-  // CategorySection component
   const CategorySection = ({ items, type }) => {
     if (!items || items.length === 0) return null;
     
@@ -499,6 +568,70 @@ const BookingsPage = () => {
     );
   };
 
+  const FilePreviewModal = ({ isOpen, onClose, file }) => {
+    if (!isOpen) return null;
+
+    const fileType = file?.name?.split('.').pop()?.toLowerCase();
+    const isImage = fileType && ['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(fileType);
+    const isCloudinaryUrl = file?.url?.includes('cloudinary.com');
+    
+    // Create embedded Google Docs viewer URL for non-image files
+    const getEmbedUrl = (fileUrl) => {
+      if (!isImage && isCloudinaryUrl) {
+        // Ensure we're using HTTPS
+        const secureUrl = fileUrl.replace('http://', 'https://');
+        return `https://docs.google.com/gview?url=${encodeURIComponent(secureUrl)}&embedded=true`;
+      }
+      return null;
+    };
+
+    const embedUrl = getEmbedUrl(file?.url);
+
+    return (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+          <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-900">{file?.name}</h3>
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="p-4">
+            {isImage ? (
+              <img
+                src={file?.url}
+                alt={file?.name}
+                className="max-w-full max-h-[600px] mx-auto object-contain"
+              />
+            ) : embedUrl ? (
+              <iframe
+                src={embedUrl}
+                width="100%"
+                height="600px"
+                className="border-0"
+                title={file?.name}
+              />
+            ) : (
+              <div className="flex items-center justify-center min-h-[400px] bg-gray-50 rounded-lg">
+                <a 
+                  href={file?.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
+                  Open file in new tab
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <Header />
@@ -526,7 +659,6 @@ const BookingsPage = () => {
           </div>
         </div>
 
-        {/* Tab Navigation */}
         <div className="bg-white rounded-2xl shadow-xl p-2 mb-8 flex w-full max-w-md mx-auto">
           <TabIndicator 
             active={activeTab === "sessions"} 
@@ -548,9 +680,8 @@ const BookingsPage = () => {
           />
         </div>
 
-        {/* Session Type Tabs */}
         {activeTab === "sessions" && (
-          <div className="bg-white rounded-xl p-2 mb-8 flex w-full max-w-[300px] mx-auto">
+          <div className="bg-white rounded-xl p-2 mb-8 flex w-full max-w-[500px] mx-auto">
             <TabIndicator 
               active={sessionType === "upcoming"} 
               label="Upcoming" 
@@ -558,15 +689,26 @@ const BookingsPage = () => {
               onClick={() => setSessionType("upcoming")}
             />
             <TabIndicator 
+              active={sessionType === "completed"} 
+              label="Completed" 
+              icon={<CheckCircle2 className="w-4 h-4" />}
+              onClick={() => setSessionType("completed")}
+            />
+            <TabIndicator 
               active={sessionType === "past"} 
               label="Past" 
               icon={<Clock className="w-4 h-4" />}
               onClick={() => setSessionType("past")}
             />
+            <TabIndicator 
+              active={sessionType === "cancelled"} 
+              label="Cancelled" 
+              icon={<XCircle className="w-4 h-4" />}
+              onClick={() => setSessionType("cancelled")}
+            />
           </div>
         )}
 
-        {/* Cohort Type Tabs */}
         {activeTab === "cohorts" && (
           <div className="bg-white rounded-xl p-2 mb-8 flex w-full max-w-[400px] mx-auto">
             <TabIndicator 
@@ -590,7 +732,6 @@ const BookingsPage = () => {
           </div>
         )}
 
-        {/* Course Type Tabs */}
         {activeTab === "courses" && (
           <div className="bg-white rounded-xl p-2 mb-8 flex w-full max-w-[300px] mx-auto">
             <TabIndicator 
@@ -608,7 +749,6 @@ const BookingsPage = () => {
           </div>
         )}
 
-        {/* Content Sections */}
         <AnimatePresence mode="wait">
           <motion.div
             key={`${activeTab}-${sessionType}-${cohortType}-${courseType}`}
@@ -624,7 +764,6 @@ const BookingsPage = () => {
               type={activeTab}
             />
 
-            {/* Empty state */}
             {((activeTab === "sessions" && (!filterSessions(sessionType) || filterSessions(sessionType).length === 0)) ||
               (activeTab === "cohorts" && (!filterCohorts(cohortType) || filterCohorts(cohortType).length === 0)) ||
               (activeTab === "courses" && (!filterCourses(courseType) || filterCourses(courseType).length === 0))) && (
@@ -672,6 +811,15 @@ const BookingsPage = () => {
           setSelectedSessionForNotes(null);
         }}
         onSubmit={handleCompleteSession}
+      />
+
+      <FilePreviewModal
+        isOpen={showFilePreviewModal}
+        onClose={() => {
+          setShowFilePreviewModal(false);
+          setPreviewFile(null);
+        }}
+        file={previewFile}
       />
     </div>
   );

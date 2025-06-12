@@ -33,8 +33,7 @@ export const bookSession = async (req, res) => {
     session.status = 'upcoming';
 
    
-    expert.outstandingAmount.sessions += session.pricing.expertFee;
-    expert.outstandingAmount.total += session.pricing.expertFee;
+   
     console.log("expert.outstandingAmount", expert.outstandingAmount);
     await expert.save();
     const oAuth2Client = new google.auth.OAuth2(
@@ -219,7 +218,8 @@ export const getPastSessions = async (req, res) => {
           startTime: session.startTime,
           endTime: session.endTime,
           feedback: hasFeedback ? session.feedback : null,
-          rating: hasFeedback ? session.feedback.rating : 0
+          rating: hasFeedback ? session.feedback.rating : 0,
+          notes: session.status === 'completed' ? session.notes : null
         };
       })
     });
@@ -308,62 +308,208 @@ export const updateSessionFeedback = async (req, res) => {
 };
 
 export const addNotesAndComplete = async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        const { notes } = req.body;
+        const files = req.files || [];
+
+        // console.log('Attempting to complete session:', sessionId);
+        // console.log('Files received:', files.map(f => ({ name: f.originalname, type: f.mimetype })));
+
+        const session = await Session.findById(sessionId);
+        const expert = await Expert.findById(session.expert);
+
+        if (!session) {
+            return res.status(404).json({
+                success: false,
+                message: 'Session not found'
+            });
+        }
+
+        // Upload files to cloudinary if any
+        const uploadedFiles = files.map(file => ({
+          url: file.path, // Cloudinary URL already assigned by multer-storage-cloudinary
+          name: file.originalname,
+          type: file.mimetype
+        }));
+        expert.outstandingAmount.sessions += session.pricing.expertFee;
+        expert.outstandingAmount.total += session.pricing.expertFee;
+        // console.log('All files uploaded successfully:', uploadedFiles);
+        // console.log('typeof uploadedFiles:', typeof uploadedFiles);
+        // console.log('Array.isArray(uploadedFiles):', Array.isArray(uploadedFiles));
+        // console.log('uploadedFiles[0]:', uploadedFiles[0]);
+        // console.log('Schema for notes.files:', session.schema.path('notes.files').instance);
+        // console.log('session.schema.path("notes.files"):', session.schema.path('notes.files'));
+        // console.log(notes);
+        session.notes.text = notes || '';
+        session.notes.files = uploadedFiles;
+        session.notes.uploadedAt = new Date();
+        // console.log('Schema for notes.files:', session.schema.path('notes.files').instance);
+
+        session.status = 'completed';
+
+        await session.save();
+        await expert.save();
+        // console.log('Session updated successfully with notes and files');
+
+        res.status(200).json({
+            success: true,
+            message: 'Session completed successfully',
+            session
+        });
+    } catch (error) {
+        console.error('Error completing session:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error completing session',
+            error: error.message
+        });
+    }
+};
+
+export const cancelSession = async (req, res) => {
   try {
     const { sessionId } = req.params;
-    const { notes } = req.body;
-    const files = req.files;
+    const session = await Session.findById(sessionId).populate('bookedBy').populate('expert');
 
-    const session = await Session.findById(sessionId);
     if (!session) {
       return res.status(404).json({ message: 'Session not found' });
     }
 
-    if (session.expert.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized to modify this session' });
+    if (session.status === 'cancelled') {
+      return res.status(400).json({ message: 'Session is already cancelled' });
     }
 
-    // Initialize notes object
-    let notesData = {
-      text: notes || '',
-      uploadedAt: new Date(),
-      files: []
-    };
-
-    // Handle file uploads
-    if (files && files.length > 0) {
-      const uploadPromises = files.map(file => 
-        cloudinary.uploader.upload(file.path, {
-          folder: 'session_notes',
-          resource_type: 'auto'
-        })
-      );
-
-      const uploadResults = await Promise.all(uploadPromises);
-      notesData.files = uploadResults.map(result => ({
-        url: result.secure_url,
-        name: result.original_filename || 'Untitled',
-        type: result.format
-      }));
+    if (session.status === 'completed') {
+      return res.status(400).json({ message: 'Cannot cancel a completed session' });
     }
 
-    console.log(typeof notesData.files, notesData.files);
-
-    // Update session
-    session.notes = notesData;
-    session.status = 'completed';
-    
+    session.status = 'cancelled';
     await session.save();
 
-    res.status(200).json({ 
-      message: 'Session completed successfully with notes',
-      session
+    // Send email to user about cancellation
+    await sendMail({
+      to: session.bookedBy.email,
+      subject: 'Session Cancelled by Expert',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+          <h2 style="color: #333;">Session Cancellation Notice</h2>
+          <p>Your session scheduled for ${new Date(session.date).toLocaleDateString()} at ${session.startTime} has been cancelled by the expert.</p>
+          <p>Details:</p>
+          <ul>
+            <li>Expert: ${session.expert.firstName} ${session.expert.lastName}</li>
+            <li>Date: ${new Date(session.date).toLocaleDateString()}</li>
+            <li>Time: ${session.startTime} - ${session.endTime}</li>
+          </ul>
+          <p>Please contact our support team for refund assistance.</p>
+          <p>We apologize for any inconvenience caused.</p>
+        </div>
+      `
     });
 
+    res.status(200).json({ message: 'Session cancelled successfully' });
   } catch (error) {
-    console.error('Error adding notes and completing session:', error);
-    res.status(500).json({ 
-      message: 'Error completing session',
-      error: error.message 
+    console.error('Error cancelling session:', error);
+    res.status(500).json({ message: 'Error cancelling session', error: error.message });
+  }
+};
+
+// Add refund request functionality
+export const requestRefund = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const { reason } = req.body;
+    const files = req.files || [];
+
+    // Validate reason
+    if (!reason || reason.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a reason for the refund request'
+      });
+    }
+
+    const session = await Session.findById(sessionId).populate('expert');
+    
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: 'Session not found'
+      });
+    }
+
+    // Verify that the user was the one who booked this session
+    if (session.bookedBy.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to request refund for this session'
+      });
+    }
+
+    // If refund was already requested
+    if (session.refundRequest && session.refundRequest.isRequested) {
+      return res.status(400).json({
+        success: false,
+        message: 'Refund has already been requested for this session'
+      });
+    }
+
+    // Process uploaded files
+    const uploadedDocs = files.map(file => ({
+      url: file.path,
+      name: file.originalname,
+      type: file.mimetype
+    }));
+
+    // Ensure status is correctly spelled before saving
+    // Fix any potential typo from "conpleted" to "completed"
+    if (session.status === 'conpleted') {
+      session.status = 'completed';
+    }
+
+    // Update session with refund request
+    session.refundRequest = {
+      isRequested: true,
+      reason,
+      requestDate: new Date(),
+      supportingDocs: uploadedDocs,
+      status: 'pending'
+    };
+
+    await session.save();
+
+    // Send email notification to admin
+    await sendMail({
+      to: process.env.EMAIL_USER|| 'admin@example.com',
+      subject: 'New Refund Request Submitted',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+          <h2 style="color: #333;">New Refund Request</h2>
+          <p>A student has submitted a refund request for a session.</p>
+          <p>Session details:</p>
+          <ul>
+            <li>Session ID: ${session._id}</li>
+            <li>Date: ${new Date(session.date).toLocaleDateString()}</li>
+            <li>Time: ${session.startTime} - ${session.endTime}</li>
+            <li>Expert: ${session.expertName}</li>
+            <li>Amount: ₹${session.pricing?.total || 0}</li>
+          </ul>
+          <p>Reason: ${reason}</p>
+          <p>Please check the admin dashboard to review this request.</p>
+        </div>
+      `
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Refund request submitted successfully'
+    });
+  } catch (error) {
+    console.error('Error requesting refund:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error requesting refund',
+      error: error.message
     });
   }
 };

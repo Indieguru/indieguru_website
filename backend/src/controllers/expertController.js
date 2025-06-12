@@ -62,6 +62,87 @@ export const addSlot = async (req, res) => {
   }
 };
 
+// Add a new batch creation endpoint for multiple session slots
+export const addBatchSlots = async (req, res) => {
+  try {
+    const { slots } = req.body;
+    const expertId = req.user.id;
+    
+    if (!Array.isArray(slots) || slots.length === 0) {
+      return res.status(400).json({ message: "Slots must be a non-empty array" });
+    }
+
+    // Get expert's session pricing and details
+    const expert = await Expert.findById(expertId);
+    if (!expert.sessionPricing || typeof expert.sessionPricing.expertFee !== 'number') {
+      return res.status(400).json({ message: "Please set your session pricing first" });
+    }
+
+    let addedCount = 0;
+    let duplicateCount = 0;
+    const newSlots = [];
+
+    // Process each slot in the batch
+    for (const slotData of slots) {
+      const { date, startTime, endTime } = slotData;
+      
+      // Basic validations for each slot
+      if (!date || !startTime || !endTime) {
+        continue; // Skip invalid slots
+      }
+
+      // Check if already a slot at same time for this expert
+      const existingSlot = await Session.findOne({
+        expert: expertId,
+        date: new Date(date),
+        startTime,
+        endTime,
+      });
+
+      if (existingSlot) {
+        duplicateCount++;
+        continue; // Skip duplicate slots
+      }
+
+      // Create new slot
+      const newSlot = new Session({
+        expert: expertId,
+        expertName: `${expert.firstName} ${expert.lastName}`,
+        expertTitle: expert.title,
+        expertExpertise: expert.expertise,
+        date: new Date(date),
+        startTime,
+        endTime,
+        pricing: {
+          expertFee: expert.sessionPricing.expertFee,
+          platformFee: expert.sessionPricing.platformFee,
+          currency: expert.sessionPricing.currency
+        },
+        status: 'not booked',
+        meetLink: 'To be generated', // Will update meet link after booking
+      });
+
+      newSlots.push(newSlot);
+      addedCount++;
+    }
+
+    // Save all new slots in a single batch operation
+    if (newSlots.length > 0) {
+      await Session.insertMany(newSlots);
+    }
+
+    res.status(201).json({ 
+      message: "Slots created successfully", 
+      addedCount,
+      duplicateCount,
+      totalRequested: slots.length
+    });
+  } catch (error) {
+    console.error('Error creating batch slots:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
 export const matchExperts = async (req, res) => {
   try {
     const { userType, guidanceType, industry } = req.query;
@@ -378,6 +459,24 @@ export const deleteSession = async (req, res) => {
   }
 };
 
+// Get available (unbooked) sessions for a logged-in expert
+export const getExpertAvailableSessions = async (req, res) => {
+  try {
+    const expertId = req.user.id;
+    const sessions = await Session.find({ 
+      expert: expertId,
+      bookedStatus: false,
+      date: { $gte: new Date() }
+    })
+    .sort({ date: 1, startTime: 1 });
+    
+    res.status(200).json(sessions);
+  } catch (error) {
+    console.error('Error fetching expert available sessions:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
 export const getExpertDashboardData = async (req, res) => {
   try {
     // Convert Buffer ID to string if needed and ensure it's a valid ObjectId
@@ -389,10 +488,10 @@ export const getExpertDashboardData = async (req, res) => {
       return res.status(404).json({ message: "Expert not found" });
     }
 
-    // Get upcoming sessions
+    // Get upcoming sessions that are BOOKED
     const upcomingSessions = await Session.find({
       expert: expertId,
-      status: 'upcoming',
+      bookedStatus: true,  // This is the key change - focusing on bookedStatus first
       date: { $gte: new Date() }
     })
     .populate('bookedBy', 'firstName lastName') // Populate student information
@@ -1145,7 +1244,7 @@ export const getExpertById = async (req, res) => {
   }
 };
 
-export const getExpertAvailableSessions = async (req, res) => {
+export const getExpertByIdAvailableSessions = async (req, res) => {
   try {
     const { expertId } = req.params;
     const sessions = await Session.find({ 

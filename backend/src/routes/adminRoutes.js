@@ -5,6 +5,13 @@ import Session from '../models/Session.js';
 import Payment from '../models/Payment.js';
 import Course from '../models/Course.js';
 import Cohort from '../models/Cohort.js';
+import { 
+    getCancelledSessions, 
+    markRefundProcessed, 
+    getRefundRequests,
+    approveRefundRequest,
+    rejectRefundRequest
+} from '../controllers/adminController.js';
 
 const router = express.Router();
 
@@ -241,5 +248,16 @@ router.post('/cohorts/:cohortId/reject', async (req, res) => {
         });
     }
 });
+
+// Get cancelled sessions requiring refund
+router.get('/cancelled-sessions',  getCancelledSessions);
+
+// Mark session refund as processed
+router.post('/sessions/:sessionId/refund-processed',  markRefundProcessed);
+
+// Refund request routes
+router.get('/refund-requests', getRefundRequests);
+router.post('/sessions/:sessionId/approve-refund', approveRefundRequest);
+router.post('/sessions/:sessionId/reject-refund', rejectRefundRequest);
 
 export default router;

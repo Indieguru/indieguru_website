@@ -12,16 +12,6 @@ function ProfileCard() {
   });
 
   useEffect(() => {
-    const initProfile = async () => {
-      try {
-        await fetchUser();
-      } catch (error) {   
-        console.error("Error fetching user details:", error);
-      }
-    };
-
-    initProfile();
-
     const calculateCompletedSteps = () => {
       let completed = 0;
       if (user?.firstName) completed++;
@@ -39,7 +29,7 @@ function ProfileCard() {
       completedSteps: calculateCompletedSteps(),
       totalSteps: 8
     });
-  }, [user, fetchUser]);
+  }, [user]);
 
   const completionPercentage = (completionData.completedSteps / completionData.totalSteps) * 100;
   const isCompleted = completionData.completedSteps === completionData.totalSteps;
@@ -50,7 +40,6 @@ function ProfileCard() {
         <h2 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center">
           <span className="mr-2">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M19.4 15C19.1277 15.8031 19.0095 16.6495 19.0526 17.4984C19.0957 18.3472 19.2994 19.1772 19.65 19.95L19.7 20H4.3L4.35 19.95C4.70062 19.1772 4.90432 18.3472 4.94743 17.4984C4.99053 16.6495 4.87227 15.8031 4.6 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </span>
@@ -83,47 +72,34 @@ function ProfileCard() {
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  transition={{ duration: 0.3 }}
-                  className="bg-green-500 text-white text-xs px-2 py-1 rounded-full"
+                  className="text-green-500"
                 >
-                  Completed!
+                  <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
                 </motion.div>
               )}
             </div>
           </div>
-          <div className="h-2 w-full bg-[#f5f5f5] rounded-full overflow-hidden">
-            <motion.div 
+          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${completionPercentage}%` }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
-              className={`h-full rounded-full ${isCompleted ? 'bg-green-500' : 'bg-indigo-900'}`}
+              transition={{ duration: 0.5 }}
+              className="h-full bg-indigo-600 rounded-full"
             />
           </div>
         </div>
 
-        <p className="text-xs text-gray-600 mb-4">
-          {isCompleted 
-            ? "Great job! Your profile is now complete. Keep exploring and learning!" 
-            : "Complete your profile to unlock personalized learning paths and connect with experts in your field."}
-        </p>
-        <div className="flex-grow"></div>
-        <div className="flex justify-between items-center">
-          <Link to="/profile">
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-indigo-900 hover:bg-indigo-800 text-white text-xs py-2 px-4 h-8 rounded shadow-sm transition-all duration-300"
-            >
-              {isCompleted ? 'View Profile' : 'Complete Profile'}
-            </motion.button>
-          </Link>
-          <Link to="/profile" className="text-xs text-indigo-900 hover:text-indigo-800 transition-colors duration-300">
-            View Details
-          </Link>
-        </div>
+        <Link
+          to="/profile"
+          className="mt-auto text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+        >
+          View Profile →
+        </Link>
       </div>
     </Card>
-  )
+  );
 }
 
 export default ProfileCard
