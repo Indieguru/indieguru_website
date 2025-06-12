@@ -247,7 +247,7 @@ const BookingsPage = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-baseline">
               <span className="text-2xl font-bold text-[#003265]">
-                ₹{course.pricing?.expertFee || 0}
+                ₹{ course.pricing?.expertFee || 0}
               </span>
             </div>
             <div className="flex gap-2">
@@ -364,7 +364,7 @@ const BookingsPage = () => {
             )}
             {isPastSession ? (
               <div className="space-y-3">
-                {session.status !== 'completed' ? (
+                {session.status !== 'completed' && session.status !== 'cancelled' ? (
                   <Button 
                     onClick={() => {
                       setSelectedSessionForNotes(session);

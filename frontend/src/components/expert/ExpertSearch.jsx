@@ -43,7 +43,7 @@ const ExpertCard = ({ expert }) => {
           
           <div className="text-right">
             <div className="text-lg font-bold text-gray-900">
-              ₹{expert.sessionPricing?.expertFee || 0}
+              ₹{expert.sessionPricing?.total || expert.sessionPricing?.expertFee + (expert.sessionPricing?.platformFee || 0) || 0}
             </div>
             <div className="text-xs text-gray-500">per session</div>
           </div>
