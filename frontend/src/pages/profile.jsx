@@ -19,7 +19,7 @@ import ProfilePictureModal from "../components/modals/ProfilePictureModal"
 import checkAuth from '../utils/checkAuth'
 
 function Profile() {
-  const { user, fetchUser } = useUserStore()
+  const { user, fetchUser, refreshUser } = useUserStore()
   const navigate = useNavigate();
   const location = useLocation();
   const { userType, setUserType } = useUserTypeStore();
@@ -40,7 +40,7 @@ function Profile() {
         navigate("/signup");
         return;
       }
-      fetchUser();
+      fetchUser(); // Initial fetch will use cache if available
     }
   }, [userType, navigate, fetchUser, authData]);
 
@@ -188,7 +188,7 @@ function Profile() {
         })
         .then((res) => {
           if (res.status === 200) {
-            fetchUser();
+            refreshUser(); // Force refresh after adding skill
             setProfileData((prev) => ({
               ...prev,
               skills: [...prev.skills, skillToAdd],
@@ -220,7 +220,7 @@ function Profile() {
         })
         .then((res) => {
           if (res.status === 200) {
-            fetchUser();
+            refreshUser(); // Force refresh after adding goal
             setProfileData((prev) => ({
               ...prev,
               goals: [...prev.goals, goalToAdd],
@@ -291,20 +291,16 @@ function Profile() {
   }
 
   const handleLogout = async () => {
-    // Clear user session or token logic here
-    try{
+    try {
       const res = await axiosInstance.post("/user/auth/signout");
-      if(res.status === 200)
+      if (res.status === 200) {
         setUserType("not_signed_in");
-      fetchUser();
+      }
       navigate("/");
-  
-    }
-    catch(err){
+    } catch (err) {
       console.error("Logout error:", err);
       setErrorMessage("Failed to logout. Please try again.");
     }
-
   };
 
   const handleUpdateProfilePicture = async (file) => {
@@ -326,7 +322,7 @@ function Profile() {
           ...prev,
           profilePicture: response.data.profilePicture
         }));
-        fetchUser();
+        refreshUser(); // Force refresh after profile picture update
       }
     } catch (error) {
       console.error('Error updating profile picture:', error);

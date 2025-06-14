@@ -13,7 +13,7 @@ import AddCohortModal from '../components/modals/AddCohortModal';
 import BlogModal from '../components/modals/BlogModal';
 import useUserTypeStore from '../store/userTypeStore';
 import checkAuth from '../utils/checkAuth';
-import { Calendar, Clock, X, Plus } from 'lucide-react';
+import { Calendar, Clock, X, Plus, Check } from 'lucide-react';
 
 function ExpertDashboard() {
   const { expertData, fetchExpertData, isLoading, error } = useExpertStore();
@@ -22,8 +22,8 @@ function ExpertDashboard() {
   const navigate = useNavigate();
   const { userType, setUserType } = useUserTypeStore();
   const [showCalendarModal, setShowCalendarModal] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
+  const [selectedDates, setSelectedDates] = useState([]);
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState([]);
   const [message, setMessage] = useState('');
   const [showCourseModal, setShowCourseModal] = useState(false);
   const [showCohortModal, setShowCohortModal] = useState(false);
@@ -33,6 +33,12 @@ function ExpertDashboard() {
   const [authData, setAuthData] = useState(null);
   const [showBlogModal, setShowBlogModal] = useState(false);
   const [blogs, setBlogs] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Add state for available slots
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  const [showAvailableSlotsModal, setShowAvailableSlotsModal] = useState(false);
 
   const timeSlots = [
     "09:00-10:00", "10:00-11:00", "11:00-12:00", "12:00-13:00",
@@ -44,38 +50,72 @@ function ExpertDashboard() {
     setShowCalendarModal(true);
   };
 
+  const handleDateSelect = (date) => {
+    const dateExists = selectedDates.some(
+      selectedDate => selectedDate.toDateString() === date.toDateString()
+    );
+
+    if (dateExists) {
+      setSelectedDates(selectedDates.filter(
+        selectedDate => selectedDate.toDateString() !== date.toDateString()
+      ));
+    } else {
+      setSelectedDates([...selectedDates, date]);
+    }
+  };
+
   const handleTimeSlotSelect = (slot) => {
-    console.log('Selecting time slot:', slot); // Debug log
-    setSelectedTimeSlot(slot);
+    if (selectedTimeSlots.includes(slot)) {
+      setSelectedTimeSlots(selectedTimeSlots.filter(timeSlot => timeSlot !== slot));
+    } else {
+      setSelectedTimeSlots([...selectedTimeSlots, slot]);
+    }
   };
 
   const handleAddSlot = async () => {
-    if (!selectedDate || !selectedTimeSlot) {
-      setMessage('Please select both date and time slot');
+    if (selectedDates.length === 0 || selectedTimeSlots.length === 0) {
+      setMessage('Please select at least one date and one time slot');
       return;
     }
 
-    const [startTime, endTime] = selectedTimeSlot.split('-');
-    
+    setIsProcessing(true);
+    setMessage('Processing slots...');
+
     try {
-      const formattedDate = selectedDate.toISOString().split('T')[0]; // Format date as YYYY-MM-DD
-      await axiosInstance.post('/expert/addsession', {
-        date: formattedDate,
-        startTime,
-        endTime,
-        duration: 60
+      const slotRequests = [];
+
+      for (const date of selectedDates) {
+        for (const timeSlot of selectedTimeSlots) {
+          const [startTime, endTime] = timeSlot.split('-');
+          const formattedDate = date.toISOString().split('T')[0];
+
+          slotRequests.push({
+            date: formattedDate,
+            startTime,
+            endTime,
+            duration: 60
+          });
+        }
+      }
+
+      const response = await axiosInstance.post('/expert/addsession/batch', {
+        slots: slotRequests
       });
 
-      setMessage('Slot added successfully');
-      setSelectedDate(null);
-      setSelectedTimeSlot('');
+      setMessage(`Successfully added ${response.data.addedCount} slots. ${response.data.duplicateCount || 0} duplicates were skipped.`);
+
+      setSelectedDates([]);
+      setSelectedTimeSlots([]);
+
       setTimeout(() => {
         setMessage('');
         setShowCalendarModal(false);
-      }, 1500);
+      }, 2000);
     } catch (error) {
-      console.error('Error adding slot:', error);
-      setMessage(error.response?.data?.message || 'Error adding slot. Please try again.');
+      console.error('Error adding slots:', error);
+      setMessage(error.response?.data?.message || 'Error adding slots. Please try again.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -84,7 +124,6 @@ function ExpertDashboard() {
     if (session.meetLink) {
       window.open(session.meetLink, '_blank');
     } else {
-      // If no meet link is available yet
       alert('Meeting link is not available yet. It will be generated closer to the session time.');
     }
   };
@@ -109,7 +148,38 @@ function ExpertDashboard() {
 
   const handleBlogModalClose = () => {
     setShowBlogModal(false);
-    fetchExpertBlogs(); // Refresh blogs after modal closes
+    fetchExpertBlogs();
+  };
+
+  // Function to fetch available slots
+  const fetchAvailableSlots = async () => {
+    setIsLoadingSlots(true);
+    try {
+      const response = await axiosInstance.get('/expert/sessions/available');
+      setAvailableSlots(response.data);
+    } catch (error) {
+      console.error('Error fetching available slots:', error);
+    } finally {
+      setIsLoadingSlots(false);
+    }
+  };
+
+  // Function to handle viewing available slots
+  const handleViewAvailableSlots = () => {
+    fetchAvailableSlots();
+    setShowAvailableSlotsModal(true);
+  };
+
+  // Function to handle deleting a slot
+  const handleDeleteSlot = async (slotId) => {
+    try {
+      await axiosInstance.delete(`/expert/sessions/${slotId}`);
+      // Remove the deleted slot from the state
+      setAvailableSlots(availableSlots.filter(slot => slot._id !== slotId));
+    } catch (error) {
+      console.error('Error deleting slot:', error);
+      alert('Failed to delete slot. ' + (error.response?.data?.message || 'Please try again.'));
+    }
   };
 
   useEffect(() => {
@@ -195,7 +265,6 @@ function ExpertDashboard() {
 
   const handleCourseModalClose = async () => {
     setShowCourseModal(false);
-    // Refresh courses list
     await fetchExpertCourses();
   };
 
@@ -205,7 +274,6 @@ function ExpertDashboard() {
 
   const handleCohortModalClose = async () => {
     setShowCohortModal(false);
-    // Refresh cohorts data
     await fetchExpertCohorts();
   };
 
@@ -399,7 +467,7 @@ function ExpertDashboard() {
                 <div className="bg-blue-100 p-3 rounded-full mb-3">
                   <svg className="w-8 h-8 text-blue-900" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
                     <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                  </svg>
+                </svg>
                 </div>
                 <h3 className="text-lg font-semibold text-blue-900 mb-1">Conduct Cohort</h3>
                 <p className="text-xs text-center text-blue-900 mb-3">Lead a group learning experience</p>
@@ -559,79 +627,190 @@ function ExpertDashboard() {
           </div>
         </section>
 
-        {/* Session Details Modal */}
-        {showSessionDetailsModal && selectedSession && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-lg">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-gray-800">Session Details</h2>
-                <button 
-                  onClick={() => setShowSessionDetailsModal(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+        {/* Section 3.5: Available Time Slots */}
+        <section className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold text-gray-800 flex items-center">
+              <span className="mr-2 text-green-600">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 2V5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M16 2V5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M3 9H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M19 4H5C3.89543 4 3 4.89543 3 6V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V6C21 4.89543 20.1046 4 19 4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M9 13L11 15L15 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </span>
+              Your Available Time Slots
+            </h2>
+            <button 
+              onClick={handleViewAvailableSlots}
+              className="bg-green-600 hover:bg-green-700 text-white text-sm py-2 px-4 rounded-lg flex items-center transition-colors duration-300"
+            >
+              <span className="mr-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M12 8V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M16 12L8 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </span>
+              View All Available Slots
+            </button>
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm text-gray-600">
+                These are your upcoming time slots that haven't been booked by students yet. 
+                Students can browse and book these slots based on your availability.
+              </p>
+              <button
+                onClick={handleManageCalendar}
+                className="text-blue-700 hover:text-blue-900 text-sm font-medium"
+              >
+                + Add More Slots
+              </button>
+            </div>
+            
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="bg-green-50 p-4 rounded-lg border border-green-100 flex flex-col">
+                <div className="text-green-600 mb-1">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-800">Manage Your Calendar</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Keep your calendar up to date to ensure students can find and book sessions with you.
+                </p>
+                <div className="mt-4 pt-4 border-t border-green-100">
+                  <button 
+                    onClick={handleViewAvailableSlots}
+                    className="text-green-600 hover:text-green-800 text-sm font-medium"
+                  >
+                    View all available slots →
+                  </button>
+                </div>
               </div>
+            </div>
+          </div>
+        </section>
 
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-indigo-900 mb-2">{selectedSession.title}</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Student Name</p>
-                      <p className="font-medium">{selectedSession.studentName || 'Not assigned'}</p>
+        {/* Available Slots Modal */}
+        {showAvailableSlotsModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                      <Calendar className="w-4 h-4 text-white" />
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Session Type</p>
-                      <p className={`inline-block px-2 py-1 rounded-full text-sm font-medium ${
-                        selectedSession.type === "1-on-1" ? "bg-red-100 text-red-600" : 
-                        selectedSession.type === "Cohort" ? "bg-purple-100 text-indigo-900" : 
-                        "bg-blue-100 text-blue-900"
-                      }`}>
-                        {selectedSession.type}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Date</p>
-                      <p className="font-medium">
-                        {new Date(selectedSession.date).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Time</p>
-                      <p className="font-medium">{selectedSession.time}</p>
-                    </div>
+                    <h2 className="text-xl font-semibold text-white">Your Available Time Slots</h2>
                   </div>
-                  
-                  {selectedSession.meetLink && (
-                    <div className="mt-4">
-                      <p className="text-sm text-gray-600 mb-1">Meeting Link</p>
-                      <a 
-                        href={selectedSession.meetLink} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 underline break-all"
-                      >
-                        {selectedSession.meetLink}
-                      </a>
-                    </div>
-                  )}
+                  <button 
+                    onClick={() => setShowAvailableSlotsModal(false)}
+                    className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition-colors"
+                  >
+                    <X className="w-4 h-4 text-white" />
+                  </button>
                 </div>
               </div>
 
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={() => setShowSessionDetailsModal(false)}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-300"
-                >
-                  Close
-                </button>
+              {/* Content */}
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+                {isLoadingSlots ? (
+                  <div className="flex justify-center items-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
+                  </div>
+                ) : availableSlots.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto flex items-center justify-center mb-4">
+                      <Calendar className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-800 mb-2">No Available Slots</h3>
+                    <p className="text-gray-600 mb-6">You don't have any available time slots.</p>
+                    <button
+                      onClick={handleManageCalendar}
+                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    >
+                      Add New Slots
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex justify-between mb-6">
+                      <div>
+                        <h3 className="text-lg font-medium text-gray-800">
+                          {availableSlots.length} Available Slot{availableSlots.length !== 1 ? 's' : ''}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          These slots are visible to students and available for booking
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleManageCalendar}
+                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm flex items-center transition-colors"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add More Slots
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {availableSlots.map((slot) => {
+                        const slotDate = new Date(slot.date);
+                        return (
+                          <div key={slot._id} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                            <div className="p-4">
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="flex items-center">
+                                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                    <span className="text-green-700 font-bold text-sm">
+                                      {slotDate.getDate()}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <div className="font-medium text-gray-900">
+                                      {slotDate.toLocaleDateString('en-US', { weekday: 'long' })}
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                      {slotDate.toLocaleDateString('en-US', { 
+                                        month: 'long', 
+                                        day: 'numeric',
+                                        year: 'numeric'
+                                      })}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div>
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Available
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              <div className="bg-gray-50 p-2 rounded-lg mt-3 flex items-center">
+                                <Clock className="w-4 h-4 text-gray-500 mr-2" />
+                                <span className="text-gray-700">{slot.startTime} - {slot.endTime}</span>
+                              </div>
+                              
+                              <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between">
+                                <div className="text-sm text-gray-500">
+                                  ₹{slot.pricing?.expertFee || 0}
+                                </div>
+                                <button
+                                  onClick={() => handleDeleteSlot(slot._id)}
+                                  className="text-red-600 hover:text-red-800 text-sm font-medium transition-colors"
+                                >
+                                  Delete Slot
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -810,7 +989,7 @@ function ExpertDashboard() {
                   <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
                     <Calendar className="w-4 h-4 text-white" />
                   </div>
-                  <h2 className="text-xl font-semibold text-white">Schedule Time Slot</h2>
+                  <h2 className="text-xl font-semibold text-white">Schedule Time Slots</h2>
                 </div>
                 <button 
                   onClick={() => setShowCalendarModal(false)}
@@ -825,14 +1004,14 @@ function ExpertDashboard() {
             <div className="p-6 space-y-6 scrollbar-hidden overflow-y-auto max-h-[calc(90vh-80px)]">
               {message && (
                 <div className={`p-4 rounded-xl flex items-center space-x-3 ${
-                  message.includes('Error') 
+                  message.includes('Error') || message.includes('Please select')
                     ? 'bg-red-50 border border-red-200 text-red-700' 
                     : 'bg-green-50 border border-green-200 text-green-700'
                 }`}>
                   <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                    message.includes('Error') ? 'bg-red-100' : 'bg-green-100'
+                    message.includes('Error') || message.includes('Please select') ? 'bg-red-100' : 'bg-green-100'
                   }`}>
-                    {message.includes('Error') ? '!' : '✓'}
+                    {message.includes('Error') || message.includes('Please select') ? '!' : '✓'}
                   </div>
                   <span className="text-sm font-medium">{message}</span>
                 </div>
@@ -840,47 +1019,85 @@ function ExpertDashboard() {
 
               {/* Date Selection */}
               <div className="space-y-3">
-                <label className="flex items-center space-x-2 text-sm font-semibold text-[#003265]">
-                  <Calendar className="w-4 h-4" />
-                  <span>Select Date</span>
-                </label>
+                <div className="flex justify-between items-center">
+                  <label className="flex items-center space-x-2 text-sm font-semibold text-[#003265]">
+                    <Calendar className="w-4 h-4" />
+                    <span>Select Multiple Dates</span>
+                  </label>
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                    {selectedDates.length} selected
+                  </span>
+                </div>
                 <div className="relative">
                   <DatePicker
-                    selected={selectedDate}
-                    onChange={date => setSelectedDate(date)}
+                    selected={null}
+                    onChange={handleDateSelect}
                     minDate={new Date()}
-                    className="w-full p-4 border-2 border-gray-200 rounded-xl focus:border-[#003265] focus:ring-4 focus:ring-[#003265]/10 outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
-                    dateFormat="MMMM d, yyyy"
-                    placeholderText="Click to select a date"
+                    highlightDates={selectedDates}
+                    inline
+                    className="w-full border-2 border-gray-200 rounded-xl focus:border-[#003265] focus:ring-4 focus:ring-[#003265]/10 outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
                   />
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {selectedDates.map((date, index) => (
+                    <div key={index} className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full flex items-center">
+                      <span>{date.toLocaleDateString()}</span>
+                      <button 
+                        onClick={() => handleDateSelect(date)}
+                        className="ml-2 text-blue-500 hover:text-blue-700"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
 
               {/* Time Slot Selection */}
-              {selectedDate && (
-                <div className="space-y-3">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
                   <label className="flex items-center space-x-2 text-sm font-semibold text-[#003265]">
                     <Clock className="w-4 h-4" />
-                    <span>Available Time Slots</span>
+                    <span>Select Multiple Time Slots</span>
                   </label>
-                  <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto scrollbar-hidden p-1">
-                    {timeSlots.map((slot) => (
-                      <button
-                        key={slot}
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleTimeSlotSelect(slot);
-                        }}
-                        className={`p-3 text-sm font-medium border-2 rounded-xl transition-all ${
-                          selectedTimeSlot === slot
-                            ? 'bg-[#003265] text-white border-[#003265] shadow-lg'
-                            : 'bg-white text-gray-700 border-gray-200 hover:border-[#003265] hover:bg-[#003265]/5'
-                        }`}
-                      >
-                        {slot}
-                      </button>
-                    ))}
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                    {selectedTimeSlots.length} selected
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto scrollbar-hidden p-1">
+                  {timeSlots.map((slot) => (
+                    <button
+                      key={slot}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleTimeSlotSelect(slot);
+                      }}
+                      className={`p-3 text-sm font-medium border-2 rounded-xl transition-all flex justify-between items-center ${
+                        selectedTimeSlots.includes(slot)
+                          ? 'bg-[#003265] text-white border-[#003265] shadow-lg'
+                          : 'bg-white text-gray-700 border-gray-200 hover:border-[#003265] hover:bg-[#003265]/5'
+                      }`}
+                    >
+                      <span>{slot}</span>
+                      {selectedTimeSlots.includes(slot) && (
+                        <Check className="w-4 h-4" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Calculation Summary */}
+              {selectedDates.length > 0 && selectedTimeSlots.length > 0 && (
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Summary</h3>
+                  <div className="text-sm text-gray-600">
+                    <p>Creating {selectedDates.length * selectedTimeSlots.length} slots across:</p>
+                    <ul className="list-disc list-inside mt-1 ml-2">
+                      <li>{selectedDates.length} dates</li>
+                      <li>{selectedTimeSlots.length} time slots per day</li>
+                    </ul>
                   </div>
                 </div>
               )}
@@ -889,11 +1106,20 @@ function ExpertDashboard() {
               <div className="pt-2">
                 <button
                   onClick={handleAddSlot}
-                  disabled={!selectedDate || !selectedTimeSlot}
+                  disabled={selectedDates.length === 0 || selectedTimeSlots.length === 0 || isProcessing}
                   className="w-full bg-[#003265] hover:bg-[#004080] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-xl transition-colors flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
                 >
-                  <Plus className="w-4 h-4" />
-                  <span>Add Time Slot</span>
+                  {isProcessing ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                      <span>Processing...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      <span>Add Time Slots</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
