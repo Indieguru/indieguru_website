@@ -8,7 +8,7 @@ import { Modal } from "../components/modals/modal";
 import { BookingModal } from "../components/modals/BookingModal";
 import useAuthStore from "../store/authStore";
 import useUserTypeStore from "../store/userTypeStore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import axiosInstance from "../config/axios.config";
 import ExpertSearch from '../components/expert/ExpertSearch';
 
@@ -128,6 +128,7 @@ const CohortCard = ({ item, onJoin }) => (
 
 const AllCoursesPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { fetchIsAuthenticated } = useAuthStore();
   const { userType } = useUserTypeStore();
   const isAuthenticated = userType !== "not_signed_in";
@@ -143,6 +144,14 @@ const AllCoursesPage = () => {
   const [cohorts, setCohorts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Handle URL parameters to set active tab
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['courses', 'sessions', 'cohorts'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     fetchIsAuthenticated();

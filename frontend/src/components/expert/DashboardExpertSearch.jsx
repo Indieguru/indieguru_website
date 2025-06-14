@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Star } from 'lucide-react';
+import { Search, Star, ArrowRight } from 'lucide-react';
 import axiosInstance from '../../config/axios.config';
 
 const ExpertCard = ({ expert }) => {
@@ -92,11 +92,12 @@ const ExpertCard = ({ expert }) => {
   );
 };
 
-const ExpertSearch = () => {
+const DashboardExpertSearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [experts, setExperts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const handleSearch = async (query = '') => {
     try {
@@ -115,13 +116,33 @@ const ExpertSearch = () => {
     }
   };
 
+  const handleViewAll = () => {
+    navigate("/all-courses?tab=sessions");
+  };
+
   useEffect(() => {
     handleSearch();
   }, []);
 
+  // Show only first 4 experts for dashboard
+  const displayExperts = experts.slice(0, 4);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-white rounded-xl shadow-sm">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6">Find Your Perfect Mentor</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-semibold text-gray-800">Find Your Perfect Mentor</h2>
+        {experts.length > 4 && (
+          <button
+            onClick={handleViewAll}
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors duration-200 group"
+          >
+            <span className="border-b border-transparent group-hover:border-blue-600 transition-all duration-200">
+              View all
+            </span>
+            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-200" />
+          </button>
+        )}
+      </div>
       
       <div className="relative mb-8">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -149,8 +170,8 @@ const ExpertSearch = () => {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 items-stretch">
-            {experts.map((expert) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 items-stretch">
+            {displayExperts.map((expert) => (
               <ExpertCard key={expert._id} expert={expert} />
             ))}
           </div>
@@ -166,10 +187,24 @@ const ExpertSearch = () => {
               </p>
             </div>
           )}
+
+          {experts.length > 4 && !searchQuery && (
+            <div className="text-center mt-8">
+              <button
+                onClick={handleViewAll}
+                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors duration-200 group"
+              >
+                <span className="border-b border-transparent group-hover:border-blue-600 transition-all duration-200 text-lg">
+                  View all {experts.length} experts
+                </span>
+                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-200" />
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>
   );
 };
 
-export default ExpertSearch;
+export default DashboardExpertSearch;

@@ -12,7 +12,7 @@ import PreviousSessionsSection from "../components/sections/PreviousSessionsSect
 import useUserStore from "../store/userStore";
 import UpcomingCourses from '../components/sections/upcomingCourses';
 import useUserTypeStore from '../store/userTypeStore';
-import ExpertSearch from '../components/expert/ExpertSearch';
+import DashboardExpertSearch from '../components/expert/DashboardExpertSearch';
 import checkAuth from '../utils/checkAuth';
 
 function Dashboard() {
@@ -114,7 +114,7 @@ function Dashboard() {
           className="mt-8 grid grid-cols-1 gap-8"
           variants={containerVariants}
         >
-          <ExpertSearch />
+          <DashboardExpertSearch />
           <motion.div variants={itemVariants}>
             <PreviousSessionsSection />
           </motion.div>
