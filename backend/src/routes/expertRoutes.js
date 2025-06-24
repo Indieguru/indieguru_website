@@ -30,12 +30,19 @@ import {
   getExpertByIdAvailableSessions,
   updateExpertise,
   updateIndustries,
-  updateTargetAudience
+  updateTargetAudience,
+  getStudentSessionCount,
+  getStudentCourseCount,
+  getStudentCohortCount,
+  getCompletedSessionsCount,
+  updateLinks,
+  requestApproval
 } from '../controllers/expertController.js';
 import expertAuthMiddleware from "../middlewares/expertAuthMiddleware.js";
 import upload from '../middlewares/upload.js'; // For image uploads
 import { cloudinary } from '../config/cloudinary.js';
 import multer from 'multer';
+
 const router = express.Router();
 
 router.use("/auth", expertAuthRoutes);
@@ -43,25 +50,120 @@ router.use("/auth", expertAuthRoutes);
 // Expert dashboard and common routes
 router.get('/dashboard', expertAuthMiddleware, getExpertDashboardData);
 router.get('/transactions', expertAuthMiddleware, getExpertTransactions);
+
 router.get('/search', async (req, res) => {
   try {
-    const { filter } = req.query; 
+    const { filter } = req.query;
+    
+    // If no filter provided, return all approved experts
+    if (!filter) {
+      const experts = await Expert.find({ status: 'approved' });
+      return res.status(200).json({ success: true, data: experts });
+    }
+    
+    // Convert kebab-case filter to readable format for better matching
+    // e.g., "software-development" becomes "Software Development"
+    const readableFilter = filter
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+    
+    console.log('Searching for experts with filter:', filter);
+    console.log('Readable filter:', readableFilter);
+    
+    // Special case handling for specific categories
+    let specialCasePatterns = [];
+    
+    // For AI/ML, add common variations
+    if (filter === 'ai-ml') {
+      specialCasePatterns = [
+        new RegExp('ai', 'i'),
+        new RegExp('ml', 'i'),
+        new RegExp('artificial intelligence', 'i'),
+        new RegExp('machine learning', 'i'),
+        new RegExp('deep learning', 'i'),
+        new RegExp('neural network', 'i')
+      ];
+      console.log('Added special case patterns for AI/ML');
+    }
+    
+    // Create regex patterns for both the original filter and readable version
+    const filterPattern = new RegExp(filter.replace(/-/g, '[ -]'), 'i'); // Allow spaces or hyphens
+    const readablePattern = new RegExp(readableFilter, 'i');
+    
+    // Build the query with OR conditions
+    const orConditions = [
+      // Expertise is the primary field we want to match
+      { expertise: { $elemMatch: { $regex: readablePattern } } },
+      { expertise: { $elemMatch: { $regex: filterPattern } } },
+      
+      // Title matches are also relevant for expertise
+      { title: { $regex: readablePattern } },
+      { title: { $regex: filterPattern } },
+      
+      // Industries can be relevant
+      { industries: { $elemMatch: { $regex: readablePattern } } },
+      { industries: { $elemMatch: { $regex: filterPattern } } },
+    ];
+    
+    // Add special case patterns if any
+    if (specialCasePatterns.length > 0) {
+      specialCasePatterns.forEach(pattern => {
+        orConditions.push({ expertise: { $elemMatch: { $regex: pattern } } });
+        orConditions.push({ title: { $regex: pattern } });
+      });
+    }
+    
     const query = {
-      $or: [
-        { firstName: { $regex: `.*${filter}.*`, $options: "i" } },
-        { lastName: { $regex: `.*${filter}.*`, $options: "i" } },
-        { title: { $regex: `.*${filter}.*`, $options: "i" } },
-        { expertise: { $regex: `.*${filter}.*`, $options: "i" } },
-        { industries: { $regex: `.*${filter}.*`, $options: "i" } },
-        { targetAudience: { $regex: `.*${filter}.*`, $options: "i" } }
-      ],
+      status: 'approved',
+      $or: orConditions
     };
+    
+    console.log('Query:', JSON.stringify(query, null, 2));
+    
     const experts = await Expert.find(query);
+    console.log(`Found ${experts.length} experts matching the filter`);
+    
+    // If we found no experts with the exact pattern, try a more lenient search
+    if (experts.length === 0) {
+      console.log('No experts found with exact match, trying more lenient search');
+      
+      // Extract keywords from the filter
+      const keywords = filter.split('-').filter(k => k.length > 2);
+      
+      if (keywords.length > 0) {
+        const keywordPatterns = keywords.map(keyword => new RegExp(keyword, 'i'));
+        
+        const lenientQuery = {
+          status: 'approved',
+          $or: [
+            ...keywordPatterns.map(pattern => ({ expertise: { $elemMatch: { $regex: pattern } } })),
+            ...keywordPatterns.map(pattern => ({ title: { $regex: pattern } })),
+            ...keywordPatterns.map(pattern => ({ industries: { $elemMatch: { $regex: pattern } } }))
+          ]
+        };
+        
+        console.log('Lenient query:', JSON.stringify(lenientQuery, null, 2));
+        
+        const lenientExperts = await Expert.find(lenientQuery);
+        console.log(`Found ${lenientExperts.length} experts with lenient search`);
+        
+        return res.status(200).json({ success: true, data: lenientExperts });
+      }
+    }
+    
     res.status(200).json({ success: true, data: experts });
   } catch (error) {
+    console.error('Error in expert search:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
+// Student enrollment statistics routes
+router.get('/students/sessions', expertAuthMiddleware, getStudentSessionCount);
+router.get('/students/courses', expertAuthMiddleware, getStudentCourseCount);
+router.get('/students/cohorts', expertAuthMiddleware, getStudentCohortCount);
+router.get('/sessions/completed', expertAuthMiddleware, getCompletedSessionsCount);
 
 // Expert profile update
 router.put('/update', expertAuthMiddleware, async (req, res) => {
@@ -222,6 +324,85 @@ router.patch('/update-expertise', expertAuthMiddleware, updateExpertise);
 router.patch('/update-industries', expertAuthMiddleware, updateIndustries);
 
 router.patch('/update-target-audience', expertAuthMiddleware, updateTargetAudience);
+
+// Add route for updating links
+router.patch('/update-links', expertAuthMiddleware, updateLinks);
+
+// Add specific route for ratings before dynamic routes
+router.get('/ratings', expertAuthMiddleware, async (req, res) => {
+  try {
+    const expertId  = req.user.id;
+    
+    // If expertId is provided, fetch ratings for that specific expert
+    if (expertId) {
+      const expert = await Expert.findById(expertId).select(' rating totalFeedbacks feedbackStats');
+      
+      if (!expert) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "Expert not found" 
+        });
+      }
+      
+      return res.status(200).json({
+        success: true,
+        data: {
+          rating: expert.rating,
+          totalFeedbacks: expert.totalFeedbacks,
+          feedbackStats: expert.feedbackStats
+        }
+      });
+    }
+    
+    // If no expertId is provided, fetch all experts' ratings (may want to add pagination for large datasets)
+    const experts = await Expert.find()
+      .select('firstName lastName rating totalFeedbacks feedbackStats')
+      .sort({ rating: -1 }); // Sort by rating descending
+    
+    const ratingsData = experts.map(expert => ({
+      expertId: expert._id,
+      name: `${expert.firstName} ${expert.lastName}`,
+      rating: expert.rating,
+      totalFeedbacks: expert.totalFeedbacks,
+      feedbackBreakdown: {
+        sessions: {
+          count: expert.feedbackStats.sessions.count,
+          averageRating: expert.feedbackStats.sessions.count > 0 
+            ? (expert.feedbackStats.sessions.totalRating / expert.feedbackStats.sessions.count).toFixed(1) 
+            : 0
+        },
+        courses: {
+          count: expert.feedbackStats.courses.count,
+          averageRating: expert.feedbackStats.courses.count > 0 
+            ? (expert.feedbackStats.courses.totalRating / expert.feedbackStats.courses.count).toFixed(1) 
+            : 0
+        },
+        cohorts: {
+          count: expert.feedbackStats.cohorts.count,
+          averageRating: expert.feedbackStats.cohorts.count > 0 
+            ? (expert.feedbackStats.cohorts.totalRating / expert.feedbackStats.cohorts.count).toFixed(1) 
+            : 0
+        }
+      }
+    }));
+    
+    res.status(200).json({
+      success: true,
+      count: ratingsData.length,
+      data: ratingsData
+    });
+  } catch (error) {
+    console.error('Error fetching ratings:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Internal Server Error", 
+      error: error.message 
+    });
+  }
+});
+
+// Approval request route
+router.post('/request-approval', expertAuthMiddleware, requestApproval);
 
 // Dynamic routes should come last
 router.get('/:expertId', async (req, res) => {

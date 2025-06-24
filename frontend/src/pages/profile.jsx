@@ -25,6 +25,8 @@ function Profile() {
   const { userType, setUserType } = useUserTypeStore();
   const [loading, setLoading] = useState(true);
   const [authData, setAuthData] = useState(null);
+  const [coursesCount, setCoursesCount] = useState(0);
+  const [sessionsCount, setSessionsCount] = useState(0);
 
   useEffect(() => {
     const handleAuth = async () => {
@@ -43,6 +45,38 @@ function Profile() {
       fetchUser(); // Initial fetch will use cache if available
     }
   }, [userType, navigate, fetchUser, authData]);
+
+  // Fetch courses and sessions data
+  useEffect(() => {
+    if (userType === "student" && user?._id) {
+      // Fetch purchased courses
+      const fetchUserCourses = async () => {
+        try {
+          const response = await axiosInstance.get('/user/courses');
+          if (response.data) {
+            setCoursesCount(response.data.length);
+          }
+        } catch (error) {
+          console.error('Error fetching user courses:', error);
+        }
+      };
+
+      // Fetch booked sessions
+      const fetchUserSessions = async () => {
+        try {
+          const response = await axiosInstance.get('/user/sessions');
+          if (response.data) {
+            setSessionsCount(response.data.length);
+          }
+        } catch (error) {
+          console.error('Error fetching user sessions:', error);
+        }
+      };
+
+      fetchUserCourses();
+      fetchUserSessions();
+    }
+  }, [userType, user]);
 
   // Handle hash routing
   useEffect(() => {
@@ -633,7 +667,7 @@ function Profile() {
                 </div>
                 <span className="text-sm font-medium">Courses Enrolled</span>
               </div>
-              <div className="text-2xl font-bold text-[#232636]">4</div>
+              <div className="text-2xl font-bold text-[#232636]">{coursesCount}</div>
             </div>
 
             <div className="bg-green-50 p-5 rounded-lg border border-green-200">
@@ -658,7 +692,7 @@ function Profile() {
                 </div>
                 <span className="text-sm font-medium">Skills Learned</span>
               </div>
-              <div className="text-2xl font-bold text-[#232636]">4</div>
+              <div className="text-2xl font-bold text-[#232636]">{sessionsCount}</div>
             </div>
           </div>
         </Card>

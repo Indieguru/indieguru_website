@@ -1,9 +1,13 @@
 import React from 'react';
 import CreateBlog from '../blog/CreateBlog';
-import { X } from 'lucide-react';
+import { X, AlertCircle } from 'lucide-react';
+import useExpertStore from '../../store/expertStore';
 
 const BlogModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
+
+  const { expertData } = useExpertStore();
+  const isExpertApproved = expertData && expertData.status === 'approved';
 
   return (
     <div className="fixed inset-0 z-50">
@@ -41,7 +45,29 @@ const BlogModal = ({ isOpen, onClose }) => {
 
           {/* Content */}
           <div className="p-0">
-            <CreateBlog onClose={onClose} />
+            {isExpertApproved ? (
+              <CreateBlog onClose={onClose} />
+            ) : (
+              <div className="p-8 text-center">
+                <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+                  <AlertCircle className="w-8 h-8 text-yellow-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">Expert Approval Required</h3>
+                <p className="text-gray-600 mb-6">
+                  Your expert profile needs to be approved before you can create blog posts. 
+                  This helps ensure high-quality content for our users.
+                </p>
+                <p className="text-gray-600 mb-6">
+                  Please complete your profile and request approval from the Expert Profile page.
+                </p>
+                <button
+                  onClick={onClose}
+                  className="px-6 py-2 bg-[#003265] text-white rounded-lg hover:bg-[#002450] transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

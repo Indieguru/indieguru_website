@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from "framer-motion";
 import Header from "../components/layout/Header"
 import Footer from "../components/layout/Footer"
@@ -14,11 +14,14 @@ import UpcomingCourses from '../components/sections/upcomingCourses';
 import useUserTypeStore from '../store/userTypeStore';
 import DashboardExpertSearch from '../components/expert/DashboardExpertSearch';
 import checkAuth from '../utils/checkAuth';
+import useRedirectStore from '../store/redirectStore';
 
 function Dashboard() {
   const { user, fetchUser } = useUserStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const { userType, setUserType } = useUserTypeStore();
+  const { redirectUrl, clearRedirectUrl } = useRedirectStore();
   const [loading, setLoading] = useState(true);
   const [authData, setAuthData] = useState(null);
 
@@ -39,9 +42,17 @@ function Dashboard() {
         navigate("/signup");
         return;
       }
+      
+      // Handle redirects after successful authentication
+      if (redirectUrl) {
+        navigate(redirectUrl);
+        clearRedirectUrl();
+        return;
+      }
+      
       fetchUser();
     }
-  }, [fetchUser, userType, navigate, authData]);
+  }, [fetchUser, userType, navigate, authData, redirectUrl, clearRedirectUrl]);
 
   if (loading || !authData) {
     return (

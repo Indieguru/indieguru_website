@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import useUserStore from "../../store/userStore";
 import { useState, useEffect } from "react";
+import axiosInstance from "../../config/axios.config";
 
 function ProgressSection() {
   const { user } = useUserStore();
@@ -8,6 +9,10 @@ function ProgressSection() {
     completedSteps: 0,
     totalSteps: 8
   });
+  const [coursesCount, setCoursesCount] = useState(0);
+  const [sessionsCount, setSessionsCount] = useState(0);
+  const [cohortsCount, setCohortsCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const calculateCompletedSteps = () => {
@@ -22,11 +27,36 @@ function ProgressSection() {
       if (user?.profilePicture) completed++;
       return completed;
     };
-
     setCompletionData({
       completedSteps: calculateCompletedSteps(),
       totalSteps: 8
     });
+  }, [user]);
+
+  // Fetch user's courses, sessions, and cohorts data
+  useEffect(() => {
+    const fetchUserData = async () => {
+      setIsLoading(true);
+      try {
+        const [coursesRes, sessionsRes, cohortsRes] = await Promise.all([
+          axiosInstance.get('/user/courses'),
+          axiosInstance.get('/user/sessions'),
+          axiosInstance.get('/user/cohorts')
+        ]);
+        
+        setCoursesCount(coursesRes.data?.length || 0);
+        setSessionsCount(sessionsRes.data?.length || 0);
+        setCohortsCount(cohortsRes.data?.length || 0);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (user?._id) {
+      fetchUserData();
+    }
   }, [user]);
 
   const completionPercentage = (completionData.completedSteps / completionData.totalSteps) * 100;
@@ -63,7 +93,6 @@ function ProgressSection() {
           />
         </div>
       </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div>
           <div className="flex items-center gap-2 text-white mb-1">
@@ -75,9 +104,8 @@ function ProgressSection() {
             </div>
             <span className="text-sm">Courses Enrolled</span>
           </div>
-          <div className="text-2xl font-bold text-white">4</div>
+          <div className="text-2xl font-bold text-white">{isLoading ? "..." : coursesCount}</div>
         </div>
-
         <div>
           <div className="flex items-center gap-2 text-white mb-1">
             <div className="text-indigo-200">
@@ -88,9 +116,8 @@ function ProgressSection() {
             </div>
             <span className="text-sm">Sessions Joined</span>
           </div>
-          <div className="text-2xl font-bold text-white">4</div>
+          <div className="text-2xl font-bold text-white">{isLoading ? "..." : sessionsCount}</div>
         </div>
-
         <div>
           <div className="flex items-center gap-2 text-white mb-1">
             <div className="text-indigo-200">
@@ -101,11 +128,10 @@ function ProgressSection() {
             </div>
             <span className="text-sm">Cohorts Joined</span>
           </div>
-          <div className="text-2xl font-bold text-white">1</div>
+          <div className="text-2xl font-bold text-white">{isLoading ? "..." : cohortsCount}</div>
         </div>
       </div>
     </section>
   );
 }
-
 export default ProgressSection;

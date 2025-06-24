@@ -40,7 +40,7 @@ const UserSchema = new mongoose.Schema({
   authType: {
     type: String,
     required: true,
-    enum: ['gmail', 'phone'],
+    enum: ['gmail', 'phone', 'email'],
   },
   gid: {
     type: String,
@@ -109,9 +109,11 @@ const UserSchema = new mongoose.Schema({
 });
 
 UserSchema.pre('save', function (next) {
-  if (this.authType === 'email' && !this.password) {
+  // For traditional email-password signup
+  if (this.authType === 'email' && !this.password && !this.emailVerified) {
     return next(new Error('Password is required for email signup'));
   }
+  // For phone signup
   if (this.authType === 'phone' && !this.phone) {
     return next(new Error('Phone number is required for phone signup'));
   }

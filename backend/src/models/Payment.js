@@ -1,6 +1,13 @@
 import mongoose from "mongoose";
 
 const PaymentSchema = new mongoose.Schema({
+    //type
+    //expert fee
+    //student id
+    //expert id
+    // date
+    //total
+    //platfrom fee
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

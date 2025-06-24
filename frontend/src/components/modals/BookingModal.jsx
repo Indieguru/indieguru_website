@@ -4,10 +4,13 @@ import React, { useEffect, useState } from 'react';
 /* eslint-disable */
 import { motion, AnimatePresence } from 'framer-motion';
 /* eslint-enable */
-import { X, Calendar, MapPin, Clock, CheckCircle, ArrowLeft, ArrowRight, Users } from 'lucide-react';
+import { X, Calendar, MapPin, Clock, CheckCircle, ArrowLeft, ArrowRight, Users, Phone } from 'lucide-react';
 import { Button } from '../ui/button';
 import './modal.css';
 import { toast } from "react-toastify";
+import axiosInstance from '../../config/axios.config';
+import PhoneUpdateModal from './PhoneUpdateModal';
+import useUserStore from '../../store/userStore';
 
 export const BookingModal = ({ 
   isOpen, 
@@ -25,8 +28,20 @@ export const BookingModal = ({
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
   const [showAuthConfirmation, setShowAuthConfirmation] = useState(false);
   const [sessionTitle, setSessionTitle] = useState("");
-  
-  // Check authentication status when modal opens
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const { user, fetchUser } = useUserStore();
+
+  // Check for phone number immediately when modal opens
+  useEffect(() => {
+    if (isOpen && isAuthenticated && user && !user.phone) {
+      setShowPhoneModal(true);
+    }
+  }, [isOpen, isAuthenticated, user]);
+  useEffect(() => {
+    if (!user.phone) {
+      setShowPhoneModal(true);
+    }
+  }, [ user]);
   useEffect(() => {
     if (isOpen && isAuthenticated) {
       setShowAuthConfirmation(true);
@@ -70,6 +85,7 @@ export const BookingModal = ({
         setSelectedTimeSlot(null);
         setIsSubmitted(false);
         setSessionTitle("");
+        setShowPhoneModal(false);
       }, 300); // Match the animation exit time
     }
   }, [isOpen]);
@@ -141,18 +157,61 @@ export const BookingModal = ({
   const handleTimeSlotSelect = (slot) => {
     setSelectedTimeSlot(slot);
   };
+
+  // Check if phone number exists
+  const checkPhoneNumber = () => {
+    if (!user || !user.phone) {
+      setShowPhoneModal(true);
+      return false;
+    }
+    return true;
+  };
+
+  // Handle back button 
+  const handleBack = () => {
+    if (currentStep === 'titleInput') {
+      setCurrentStep('dateSelection');
+    } else if (currentStep === 'confirmation') {
+      setCurrentStep('titleInput');
+    } else {
+      onClose();
+    }
+  };
   
   // Continue to next step
   const handleContinue = () => {
+    // Always check for phone number before proceeding to the next step
+    if (!checkPhoneNumber()) {
+      return;
+    }
+    
     if (currentStep === 'dateSelection') {
       setCurrentStep('titleInput');
     } else if (currentStep === 'titleInput' && sessionTitle.trim()) {
       setCurrentStep('confirmation');
     }
   };
+
+  // Handle phone update success
+  const handlePhoneUpdateSuccess = (phoneNumber) => {
+    setShowPhoneModal(false);
+    
+    // Force refresh the user data
+    fetchUser();
+    
+    toast.success("Phone number updated! Proceeding with session booking.", {
+      position: "top-center",
+      autoClose: 3000,
+    });
+  };
   
   // Handle booking confirmation
   const handleConfirm = async () => {
+    // Check if phone number is missing before proceeding with payment
+    if (!checkPhoneNumber()) {
+      return;
+    }
+    
     try {
       const response = await axiosInstance.post(`/session/book/${sessionData.id}`, {
         sessionTitle: sessionTitle.trim()
@@ -184,8 +243,8 @@ export const BookingModal = ({
             }, 2000);
           },
           prefill: {
-            email: sessionData.userEmail,
-            contact: sessionData.userPhone
+            email: user.email,
+            contact: user.phone
           },
           theme: {
             color: "#3B82F6"
@@ -201,6 +260,172 @@ export const BookingModal = ({
     }
   };
 
+  // Conditionally render content based on whether phone info is available
+  const renderContent = () => {
+    // Check for phone number
+    if (user && !user.phone) {
+      return (
+        <div className="h-full flex flex-col items-center justify-center text-center space-y-4 p-6">
+          <div className="rounded-full bg-yellow-50 p-2 w-20 h-20 flex items-center justify-center">
+            <Phone className="h-12 w-12 text-yellow-500" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-800">Phone Number Required</h2>
+          <p className="text-gray-600 max-w-md">
+            To proceed with booking, please add your phone number. This is required for communication regarding your session.
+          </p>
+          <Button
+            onClick={() => setShowPhoneModal(true)}
+            className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 rounded-lg font-medium"
+          >
+            Add Phone Number
+          </Button>
+        </div>
+      );
+    }
+
+    // If we have a phone number, show the regular content
+    return (
+      <>
+        <h2 className="text-2xl font-bold text-indigo-900 mb-4 text-center">
+          {currentStep === 'dateSelection' ? 'Select Date & Time' : currentStep === 'titleInput' ? 'Add Session Title' : 'Confirm Your Booking'}
+        </h2>
+        
+        {currentStep === 'dateSelection' ? (
+          <div className="space-y-6 bg-white p-4 rounded-xl shadow-sm">
+            {/* Date selection */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-indigo-800 mb-3">Choose a Date</h3>
+              <div className="flex flex-wrap gap-2">
+                {getAvailableDates().map((date, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleDateSelect(date)}
+                    className={`p-3 rounded-lg border transition-colors text-center min-w-[90px] ${
+                      selectedDate && selectedDate.toDateString() === date.toDateString()
+                        ? 'bg-indigo-100 border-indigo-500 text-indigo-700'
+                        : 'border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="font-medium">{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                    <div className="text-lg">{date.getDate()}</div>
+                    <div className="text-xs text-gray-500">{date.toLocaleDateString('en-US', { month: 'short' })}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Time slot selection */}
+            <div>
+              <h3 className="text-lg font-semibold text-indigo-800 mb-3">Choose a Time Slot</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {timeSlots.map((slot, index) => {
+                  const available = isSlotAvailable(selectedDate, slot);
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => available && handleTimeSlotSelect(slot)}
+                      disabled={!available || !selectedDate}
+                      className={`p-2 rounded-lg border transition-colors text-center ${
+                        !selectedDate
+                          ? 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
+                          : !available
+                          ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : selectedTimeSlot === slot
+                          ? 'bg-indigo-100 border-indigo-500 text-indigo-700'
+                          : 'border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="font-medium">{slot.start} - {slot.end}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            
+            {/* Continue button */}
+            <div className="pt-6">
+              <Button
+                onClick={handleContinue}
+                disabled={!selectedDate || !selectedTimeSlot}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2"
+              >
+                <span>Continue</span>
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ) : currentStep === 'titleInput' ? (
+          <div className="space-y-6 bg-white p-4 rounded-xl shadow-sm">
+            <h3 className="text-lg font-semibold text-indigo-800 mb-3">Add Session Title</h3>
+            <div>
+              <label htmlFor="sessionTitle" className="block text-sm font-medium text-gray-700 mb-2">
+                What would you like to discuss in this session?
+              </label>
+              <input
+                id="sessionTitle"
+                type="text"
+                value={sessionTitle}
+                onChange={(e) => setSessionTitle(e.target.value)}
+                placeholder="e.g., Career Guidance Session, Technical Discussion"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div className="pt-6">
+              <Button
+                onClick={handleContinue}
+                disabled={!sessionTitle.trim()}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2"
+              >
+                <span>Continue to Payment</span>
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4 bg-white p-4 rounded-xl shadow-sm">
+            <h3 className="text-lg font-semibold text-indigo-800 mb-3">Booking Summary</h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center border-b pb-2">
+                <span className="text-gray-700">Session</span>
+                <span className="font-medium text-indigo-800">{sessionTitle}</span>
+              </div>
+              <div className="flex justify-between items-center border-b pb-2">
+                <span className="text-gray-700">Date</span>
+                <span className="font-medium">{formatDate(selectedDate)}</span>
+              </div>
+              <div className="flex justify-between items-center border-b pb-2">
+                <span className="text-gray-700">Time</span>
+                <span className="font-medium">{selectedTimeSlot?.start} - {selectedTimeSlot?.end}</span>
+              </div>
+              <div className="flex justify-between items-center border-b pb-2">
+                <span className="text-gray-700">Contact</span>
+                <span className="font-medium">{user?.phone || "Not provided"}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-700">Price</span>
+                <span className="font-bold text-indigo-800">₹{sessionData.pricing?.total || price}</span>
+              </div>
+            </div>
+            
+            {/* Confirm button */}
+            <div className="pt-6">
+              <Button
+                onClick={handleConfirm}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium"
+              >
+                Pay Now
+              </Button>
+            </div>
+          </div>
+        )}
+        
+        <div className="mt-6 text-center text-sm text-indigo-700">
+          <p>{currentStep === 'dateSelection' ? 'Select a convenient time for your session' : currentStep === 'titleInput' ? 'Provide a title for your session' : 'Review and confirm your booking details'}</p>
+        </div>
+      </>
+    );
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -210,6 +435,15 @@ export const BookingModal = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
+          {/* Phone Update Modal */}
+          {showPhoneModal && (
+            <PhoneUpdateModal 
+              isOpen={showPhoneModal}
+              onClose={() => setShowPhoneModal(false)}
+              onSuccess={handlePhoneUpdateSuccess}
+            />
+          )}
+
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -263,142 +497,7 @@ export const BookingModal = ({
                   <img src="/logo.svg" alt="Logo" className="h-16" />
                 </div>
                 
-                {!isSubmitted ? (
-                  <>
-                    <h2 className="text-2xl font-bold text-indigo-900 mb-4 text-center">
-                      {currentStep === 'dateSelection' ? 'Select Date & Time' : currentStep === 'titleInput' ? 'Add Session Title' : 'Confirm Your Booking'}
-                    </h2>
-                    
-                    {currentStep === 'dateSelection' ? (
-                      <div className="space-y-6 bg-white p-4 rounded-xl shadow-sm">
-                        {/* Date selection */}
-                        <div className="mb-6">
-                          <h3 className="text-lg font-semibold text-indigo-800 mb-3">Choose a Date</h3>
-                          <div className="flex flex-wrap gap-2">
-                            {getAvailableDates().map((date, index) => (
-                              <button
-                                key={index}
-                                onClick={() => handleDateSelect(date)}
-                                className={`p-3 rounded-lg border transition-colors text-center min-w-[90px] ${
-                                  selectedDate && selectedDate.toDateString() === date.toDateString()
-                                    ? 'bg-indigo-100 border-indigo-500 text-indigo-700'
-                                    : 'border-gray-200 hover:bg-gray-50'
-                                }`}
-                              >
-                                <div className="font-medium">{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-                                <div className="text-lg">{date.getDate()}</div>
-                                <div className="text-xs text-gray-500">{date.toLocaleDateString('en-US', { month: 'short' })}</div>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                        
-                        {/* Time slot selection */}
-                        <div>
-                          <h3 className="text-lg font-semibold text-indigo-800 mb-3">Choose a Time Slot</h3>
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            {timeSlots.map((slot, index) => {
-                              const available = isSlotAvailable(selectedDate, slot);
-                              return (
-                                <button
-                                  key={index}
-                                  onClick={() => available && handleTimeSlotSelect(slot)}
-                                  disabled={!available || !selectedDate}
-                                  className={`p-2 rounded-lg border transition-colors text-center ${
-                                    !selectedDate
-                                      ? 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
-                                      : !available
-                                      ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
-                                      : selectedTimeSlot === slot
-                                      ? 'bg-indigo-100 border-indigo-500 text-indigo-700'
-                                      : 'border-gray-200 hover:bg-gray-50'
-                                  }`}
-                                >
-                                  <div className="font-medium">{slot.start} - {slot.end}</div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                        
-                        {/* Continue button */}
-                        <div className="pt-6">
-                          <Button
-                            onClick={handleContinue}
-                            disabled={!selectedDate || !selectedTimeSlot}
-                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2"
-                          >
-                            <span>Continue</span>
-                            <ArrowRight className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ) : currentStep === 'titleInput' ? (
-                      <div className="space-y-6 bg-white p-4 rounded-xl shadow-sm">
-                        <h3 className="text-lg font-semibold text-indigo-800 mb-3">Add Session Title</h3>
-                        <div>
-                          <label htmlFor="sessionTitle" className="block text-sm font-medium text-gray-700 mb-2">
-                            What would you like to discuss in this session?
-                          </label>
-                          <input
-                            id="sessionTitle"
-                            type="text"
-                            value={sessionTitle}
-                            onChange={(e) => setSessionTitle(e.target.value)}
-                            placeholder="e.g., Career Guidance Session, Technical Discussion"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                          />
-                        </div>
-                        <div className="pt-6">
-                          <Button
-                            onClick={handleContinue}
-                            disabled={!sessionTitle.trim()}
-                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2"
-                          >
-                            <span>Continue to Payment</span>
-                            <ArrowRight className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-4 bg-white p-4 rounded-xl shadow-sm">
-                        <h3 className="text-lg font-semibold text-indigo-800 mb-3">Booking Summary</h3>
-                        <div className="space-y-4">
-                          <div className="flex justify-between items-center border-b pb-2">
-                            <span className="text-gray-700">Session</span>
-                            <span className="font-medium text-indigo-800">{sessionTitle}</span>
-                          </div>
-                          <div className="flex justify-between items-center border-b pb-2">
-                            <span className="text-gray-700">Date</span>
-                            <span className="font-medium">{formatDate(selectedDate)}</span>
-                          </div>
-                          <div className="flex justify-between items-center border-b pb-2">
-                            <span className="text-gray-700">Time</span>
-                            <span className="font-medium">{selectedTimeSlot?.start} - {selectedTimeSlot?.end}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-700">Price</span>
-                            <span className="font-bold text-indigo-800">${price}</span>
-                          </div>
-                        </div>
-                        
-                        {/* Confirm button */}
-                        <div className="pt-6">
-                          <Button
-                            onClick={handleConfirm}
-                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium"
-                          >
-                            Pay Now
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="mt-6 text-center text-sm text-indigo-700">
-                      <p>{currentStep === 'dateSelection' ? 'Select a convenient time for your session' : currentStep === 'titleInput' ? 'Provide a title for your session' : 'Review and confirm your booking details'}</p>
-                    </div>
-                  </>
-                ) : (
+                {!isSubmitted ? renderContent() : (
                   <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
                     <div className="rounded-full bg-green-50 p-2 w-20 h-20 flex items-center justify-center">
                       <CheckCircle className="h-12 w-12 text-green-500" />
@@ -468,7 +567,7 @@ export const BookingModal = ({
                       
                       <div className="flex items-center text-gray-700 mt-2 font-semibold">
                         <span className="text-indigo-600">Price: </span>
-                        <span className="ml-2">${price}</span>
+                        <span className="ml-2">₹{sessionData.pricing?.total || price}</span>
                       </div>
                     </div>
                     

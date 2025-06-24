@@ -1,22 +1,30 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, Users, ArrowRight } from "lucide-react";
+import { Calendar, Users, ArrowRight, AlertTriangle, AlertCircle } from "lucide-react";
 import { Button } from "../components/ui/button";
 import Header from "../components/layout/Header";
+import Footer from "../components/layout/Footer";
 import axiosInstance from "../config/axios.config";
 import useAuthStore from "../store/authStore";
 import { toast } from "react-toastify";
 import useUserTypeStore from "../store/userTypeStore";
+import useRedirectStore from "../store/redirectStore";
+import useUserStore from "../store/userStore";
+import PhoneUpdateModal from "../components/modals/PhoneUpdateModal";
 
 const CohortDetails = () => {
   const { cohortId } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
   const { userType } = useUserTypeStore();
+  const { setRedirectUrl } = useRedirectStore();
+  const { user, fetchUser } = useUserStore();
   const [cohort, setCohort] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
 
   useEffect(() => {
     const fetchCohortDetails = async () => {
@@ -35,10 +43,10 @@ const CohortDetails = () => {
   }, [cohortId]);
 
   const handleJoinCohort = async () => {
-    if (!isAuthenticated) {
-      navigate("/email-signin", { 
-        state: { redirectUrl: `/cohort/${cohortId}` }
-      });
+    if (!isAuthenticated || userType === "not_signed_in") {
+      // Save the current URL to redirect back after login
+      setRedirectUrl(window.location.pathname);
+      navigate("/signup");
       return;
     }
 
@@ -53,13 +61,46 @@ const CohortDetails = () => {
       return;
     }
 
+    // Check if cohort is approved
+    if (cohort.status !== "approved") {
+      toast.error("This cohort is not available for enrollment at this time.", {
+        position: "top-center",
+        autoClose: 5000,
+      });
+      return;
+    }
+
+    // Check if phone number is missing
+    if (!user.phone) {
+      setShowPhoneModal(true);
+      return;
+    }
+
+    // If phone exists, proceed with joining cohort
+    proceedWithJoining();
+  };
+
+  const handlePhoneUpdateSuccess = (phoneNumber) => {
+    setShowPhoneModal(false);
+    fetchUser(); // Refresh user data
+    toast.success("Phone number updated! Proceeding with cohort registration.", {
+      position: "top-center",
+      autoClose: 3000,
+    });
+    // Proceed with purchase after phone update
+    proceedWithJoining();
+  };
+
+  const proceedWithJoining = async () => {
     try {
+      setIsJoining(true);
       const response = await axiosInstance.post(`/cohort/${cohortId}/purchase`);
+
       if (response.data.paymentId) {
         const options = {
           key: process.env.REACT_APP_RAZORPAY_KEY_ID,
           amount: cohort.pricing.total * 100, // Amount in smallest currency unit (paise)
-          currency: cohort.pricing.currency || 'INR',
+          currency: cohort.pricing.currency || "INR",
           name: "IndieGuru",
           description: `Cohort: ${cohort.title}`,
           order_id: response.data.paymentId,
@@ -70,17 +111,27 @@ const CohortDetails = () => {
                 details: {
                   title: cohort.title,
                   price: cohort.pricing.total,
-                  date: new Date(cohort.startDate).toLocaleDateString()
-                }
-              }
+                  date: new Date(cohort.startDate).toLocaleDateString(),
+                },
+              },
             });
-          }
+          },
+          prefill: {
+            email: user.email,
+            contact: user.phone,
+          },
+          theme: {
+            color: "#3B82F6",
+          },
         };
         const rzp = new window.Razorpay(options);
         rzp.open();
       }
     } catch (error) {
       console.error("Error joining cohort:", error);
+      toast.error(error.response?.data?.message || "Failed to join cohort. Please try again.");
+    } finally {
+      setIsJoining(false);
     }
   };
 
@@ -103,7 +154,7 @@ const CohortDetails = () => {
           <div className="text-center">
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Oops!</h2>
             <p className="text-gray-600">{error || "Cohort not found"}</p>
-            <Button 
+            <Button
               onClick={() => navigate("/all-courses")}
               className="mt-4 bg-blue-600 text-white"
             >
@@ -115,10 +166,51 @@ const CohortDetails = () => {
     );
   }
 
+  // Display cohort status notification
+  const renderStatusBanner = () => {
+    if (cohort.status === "pending") {
+      return (
+        <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <AlertTriangle className="h-5 w-5 text-amber-400" aria-hidden="true" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-amber-700">
+                This cohort is pending approval and is not available for enrollment yet.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    } else if (cohort.status === "rejected") {
+      return (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <AlertCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-700">This cohort is not available for enrollment.</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <Header />
-      
+
+      {/* Phone Update Modal */}
+      <PhoneUpdateModal
+        isOpen={showPhoneModal}
+        onClose={() => setShowPhoneModal(false)}
+        onSuccess={handlePhoneUpdateSuccess}
+      />
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -127,17 +219,19 @@ const CohortDetails = () => {
       >
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <div className="relative h-64 bg-gradient-to-r from-blue-600 to-indigo-600">
-            <img 
-              src={cohort.image || "/rectangle-2749.png"} 
-              alt={cohort.title} 
+            <img
+              src={cohort.image || "/rectangle-2749.png"}
+              alt={cohort.title}
               className="w-full h-full object-cover opacity-50"
             />
             <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
               <h1 className="text-4xl font-bold text-white text-center px-4">{cohort.title}</h1>
             </div>
           </div>
-
           <div className="p-8">
+            {/* Status Banner */}
+            {renderStatusBanner()}
+
             <div className="flex flex-wrap gap-6 mb-8">
               <div className="flex items-center text-gray-600">
                 <Calendar className="w-5 h-5 mr-2 text-blue-600" />
@@ -183,16 +277,26 @@ const CohortDetails = () => {
 
                   <Button
                     onClick={handleJoinCohort}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-full font-medium flex items-center justify-center gap-2"
+                    disabled={isJoining || cohort.status !== "approved"}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-full font-medium flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                   >
-                    <span>Join Cohort</span>
-                    <ArrowRight className="w-4 h-4" />
+                    {isJoining ? (
+                      <div className="flex items-center justify-center">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        Processing...
+                      </div>
+                    ) : (
+                      <>
+                        <span>Join Cohort</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
                   </Button>
 
                   <div className="mt-6 space-y-4">
                     <div className="flex items-start">
                       <div className="flex-shrink-0">
-                        <img 
+                        <img
                           src={cohort.expertImage || "/placeholder-user.jpg"}
                           alt={cohort.expertName}
                           className="w-12 h-12 rounded-full"
@@ -210,6 +314,7 @@ const CohortDetails = () => {
           </div>
         </div>
       </motion.div>
+      <Footer />
     </div>
   );
 };

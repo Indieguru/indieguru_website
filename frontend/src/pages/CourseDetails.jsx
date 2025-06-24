@@ -12,16 +12,20 @@ import 'react-toastify/dist/ReactToastify.css';
 import { Clock, Award, Calendar, CheckCircle2, Wallet, BookOpen, Users, Shield, AlertCircle, Stars, GraduationCap, BookMarked } from 'lucide-react';
 import useUserStore from '../store/userStore';
 import useUserTypeStore from '../store/userTypeStore';
+import useRedirectStore from '../store/redirectStore';
+import PhoneUpdateModal from '../components/modals/PhoneUpdateModal';
 
 export default function CourseDetails() {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
   const { courseId } = useParams();
   const navigate = useNavigate();
-  const { user } = useUserStore();
+  const { user, fetchUser } = useUserStore();
   const { userType } = useUserTypeStore();
   const { isAuthenticated } = useAuthStore();
+  const { setRedirectUrl } = useRedirectStore();
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -42,6 +46,8 @@ export default function CourseDetails() {
 
   const handlePurchase = async () => {
     if (!isAuthenticated) {
+      // Save the current URL to redirect back after login
+      setRedirectUrl(window.location.pathname);
       toast.info("Please sign up or log in to register for this course", {
         position: "top-center",
         autoClose: 5000,
@@ -51,13 +57,6 @@ export default function CourseDetails() {
         draggable: true,
       });
       navigate('/signup');
-      return;
-    }
-  };
-  
-  const handleEnroll = async () => {
-    if (userType === "not_signed_in") {
-      navigate("/signup");
       return;
     }
 
@@ -72,10 +71,40 @@ export default function CourseDetails() {
       return;
     }
 
+    // Check if course is approved
+    if (course.status !== 'approved') {
+      toast.error("This course is not available for purchase at this time.", {
+        position: "top-center",
+        autoClose: 5000,
+      });
+      return;
+    }
+
+    // Check if phone number is missing
+    if (!user.phone) {
+      setShowPhoneModal(true);
+      return;
+    }
+
+    // If phone exists, proceed with purchase
+    proceedWithPurchase();
+  };
+
+  const handlePhoneUpdateSuccess = (phoneNumber) => {
+    setShowPhoneModal(false);
+    fetchUser(); // Refresh user data
+    toast.success("Phone number updated! Proceeding with course registration.", {
+      position: "top-center",
+      autoClose: 3000,
+    });
+    // Proceed with purchase after phone update
+    proceedWithPurchase();
+  };
+
+  const proceedWithPurchase = async () => {
     try {
       setPurchasing(true);
       await axiosInstance.post(`/course/${courseId}/purchase`);
-      // await axiosInstance.post(`/course/enroll/${courseId}`);
       setShowSuccessModal(true);
       navigate('/dashboard');
     } catch (error) {
@@ -91,6 +120,8 @@ export default function CourseDetails() {
       setPurchasing(false);
     }
   };
+  
+  const handleEnroll = handlePurchase; // Alias for the same functionality
   
   const handleSuccessClose = () => {
     setShowSuccessModal(false);
@@ -135,9 +166,53 @@ export default function CourseDetails() {
     );
   }
 
+  // Display course status notification
+  const renderStatusBanner = () => {
+    if (course.status === 'pending') {
+      return (
+        <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <AlertCircle className="h-5 w-5 text-amber-400" aria-hidden="true" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-amber-700">
+                This course is pending approval and is not available for purchase yet.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    } else if (course.status === 'rejected') {
+      return (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <AlertCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-700">
+                This course is not available for purchase.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <Header />
+      
+      {/* Phone Update Modal */}
+      <PhoneUpdateModal 
+        isOpen={showPhoneModal}
+        onClose={() => setShowPhoneModal(false)}
+        onSuccess={handlePhoneUpdateSuccess}
+      />
+      
       <main className="max-w-7xl mx-auto px-4 pt-[120px] pb-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -155,38 +230,19 @@ export default function CourseDetails() {
               <p className="text-blue-50 text-lg mb-4 max-w-2xl">{course.tagline || 'Expand your skills and advance your career with this professional course'}</p>
               <div className="flex items-center gap-4">
                 <div className="flex items-center">
-                  {/* <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                    <CheckCircle2 className="w-4 h-4" />
-                  </div>
-                  <span className="ml-2">Professional Certificate</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                    <Clock className="w-4 h-4" />
-                  </div> */}
                   <span className="ml-2">{course.duration}</span>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Status Banner */}
+          {renderStatusBanner()}
           
           <div className="p-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="md:col-span-2">
                 <div className="space-y-8">
-                  {/* Course Overview Section */}
-                  {/* <div>
-                    <h2 className="text-2xl font-semibold text-[#0a2540] mb-4 flex items-center">
-                      <span className="p-2 rounded-md bg-blue-50 text-indigo-800 mr-3">
-                        <Award className="w-5 h-5" />
-                      </span>
-                      Course Overview
-                    </h2>
-                    <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                      <p className="text-gray-700 leading-relaxed">{course.overview}</p>
-                    </div>
-                  </div> */}
-
                   {/* Expert Details Section */}
                   <div>
                     <h2 className="text-2xl font-semibold text-[#0a2540] mb-4 flex items-center">
@@ -226,7 +282,6 @@ export default function CourseDetails() {
                       </div>
                     </div>
                   </div>
-
                   {/* Learning Outcomes Section */}
                   <div>
                     <h2 className="text-2xl font-semibold text-[#0a2540] mb-4 flex items-center">
@@ -253,7 +308,6 @@ export default function CourseDetails() {
                 </div>
               </div>
             </div>
-
             {/* Course Details Sidebar */}
             <div className="md:col-span-1">
               <div className="bg-white rounded-xl p-6 sticky top-4 shadow-lg border border-gray-100">
@@ -270,14 +324,6 @@ export default function CourseDetails() {
                       <p className="font-medium text-[#0a2540]">{course.duration}</p>
                     </div>
                   </div>
-                  
-                  {/* <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-                    <Award className="w-5 h-5 text-indigo-800 mr-3" />
-                    <div>
-                      <p className="text-gray-500 text-sm">Level</p>
-                      <p className="font-medium text-[#0a2540]">{course.level}</p>
-                    </div>
-                  </div> */}
                   
                   <div className="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-100">
                     <Wallet className="w-5 h-5 text-indigo-800 mr-3" />
@@ -305,7 +351,7 @@ export default function CourseDetails() {
                 <div className="space-y-4">
                   <Button
                     onClick={handlePurchase}
-                    disabled={purchasing}
+                    disabled={purchasing || course.status !== 'approved'}
                     className="w-full bg-gradient-to-r from-indigo-800 to-indigo-600 text-white py-4 rounded-xl hover:from-blue-700 hover:to-indigo-900 transition-all font-bold text-lg shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     {purchasing ? (
@@ -322,12 +368,6 @@ export default function CourseDetails() {
                     By registering, you agree to our terms of service and privacy policy
                   </p>
                 </div>
-                <Button
-                  onClick={handleEnroll}
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Enroll Now
-                </Button>
               </div>
             </div>
           </div>

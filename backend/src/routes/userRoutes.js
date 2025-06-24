@@ -92,16 +92,43 @@ router.put('/update', authMiddleware, async (req, res) => {
             return res.status(400).json({ message: 'Invalid user ID format' });
         }
 
-        const user = await User.updateOne({ _id: req.user.id }, { ...req.body }).lean(); // Use .lean() to return a plain object
-        if (!user) {
+        // Check for duplicate phone number if phone is being updated
+        if (req.body.phone) {
+            const existingUserWithPhone = await User.findOne({ 
+                phone: req.body.phone, 
+                _id: { $ne: req.user.id } // Exclude current user
+            });
+            
+            if (existingUserWithPhone) {
+                return res.status(409).json({ 
+                    message: 'This phone number is already associated with another account',
+                    code: 11000 // Send MongoDB duplicate key error code for consistency
+                });
+            }
+        }
+        
+        const user = await User.updateOne({ _id: req.user.id }, { ...req.body });
+        
+        if (user.matchedCount === 0) {
             console.log('User not found');
             return res.status(401).json({ message: 'User does not exist' });
         }
+        
         console.log(user);
-        res.status(200).json(user);
+        res.status(200).json({ message: 'User updated successfully', user });
     } catch (error) {
         console.error('Error updating user details:', error);
-        res.status(500).json({ message: 'Server error' });
+        
+        // Handle MongoDB duplicate key error specifically
+        if (error.code === 11000) {
+            return res.status(409).json({ 
+                message: 'This phone number is already associated with another account',
+                code: 11000,
+                keyValue: error.keyValue
+            });
+        }
+        
+        res.status(500).json({ message: 'Error updating user details', error: error.message });
     }
 });
 

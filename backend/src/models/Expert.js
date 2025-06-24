@@ -57,8 +57,8 @@ const ExpertSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected'],
-    default: 'pending'
+    enum: ['not requested', 'pending', 'approved', 'rejected'],
+    default: 'not requested'
   },
   isAdmin: {
     type: Boolean,
@@ -79,6 +79,16 @@ const ExpertSchema = new mongoose.Schema({
       return value;
     }
   },
+  links: [{
+    name: {
+      type: String,
+      required: true
+    },
+    url: {
+      type: String,
+      required: true
+    }
+  }],
   expertise: [{
     type: String,
     // enum: [
@@ -243,7 +253,7 @@ const ExpertSchema = new mongoose.Schema({
 
 // Pre-save middleware to validate required fields for email signup
 ExpertSchema.pre('save', function(next) {
-  if (this.authType === 'email' && !this.password) {
+  if (this.authType === 'email' && !this.password && !this.emailVerified) {
     return next(new Error('Password is required for email signup'));
   }
   

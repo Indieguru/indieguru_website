@@ -2,70 +2,33 @@
 
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronDown, User, BookOpen } from "lucide-react";
+import { User, BookOpen, Mail } from "lucide-react";
 import axiosInstance from "../config/axios.config";
-// import { useAuth } from "../hooks/useAuth";
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
-import { app, auth } from "../config/firebase.js";
 import useAuthStore from "../store/authStore";
 import useUserTypeStore from "../store/userTypeStore";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [buttonText, setButtonText] = useState("Get OTP");
-  const [countryCode, setCountryCode] = useState("+91");
-  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [timer, setTimer] = useState(0);
   const [resendActive, setResendActive] = useState(false);
-  const {isAuthenticated,fetchIsAuthenticated} = useAuthStore();
-  const countryCodes = ["+91", "+1", "+44", "+61", "+81"];
+  const { isAuthenticated, fetchIsAuthenticated } = useAuthStore();
   const { userType, setUserType } = useUserTypeStore();
   const [assessmentData, setAssessmentData] = useState(null);
-  auth.settings.appVerificationDisabledForTesting = true;
-  
 
   useEffect(() => {
     // Load saved assessment data if it exists
-    const savedData = localStorage.getItem('assessmentData');
+    const savedData = localStorage.getItem("assessmentData");
     if (savedData) {
       setAssessmentData(JSON.parse(savedData));
     }
   }, []);
 
-  // useEffect(() => {
-  //   if (isAuthenticated) {
-  //     // If we have assessment data, submit it before redirecting
-  //     if (assessmentData) {
-  //       // Submit the assessment data to your backend
-  //       axiosInstance.post('/user/assessment', assessmentData)
-  //         .then(() => {
-           
-  //           localStorage.removeItem('assessmentData');
-  //           // Redirect based on role
-  //           userType === "student" ? navigate("/dashboard") : navigate("/expert");
-  //         })
-  //         .catch(error => {
-  //           console.error('Error submitting assessment:', error);
-  //           // Still redirect even if assessment submission fails
-  //           userType === "student" ? navigate("/dashboard") : navigate("/expert");
-  //         });
-  //     } else {
-  //       // No assessment data, just redirect
-  //       userType === "student" ? navigate("/dashboard") : navigate("/expert");
-  //     }
-  //   }
-  //   else{
-  //     fetchIsAuthenticated();
-  //   }
-  // }, [isAuthenticated, navigate, userType, assessmentData]);
-
   useEffect(() => {
-    console.log("Setting up ...",auth.settings.appVerificationDisabledForTesting);
-
     let interval;
     if (timer > 0) {
       interval = setInterval(() => {
@@ -77,20 +40,8 @@ const LoginPage = () => {
     return () => clearInterval(interval);
   }, [timer, showOtpInput]);
 
-  // useEffect(() => {
-  //   const urlParams = new URLSearchParams(window.location.search);
-  //   const token = urlParams.get("token");
-  //   const userId = urlParams.get("id");
-  //   if (token && userId) {
-  //     console.log("JWT Token:", token);
-  //     console.log("User ID:", userId);
-  //     userType === "student" ? navigate("/dashboard") : navigate("/expert");
-  //   }
-  // }, [navigate, userType]);
-
-  const handlePhoneChange = (e) => {
-    const value = e.target.value.replace(/\D/g, "");
-    setPhoneNumber(value);
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
     setErrorMessage("");
   };
 
@@ -101,67 +52,57 @@ const LoginPage = () => {
     }
   };
 
-  const handleCountryCodeSelect = (code) => {
-    setCountryCode(code);
-    setShowCountryDropdown(false);
-  };
-
-  
-  const setUpRecaptcha = (onVerifiedCallback) => {
-    console.log("Setting up reCAPTCHA...",auth.settings.appVerificationDisabledForTesting);
-    try {
-      if (!window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(
-          "recaptcha-container",
-          {
-            size: "invisible",
-            siteKey: "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",  // ← test key
-            callback: () => onVerifiedCallback(),
-            "expired-callback": () => setErrorMessage("Expired!"),
-          },
-          auth
-        );
-    
-
-      }
-      window.recaptchaVerifier.render();
-    } catch (error) {
-      setErrorMessage("Failed to initialize reCAPTCHA: " + error.message);
-    }
+  const validateEmail = (email) => {
+    const re =
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
   };
 
   const handleSendOtp = async () => {
     setErrorMessage("");
-    if (phoneNumber.length !== 10) {
-      setErrorMessage("Please enter a valid 10-digit phone number");
+    if (!validateEmail(email)) {
+      setErrorMessage("Please enter a valid email address");
       return;
     }
-    const fullPhone = countryCode + phoneNumber;
-    setUpRecaptcha(async () => {
-      try {
-        const appVerifier = window.recaptchaVerifier;
-        const confirmationResult = await signInWithPhoneNumber(auth, fullPhone, appVerifier);
-        window.confirmationResult = confirmationResult;
-        setShowOtpInput(true);
-        setButtonText("Verify");
-        setTimer(30);
-      } catch (err) {
-        setErrorMessage("Failed to send OTP: " + err.message);
+
+    try {
+      // Make API call to backend to send OTP
+      const response = await axiosInstance.post("/user/auth/send-email-otp", {
+        email: email,
+        role: userType,
+      });
+
+      setShowOtpInput(true);
+      setButtonText("Verify");
+      setTimer(30);
+      
+      // In development mode, if OTP is included in the response, auto-fill it
+      if (response.data.otp) {
+        console.log("Development mode: Auto-filling OTP:", response.data.otp);
+        setOtp(response.data.otp);
+        // Show a notice to the user
+        setErrorMessage(`Dev mode: OTP auto-filled (${response.data.otp})`);
       }
-    });
+    } catch (err) {
+      setErrorMessage("Failed to send OTP: " + (err.response?.data?.message || err.message));
+    }
   };
 
   const handleVerifyOtp = async () => {
+    if (otp.length !== 6) {
+      setErrorMessage("Please enter a valid 6-digit OTP");
+      return;
+    }
+
     try {
-      const result = await window.confirmationResult.confirm(otp);
-      const user = result.user;
-      const idToken = await user.getIdToken();
-      await axiosInstance.post("/user/auth/firebase-login", {
-        phone: user.phoneNumber,
-        firebaseToken: idToken,
-        role: userType
+      // Make API call to verify OTP
+      const response = await axiosInstance.post("/user/auth/verify-email-otp", {
+        email: email,
+        otp: otp,
+        role: userType,
       });
-     
+
+      // Navigate based on user role after successful verification
       userType === "student" ? navigate("/dashboard") : navigate("/expert");
     } catch (err) {
       setErrorMessage("Invalid OTP. Please try again.");
@@ -183,13 +124,13 @@ const LoginPage = () => {
   };
 
   const handleGoogleSigninClick = () => {
-    const backendUrl = import.meta.env.VITE_TYPE === "production" 
-      ? import.meta.env.VITE_BACKEND_URL 
-      : `${import.meta.env.VITE_BACKEND_URL}:${import.meta.env.VITE_BACKEND_PORT}`;
-    if(userType === "student") {
-    window.location.href = `${backendUrl}/api/v1/user/auth/google`;
-    }
-    else{
+    const backendUrl =
+      import.meta.env.VITE_TYPE === "production"
+        ? import.meta.env.VITE_BACKEND_URL
+        : `${import.meta.env.VITE_BACKEND_URL}:${import.meta.env.VITE_BACKEND_PORT}`;
+    if (userType === "student") {
+      window.location.href = `${backendUrl}/api/v1/user/auth/google`;
+    } else {
       window.location.href = `${backendUrl}/api/v1/expert/auth/google`;
     }
   };
@@ -215,8 +156,7 @@ const LoginPage = () => {
           />
           <h2 className="text-white text-2xl font-bold mt-8 text-center">Expand your knowledge and skills</h2>
           <p className="text-blue-100 mt-4 text-center max-w-md">
-            Join our community of learners and experts today to start your
-            educational journey.
+            Join our community of learners and experts today to start your educational journey.
           </p>
         </div>
 
@@ -259,43 +199,22 @@ const LoginPage = () => {
 
             <form className="space-y-6">
               <div className="space-y-2">
-                <label htmlFor="phone" className="block text-lg font-medium text-[#0a2540]">
-                  Phone Number
+                <label htmlFor="email" className="block text-lg font-medium text-[#0a2540]">
+                  Email Address
                 </label>
                 {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
                 <div className="flex">
-                  <div className="relative">
-                    <button
-                      type="button"
-                      className="flex items-center justify-between w-20 px-4 py-3 border border-gray-300 rounded-l-md bg-white text-gray-700"
-                      onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-                    >
-                      <span>{countryCode}</span>
-                      <ChevronDown className="h-4 w-4 ml-1" />
-                    </button>
-                    {showCountryDropdown && (
-                      <div className="absolute z-10 mt-1 w-24 bg-white shadow-lg rounded-md border border-gray-300">
-                        {countryCodes.map((code) => (
-                          <button
-                            key={code}
-                            type="button"
-                            className="block w-full bg-white text-left px-4 py-2 hover:bg-gray-100"
-                            onClick={() => handleCountryCodeSelect(code)}
-                          >
-                            {code}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                  <div className="relative w-full">
+                    <input
+                      type="email"
+                      id="email"
+                      value={email}
+                      onChange={handleEmailChange}
+                      placeholder="Enter your email address"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#185899] bg-white"
+                    />
+                    <Mail className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                   </div>
-                  <input
-                    type="tel"
-                    id="phone"
-                    value={phoneNumber}
-                    onChange={handlePhoneChange}
-                    placeholder="Ex. 999xxxxxxx"
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-[#185899] bg-white"
-                  />
                 </div>
               </div>
 
@@ -370,7 +289,6 @@ const LoginPage = () => {
                 </svg>
                 <span>Sign In with Google</span>
               </button>
-              <div id="recaptcha-container"></div>
             </form>
 
             <p className="text-sm text-gray-600 mt-8 text-center">

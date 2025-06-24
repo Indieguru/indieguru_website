@@ -7,7 +7,7 @@ import Footer from '../components/layout/Footer';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card } from '../components/ui/card';
-import { Plus, Upload, Pencil } from 'lucide-react';
+import { Plus, Upload, Pencil, Link as LinkIcon, Trash2, CheckCircle, AlertCircle } from 'lucide-react';
 import { ErrorPopup } from '../components/ui/error-popup';
 import axiosInstance from '../config/axios.config';
 import useExpertStore from "../store/expertStore";
@@ -39,11 +39,12 @@ function ExpertProfile() {
     education: [],
     experience: [],
     certifications: [],
-    industries: [],
     targetAudience: [],
+    links: [],
     profilePicture: "/placeholder-user.jpg",
     completedSteps: 0,
-    totalSteps: 8
+    totalSteps: 7,
+    status: "not requested"
   });
 
   const [editingField, setEditingField] = useState(null);
@@ -60,9 +61,11 @@ function ExpertProfile() {
   });
   const [newExperience, setNewExperience] = useState({ title: "", company: "", duration: "", description: "" });
   const [newCertification, setNewCertification] = useState({ name: "", issuer: "" });
+  const [newLink, setNewLink] = useState({ name: "", url: "" });
   const [isEditingEducation, setIsEditingEducation] = useState(false);
   const [isEditingExperience, setIsEditingExperience] = useState(false);
   const [isEditingCertification, setIsEditingCertification] = useState(false);
+  const [isEditingLink, setIsEditingLink] = useState(false);
   const [selectedCertificateFile, setSelectedCertificateFile] = useState(null);
   const [editValues, setEditValues] = useState({
     name: "",
@@ -71,7 +74,16 @@ function ExpertProfile() {
     phone: ""
   });
   const [isProfilePictureModalOpen, setIsProfilePictureModalOpen] = useState(false);
-  const [showIndustries, setShowIndustries] = useState(false);
+
+  const [isSubmittingApproval, setIsSubmittingApproval] = useState(false);
+  const [approvalRequirements, setApprovalRequirements] = useState({
+    basicInfo: false,
+    profilePicture: false,
+    links: false,
+    expertise: false,
+    targetAudience: false,
+    experience: false,
+  });
 
   useEffect(() => {
     const handleAuth = async () => {
@@ -95,49 +107,97 @@ function ExpertProfile() {
   }, [userType, navigate, fetchExpertData, authData]);
 
   useEffect(() => {
-    // console.log("Expert Data:", expertData);
     if (expertData) {
+      console.log("Expert status from API:", expertData.status);
       setProfileData(prev => ({
         ...prev,
         name: expertData.name || "",
         email: expertData.email || "",
-        phone: expertData.phoneNo || "",
+        phone: expertData.phone || "",
         title: expertData.title || "",
         expertise: expertData.expertise || [],
-        industries: expertData.industries || [], // Ensure industries are properly set
         targetAudience: expertData.targetAudience || [],
+        links: expertData.links || [],
         profilePicture: expertData.profilePicture || "/placeholder-user.jpg",
         completedSteps: expertData.profileCompletion || 0,
-        totalSteps: 8,
+        totalSteps: 7,
         education: expertData.education || [],
         experience: expertData.experience || [],
-        certifications: expertData.certifications || []
+        certifications: expertData.certifications || [],
+        status: expertData.status || "not requested"
       }));
+      if (expertData) {
+        setApprovalRequirements({
+          basicInfo: !!expertData.name && !!expertData.email && !!expertData.title && !!expertData.phone,
+          profilePicture: expertData.profilePicture && expertData.profilePicture !== "/placeholder-user.jpg",
+          links: Array.isArray(expertData.links) && expertData.links.length > 0,
+          expertise: Array.isArray(expertData.expertise) && expertData.expertise.length > 0,
+          targetAudience: Array.isArray(expertData.targetAudience) && expertData.targetAudience.length > 0,
+          experience: Array.isArray(expertData.experience) && expertData.experience.length > 0,
+        });
+      }
     }
   }, [expertData]);
 
+  useEffect(() => {
+    if (profileData) {
+      setApprovalRequirements({
+        basicInfo: !!profileData.name && !!profileData.email && !!profileData.title && !!profileData.phone,
+        profilePicture: profileData.profilePicture && profileData.profilePicture !== "/placeholder-user.jpg",
+        links: Array.isArray(profileData.links) && profileData.links.length > 0,
+        expertise: Array.isArray(profileData.expertise) && profileData.expertise.length > 0,
+        targetAudience: Array.isArray(profileData.targetAudience) && profileData.targetAudience.length > 0,
+        experience: Array.isArray(profileData.experience) && profileData.experience.length > 0,
+      });
+    }
+  }, [profileData]);
+
   const handleEditField = (field) => {
     setEditingField(field);
+    // Set the current value in editValues when starting to edit
+    setEditValues(prev => ({
+      ...prev,
+      [field]: profileData[field]
+    }));
   };
 
   const handleSaveField = async (field) => {
     try {
       setLoading(true);
       let data = {};
-
       switch (field) {
-        // ...existing code...
+        case 'name':
+          data = { name: editValues.name };
+          break;
+        case 'title':
+          data = { title: editValues.title };
+          break;
+        case 'email':
+          data = { email: editValues.email };
+          break;
+        case 'phone':
+          data = { phoneNo: editValues.phone }; // Map 'phone' from frontend to 'phoneNo' for backend
+          break;
+        default:
+          break;
       }
-
       const response = await axiosInstance.put('/expert/update', data, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
-
       if (response.status === 200) {
         toast.success(`${field} updated successfully`);
         setEditingField(null);
+        
+        // Update local state to reflect the changes
+        setProfileData(prev => ({
+          ...prev,
+          [field]: editValues[field]
+        }));
+        
+        // Refresh expert data to ensure everything is in sync
+        fetchExpertData();
       }
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -164,7 +224,6 @@ function ExpertProfile() {
           ...prev,
           profilePicture: response.data.profilePicture
         }));
-        // Update the store with new profile picture
         useExpertStore.getState().updateProfilePicture(response.data.profilePicture);
       }
     } catch (error) {
@@ -177,7 +236,6 @@ function ExpertProfile() {
     try {
       const payload = {
         expertise: profileData.expertise,
-        industries: profileData.industries,
         targetAudience: profileData.targetAudience
       };
       
@@ -185,7 +243,6 @@ function ExpertProfile() {
       
       if (response.status === 200) {
         setErrorMessage("");
-        // Show success message or toast here if you have one
       }
     } catch (error) {
       console.error('Failed to save changes:', error);
@@ -208,7 +265,6 @@ function ExpertProfile() {
   };
 
   const renderBasicInfoField = (field, label, type = "text") => {
-    // console.log("Rendering field:", field, "with value:", profileData[field]);
     const isEditable = field === 'email' || field === 'phone' ? !profileData[field] : true;
     
     return (
@@ -319,6 +375,80 @@ function ExpertProfile() {
     }
   };
 
+  const handleAddLink = async () => {
+    if (!newLink.name || !newLink.url) {
+      setErrorMessage("Please fill both name and URL fields");
+      return;
+    }
+    
+    try {
+      new URL(newLink.url);
+    } catch (error) {
+      setErrorMessage("Please enter a valid URL (include http:// or https://)");
+      return;
+    }
+    
+    try {
+      const updatedLinks = [...profileData.links, newLink];
+      
+      const response = await axiosInstance.patch('/expert/update-links', 
+        { links: updatedLinks },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      
+      if (response.status === 200) {
+        setProfileData(prev => ({
+          ...prev,
+          links: updatedLinks
+        }));
+        
+        useExpertStore.getState().updateLinks(updatedLinks);
+        
+        setNewLink({ name: "", url: "" });
+        setIsEditingLink(false);
+        toast.success('Link added successfully');
+      }
+    } catch (error) {
+      console.error('Failed to add link:', error);
+      setErrorMessage(error.response?.data?.message || "Failed to add link");
+    }
+  };
+
+  const handleRemoveLink = async (index) => {
+    try {
+      const updatedLinks = profileData.links.filter((_, i) => i !== index);
+      
+      const response = await axiosInstance.patch('/expert/update-links', 
+        { links: updatedLinks },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      
+      if (response.status === 200) {
+        setProfileData(prev => ({
+          ...prev,
+          links: updatedLinks
+        }));
+        
+        useExpertStore.getState().updateLinks(updatedLinks);
+        
+        toast.success('Link removed successfully');
+      }
+    } catch (error) {
+      console.error('Failed to remove link:', error);
+      setErrorMessage(error.response?.data?.message || "Failed to remove link");
+    }
+  };
+
   const handleCertificateFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -326,7 +456,7 @@ function ExpertProfile() {
         setErrorMessage("Please upload a PDF file");
         return;
       }
-      if (file.size > 5 * 1024 * 1024) {  // 5MB
+      if (file.size > 5 * 1024 * 1024) {
         setErrorMessage("File size should be less than 5MB");
         return;
       }
@@ -360,7 +490,6 @@ function ExpertProfile() {
         setNewCertification({ name: "", issuer: "" });
         setSelectedCertificateFile(null);
         setIsEditingCertification(false);
-        // Refresh expert data in store
         fetchExpertData();
       }
     } catch (error) {
@@ -373,7 +502,6 @@ function ExpertProfile() {
     try {
       await axiosInstance.post("/expert/auth/logout");
       setUserType("not_signed_in");
-      console.log(userType)
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -381,49 +509,42 @@ function ExpertProfile() {
     }
   };
 
-  const completionPercentage = (profileData.completedSteps / profileData.totalSteps) * 100;
+  const handleRequestApproval = async () => {
+    try {
+      setIsSubmittingApproval(true);
+      
+      const { basicInfo, profilePicture, links, expertise, targetAudience, experience } = approvalRequirements;
+      if (!basicInfo || !profilePicture || !links || !expertise || !targetAudience || !experience) {
+        setErrorMessage("Please complete all required profile sections before requesting approval");
+        setIsSubmittingApproval(false);
+        return;
+      }
 
-  const industryOptions = [
-    'Technology',
-    'Healthcare',
-    'Finance',
-    'Education',
-    'Engineering',
-    'Marketing',
-    'Design',
-    'Business Management',
-    'Data Science',
-    'Research & Development',
-    'Manufacturing',
-    'Consulting',
-    'Law',
-    'Media & Entertainment',
-    'Architecture',
-    'Life Sciences'
-  ];
-
-  const handleIndustrySelect = (industry) => {
-    if (!profileData.industries.includes(industry)) {
-      const updatedIndustries = [...profileData.industries, industry];
-      setProfileData((prev) => ({
-        ...prev,
-        industries: updatedIndustries,
-      }));
-      // Update the store
-      useExpertStore.getState().updateIndustries(updatedIndustries);
+      const response = await axiosInstance.post('/expert/request-approval');
+      
+      if (response.status === 200) {
+        toast.success("Approval request submitted successfully!");
+        setProfileData(prev => ({
+          ...prev,
+          status: "pending"
+        }));
+        fetchExpertData();
+      }
+    } catch (error) {
+      console.error("Error requesting approval:", error);
+      setErrorMessage(error.response?.data?.message || "Failed to submit approval request");
+    } finally {
+      setIsSubmittingApproval(false);
     }
-    setShowIndustries(false);
   };
 
-  const handleIndustryRemove = (industry) => {
-    const updatedIndustries = profileData.industries.filter((ind) => ind !== industry);
-    setProfileData((prev) => ({
-      ...prev,
-      industries: updatedIndustries,
-    }));
-    // Update the store
-    useExpertStore.getState().updateIndustries(updatedIndustries);
+  const canRequestApproval = () => {
+    const statusAllowsRequest = profileData.status !== "approved" && profileData.status !== "pending";
+    const allRequirementsMet = Object.values(approvalRequirements).every(requirement => requirement);
+    return statusAllowsRequest && allRequirementsMet;
   };
+
+  const completionPercentage = (profileData.completedSteps / profileData.totalSteps) * 100;
 
   if (loading || !authData) {
     return (
@@ -443,6 +564,34 @@ function ExpertProfile() {
       <Header className="sticky top-0 z-50 bg-white shadow-md" />
 
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-8">
+        <div className="mb-6">
+          <div className={`px-4 py-3 rounded-lg flex items-center gap-2 ${
+            profileData.status === "approved" 
+              ? "bg-green-100 text-green-800" 
+              : profileData.status === "pending" 
+                ? "bg-yellow-100 text-yellow-800"
+                : profileData.status === "rejected"
+                  ? "bg-red-100 text-red-800"
+                  : "bg-gray-100 text-gray-800"
+          }`}>
+            {profileData.status === "approved" ? (
+              <CheckCircle size={20} />
+            ) : (
+              <AlertCircle size={20} />
+            )}
+            <span className="font-medium">
+              Status: {profileData.status === "not requested" 
+                ? "Not Requested" 
+                : profileData.status.charAt(0).toUpperCase() + profileData.status.slice(1)}
+            </span>
+            {profileData.status === "rejected" && expertData.rejectionReason && (
+              <span className="ml-2 text-red-700">
+                Reason: {expertData.rejectionReason}
+              </span>
+            )}
+          </div>
+        </div>
+
         <Card id="basic-info" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
           <h2 className="text-2xl font-semibold text-[#232636] mb-6">Basic Information</h2>
 
@@ -474,13 +623,89 @@ function ExpertProfile() {
           </div>
         </Card>
 
+        <Card id="links" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <h2 className="text-2xl font-semibold text-[#232636] mb-4">Social & Professional Links</h2>
+          <div className="space-y-4">
+            {profileData.links?.length > 0 ? (
+              <div className="space-y-2 mb-4">
+                {profileData.links.map((link, index) => (
+                  <div key={`link-${index}`} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <LinkIcon size={16} className="text-blue-600" />
+                      <span className="font-medium">{link.name}:</span>
+                      <a 
+                        href={link.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-blue-600 hover:underline truncate max-w-xs sm:max-w-md"
+                      >
+                        {link.url}
+                      </a>
+                    </div>
+                    <button 
+                      onClick={() => handleRemoveLink(index)}
+                      className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 italic mb-4">No links added yet. Add your social media profiles, personal website, or other professional links.</p>
+            )}
+
+            {isEditingLink ? (
+              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <Input
+                    placeholder="Link Name (e.g., LinkedIn, Portfolio, GitHub)"
+                    value={newLink.name}
+                    onChange={(e) => setNewLink(prev => ({ ...prev, name: e.target.value }))}
+                  />
+                  <Input
+                    placeholder="URL (include http:// or https://)"
+                    value={newLink.url}
+                    onChange={(e) => setNewLink(prev => ({ ...prev, url: e.target.value }))}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleAddLink}
+                    className="bg-blue-800 text-white hover:bg-[#143d65]"
+                  >
+                    Save
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setNewLink({ name: "", url: "" });
+                      setIsEditingLink(false);
+                    }}
+                    className="bg-gray-300 text-black hover:bg-gray-400"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                onClick={() => setIsEditingLink(true)}
+                className="w-full border border-dashed border-gray-300 p-4 rounded-lg text-gray-500 hover:border-blue-500 hover:text-blue-500 transition-colors flex items-center justify-center gap-2"
+              >
+                <Plus size={20} />
+                Add Link
+              </Button>
+            )}
+          </div>
+        </Card>
+
         <Card id="expertise" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
           <h2 className="text-2xl font-semibold text-[#232636] mb-4">My Expertise</h2>
           <div className="space-y-4">
             <div className="flex flex-wrap gap-3 mb-4">
               {profileData.expertise?.map((exp, index) => (
                 <span key={`expertise-${index}-${exp}`} className="px-4 py-2 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium flex items-center gap-2 border border-blue-200 shadow-sm">
-                  {exp.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                  {exp}
                   <button 
                     onClick={() => handleRemoveExpertise(exp)}
                     className="text-blue-600 hover:text-blue-800 font-bold"
@@ -498,7 +723,7 @@ function ExpertProfile() {
                     if (!newExpertise.includes(e.target.value)) {
                       handleExpertiseChange([...newExpertise, e.target.value]);
                     }
-                    e.target.value = ''; // Reset selection
+                    e.target.value = ''; 
                   }
                 }}
                 className="flex-grow border border-gray-300 rounded-lg p-2.5 bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -506,19 +731,70 @@ function ExpertProfile() {
               >
                 <option value="">+ Add Expertise</option>
                 {[
-                  'stream_selection',
-                  'career_counseling',
-                  'competitive_exams',
-                  'study_abroad',
-                  'resume_interview',
-                  'entrepreneurship',
-                  'higher_education',
-                  'career_transition',
-                  'industry_specific'
+                  'Software Development',
+                  'AI/ML',
+                  'Data Science',
+                  'Cybersecurity',
+                  'Cloud Computing & DevOps',
+                  'Product Management',
+                  'Psychology & Therapy',
+                  'Business Analysis',
+                  'Strategy & Operations',
+                  'Data Analysis',
+                  'Chartered Accountancy (CA)',
+                  'CFA',
+                  'Investment Banking',
+                  'Financial Planning & Analysis',
+                  'FinTech Roles',
+                  'Corporate & Criminal Law',
+                  'Company Secretary',
+                  'Digital Marketing',
+                  'SEO',
+                  'Graphic Designing',
+                  'PR & Corporate Communication',
+                  'Content Writing & Copywriting',
+                  'Growth Marketing',
+                  'Industrial Design',
+                  'Robotics & Mechatronics',
+                  'UI/UX & Interaction Design',
+                  'Fashion Design',
+                  'Interior & Spatial Design',
+                  'Animation & Illustration',
+                  'Fine Arts & Applied Arts',
+                  'Architecture',
+                  'Public Policy & Governance',
+                  'Exam Prep Mentorship - UPSC',
+                  'Exam Prep Mentorship - CUET',
+                  'Exam Prep Mentorship - NET',
+                  'Exam Prep Mentorship - JEE',
+                  'Exam Prep Mentorship - GMAT/GRE',
+                  'Exam Prep Mentorship - Banking and other govt exams',
+                  'Exam Prep Mentorship - NET/JRF',
+                  'Journalism (Print & Digital)',
+                  'Content Creation (YouTube, Podcasting)',
+                  'Film & Video Production',
+                  'Advertising & Copywriting',
+                  'OTT & New Media',
+                  'Business Growth',
+                  'Program Management',
+                  'Hotel Management',
+                  'Culinary Arts & Bakery',
+                  'Tourism & Travel',
+                  'Aviation & Cabin Crew',
+                  'Event Management',
+                  'Make Up Artist',
+                  'Dietitian/Nutrition',
+                  'Fitness Training',
+                  'Career Discovery/Career Counselling',
+                  'Study Abroad Guidance',
+                  'Soft Skills & Interview Prep',
+                  'Resume Building & LinkedIn & Job search',
+                  'PHD admission mentorship',
+                  'Stream Selection'
                 ].filter(exp => !profileData.expertise?.includes(exp))
                 .map(exp => (
                   <option key={exp} value={exp}>
-                    {exp.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                    {exp}
                   </option>
                 ))}
               </select>
@@ -541,79 +817,6 @@ function ExpertProfile() {
                 Save Changes
               </Button>
             </div>
-          </div>
-        </Card>
-
-        <Card id="industries" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <h2 className="text-2xl font-semibold text-[#232636] mb-4">Industries</h2>
-          <div className="space-y-4">
-            <div className="mb-2 flex flex-wrap gap-2">
-              {profileData.industries?.map((industry, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-800"
-                >
-                  <span>{industry}</span>
-                  <button
-                    onClick={() => handleIndustryRemove(industry)}
-                    className="ml-1 rounded-full hover:bg-blue-200"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-            <div className="relative w-full">
-              <button
-                onClick={() => setShowIndustries(!showIndustries)}
-                className="flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-2 text-left hover:bg-gray-50 focus:border-blue-500 focus:outline-none"
-              >
-                <span className="text-gray-700">+ Add Industry</span>
-                <svg
-                  className={`h-5 w-5 transition-transform ${showIndustries ? 'rotate-180' : ''}`}
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-              {showIndustries && (
-                <div className="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
-                  {industryOptions.map((industry, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleIndustrySelect(industry)}
-                      className="w-full px-4 py-2 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none"
-                      disabled={profileData.industries.includes(industry)}
-                    >
-                      {industry}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <Button
-              onClick={async () => {
-                try {
-                  const response = await axiosInstance.patch('/expert/update-industries', 
-                    { industries: profileData.industries }
-                  );
-                  if (response.status === 200) {
-                    toast.success('Industries updated successfully');
-                  }
-                } catch (error) {
-                  console.error('Error updating industries:', error);
-                  toast.error('Failed to update industries');
-                }
-              }}
-              className="bg-blue-800 text-white hover:bg-[#143d65] px-4"
-            >
-              Save Changes
-            </Button>
           </div>
         </Card>
 
@@ -652,7 +855,7 @@ function ExpertProfile() {
                         ...prev,
                         targetAudience: [...(prev.targetAudience || []), selectedValue]
                       }));
-                      e.target.value = ''; // Reset selection
+                      e.target.value = ''; 
                     }
                   }}
                   className="w-full border border-gray-300 rounded-lg p-2.5 bg-white text-gray-700 appearance-none hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -941,6 +1144,103 @@ function ExpertProfile() {
           </div>
         </Card>
 
+        {profileData.status !== "approved" && profileData.status !== "pending" && (
+          <Card className="p-6 mb-8 border-2 border-blue-200 shadow-lg">
+            <h2 className="text-2xl font-semibold text-[#232636] mb-4">Request to Become an Approved Expert</h2>
+            <p className="mb-4 text-gray-600">
+              To start offering your services to students, you'll need to request approval from our admin team.
+              Please complete all required profile sections to enable the request button.
+            </p>
+            
+            <div className="mb-6 space-y-2">
+              <div className="flex items-center gap-2">
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                  approvalRequirements.basicInfo ? "bg-green-500" : "bg-gray-300"
+                }`}>
+                  {approvalRequirements.basicInfo && <CheckCircle size={14} className="text-white" />}
+                </div>
+                <span className={approvalRequirements.basicInfo ? "text-green-700" : "text-gray-500"}>
+                  Basic Information (Name, Email, Title, Phone)
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                  approvalRequirements.profilePicture ? "bg-green-500" : "bg-gray-300"
+                }`}>
+                  {approvalRequirements.profilePicture && <CheckCircle size={14} className="text-white" />}
+                </div>
+                <span className={approvalRequirements.profilePicture ? "text-green-700" : "text-gray-500"}>
+                  Profile Picture
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                  approvalRequirements.links ? "bg-green-500" : "bg-gray-300"
+                }`}>
+                  {approvalRequirements.links && <CheckCircle size={14} className="text-white" />}
+                </div>
+                <span className={approvalRequirements.links ? "text-green-700" : "text-gray-500"}>
+                  At least one Social or Professional Link
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                  approvalRequirements.expertise ? "bg-green-500" : "bg-gray-300"
+                }`}>
+                  {approvalRequirements.expertise && <CheckCircle size={14} className="text-white" />}
+                </div>
+                <span className={approvalRequirements.expertise ? "text-green-700" : "text-gray-500"}>
+                  Areas of Expertise
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                  approvalRequirements.targetAudience ? "bg-green-500" : "bg-gray-300"
+                }`}>
+                  {approvalRequirements.targetAudience && <CheckCircle size={14} className="text-white" />}
+                </div>
+                <span className={approvalRequirements.targetAudience ? "text-green-700" : "text-gray-500"}>
+                  Target Audience
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                  approvalRequirements.experience ? "bg-green-500" : "bg-gray-300"
+                }`}>
+                  {approvalRequirements.experience && <CheckCircle size={14} className="text-white" />}
+                </div>
+                <span className={approvalRequirements.experience ? "text-green-700" : "text-gray-500"}>
+                  Professional Experience
+                </span>
+              </div>
+            </div>
+            
+            <Button
+              onClick={handleRequestApproval}
+              disabled={!canRequestApproval() || isSubmittingApproval}
+              className={`w-full py-3 ${
+                canRequestApproval() 
+                  ? "bg-blue-800 text-white hover:bg-[#143d65]" 
+                  : "bg-gray-300 text-gray-600 cursor-not-allowed"
+              }`}
+            >
+              {isSubmittingApproval ? (
+                <span className="flex items-center gap-2">
+                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                  Submitting...
+                </span>
+              ) : (
+                "Request Approval"
+              )}
+            </Button>
+          </Card>
+        )}
+
         <div className="mb-4">
           <div className="h-2 w-full bg-[#f5f5f5] rounded-full overflow-hidden">
             <div 
@@ -948,8 +1248,15 @@ function ExpertProfile() {
               style={{ width: `${completionPercentage}%` }}
             />
           </div>
-          <div className="text-sm text-[#676767] mt-1">
-            Profile completion: {profileData.completedSteps}/{profileData.totalSteps} steps completed
+          <div className="text-sm text-[#676767] mt-1 flex justify-between">
+            <span>
+              Profile completion: {profileData.completedSteps}/{profileData.totalSteps} steps completed
+            </span>
+            {profileData.completedSteps < profileData.totalSteps && (
+              <span className="text-blue-600">
+                Complete your profile to increase visibility to students
+              </span>
+            )}
           </div>
         </div>
 

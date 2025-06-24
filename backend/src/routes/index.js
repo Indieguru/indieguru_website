@@ -7,11 +7,15 @@ import cohortRouter from "./cohortRoutes.js";
 import adminRouter from "./adminRoutes.js";
 import blogRouter from "./blogRoutes.js";
 import communityRouter from "./communityRoutes.js";
+import userAuthRouter from "./userAuthRoutes.js";
+import expertAuthRouter from "./expertAuthRoutes.js";
 
 const router = express.Router();
 
 router.use("/user", userRouter);
+router.use("/user/auth", userAuthRouter);  // Add user auth routes
 router.use("/expert", expertRouter);   
+router.use("/expert/auth", expertAuthRouter);  // Add expert auth routes
 router.use("/session", sessionRouter);
 router.use("/course", courseRouter);
 router.use("/cohort", cohortRouter);

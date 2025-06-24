@@ -49,7 +49,8 @@ export const createCohort = async (req, res) => {
 
 export const getCohorts = async (req, res) => {
     try {
-        const cohorts = await Cohort.find()
+        // Only return cohorts that are approved
+        const cohorts = await Cohort.find({ status: 'approved' })
             .select('+rejectionReason')
             .sort({ startDate: 1 }); // Sort by startDate in ascending order
         

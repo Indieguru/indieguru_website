@@ -3,11 +3,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import { Button } from "../components/ui/button";
-import { Calendar, CheckCircle2, ChevronRight, Star, Clock, User, Award, DollarSign, X } from "lucide-react";
+import { Calendar, CheckCircle2, ChevronRight, Star, Clock, User, Award, DollarSign, X, Phone } from "lucide-react";
 import axiosInstance from "../config/axios.config";
 import { toast, ToastContainer } from "react-toastify";
 import useUserTypeStore from '../store/userTypeStore';
 import checkAuth from '../utils/checkAuth';
+import useRedirectStore from '../store/redirectStore';
+import useAuthStore from '../store/authStore';
+import PhoneUpdateModal from "../components/modals/PhoneUpdateModal";
 
 const BookingPage = () => {
   const { expertId } = useParams();
@@ -23,6 +26,9 @@ const BookingPage = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const { userType, setUserType } = useUserTypeStore();
   const [authData, setAuthData] = useState(null);
+  const { setRedirectUrl } = useRedirectStore();
+  const { isAuthenticated } = useAuthStore();
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
 
   useEffect(() => {
     const handleAuth = async () => {
@@ -53,8 +59,6 @@ const BookingPage = () => {
         ]);
         
         setExpert(expertResponse.data);
-        console.log("hi")
-        console.log(expertResponse.data);
         const availableSessions = sessionsResponse.data.filter(session => !session.bookedStatus);
         setSessions(availableSessions);
       } catch (error) {
@@ -69,7 +73,53 @@ const BookingPage = () => {
     }
   }, [expertId]);
 
+  // Check if user has a phone number
+  const checkPhoneNumber = () => {
+    if (!authData || !authData.user || !authData.user.phone) {
+      setShowPhoneModal(true);
+      return false;
+    }
+    return true;
+  };
+
+  // Handle phone update success
+  const handlePhoneUpdateSuccess = (phoneNumber) => {
+    setShowPhoneModal(false);
+    
+    // Update authData to include the new phone number
+    setAuthData(prev => ({
+      ...prev,
+      user: {
+        ...prev.user,
+        phone: phoneNumber
+      }
+    }));
+    
+    toast.success("Phone number updated! Proceeding with session booking.", {
+      position: "top-center",
+      autoClose: 3000,
+    });
+    
+    // Show the title modal to continue with booking
+    setShowTitleModal(true);
+  };
+
   const handleBooking = async () => {
+    if (userType === 'not_signed_in') {
+      // Save the current URL to redirect back after login
+      setRedirectUrl(window.location.pathname);
+      navigate('/signup');
+      return;
+    }
+
+    if (userType === "expert") {
+      toast.error('Please sign in as a student to book a session', {
+        position: "top-center",
+        autoClose: 5000,
+      });
+      return;
+    }
+
     if (!selectedDate) {
       toast.error('Please select a date', {
         icon: "🗓️",
@@ -96,6 +146,7 @@ const BookingPage = () => {
       return;
     }
     
+    
     const session = sessions.find(
       session => 
         new Date(session.date).toISOString().split('T')[0] === selectedDate && 
@@ -116,6 +167,12 @@ const BookingPage = () => {
     }
 
     setSelectedSession(session);
+    
+    // Check if phone number exists before proceeding
+    if (!checkPhoneNumber()) {
+      return; // Phone modal will be shown by checkPhoneNumber()
+    }
+    
     setShowTitleModal(true);
   };
 
@@ -372,6 +429,15 @@ const BookingPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Phone Update Modal */}
+        {showPhoneModal && (
+          <PhoneUpdateModal 
+            isOpen={showPhoneModal}
+            onClose={() => setShowPhoneModal(false)}
+            onSuccess={handlePhoneUpdateSuccess}
+          />
+        )}
 
         {showTitleModal && (
           <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4 z-50">

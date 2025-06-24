@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Modal } from "../ui/modal";
 import { Input } from "../ui/input";
-import { Search } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import axiosInstance from "../../config/axios.config";
@@ -12,22 +12,66 @@ import Loader from "../layout/Loader";
 import * as Motion from "framer-motion";
 
 const industries = [
-  'Technology',
-  'Healthcare',
-  'Finance',
-  'Education',
-  'Engineering',
-  'Marketing',
-  'Design',
-  'Business Management',
+  'Software Development',
+  'AI/ML',
   'Data Science',
-  'Research & Development',
-  'Manufacturing',
-  'Consulting',
-  'Law',
-  'Media & Entertainment',
+  'Cybersecurity',
+  'Cloud Computing & DevOps',
+  'Product Management',
+  'Psychology & Therapy',
+  'Business Analysis',
+  'Strategy & Operations',
+  'Data Analysis',
+  'Chartered Accountancy (CA)',
+  'CFA',
+  'Investment Banking',
+  'Financial Planning & Analysis',
+  'FinTech Roles',
+  'Corporate & Criminal Law',
+  'Company Secretary',
+  'Digital Marketing',
+  'SEO',
+  'Graphic Designing',
+  'PR & Corporate Communication',
+  'Content Writing & Copywriting',
+  'Growth Marketing',
+  'Industrial Design',
+  'Robotics & Mechatronics',
+  'UI/UX & Interaction Design',
+  'Fashion Design',
+  'Interior & Spatial Design',
+  'Animation & Illustration',
+  'Fine Arts & Applied Arts',
   'Architecture',
-  'Life Sciences'
+  'Public Policy & Governance',
+  'Exam Prep Mentorship - UPSC',
+  'Exam Prep Mentorship - CUET',
+  'Exam Prep Mentorship - NET',
+  'Exam Prep Mentorship - JEE',
+  'Exam Prep Mentorship - GMAT/GRE',
+  'Exam Prep Mentorship - Banking and other govt exams',
+  'Exam Prep Mentorship - NET/JRF',
+  'Journalism (Print & Digital)',
+  'Content Creation (YouTube, Podcasting)',
+  'Film & Video Production',
+  'Advertising & Copywriting',
+  'OTT & New Media',
+  'Business Growth',
+  'Program Management',
+  'Hotel Management',
+  'Culinary Arts & Bakery',
+  'Tourism & Travel',
+  'Aviation & Cabin Crew',
+  'Event Management',
+  'Make Up Artist',
+  'Dietitian/ Nutrition',
+  'Fitness Training',
+  'Career Discovery/ Career Councelling',
+  'Study Abroad Guidance',
+  'Soft Skills & Interview Prep',
+  'Resume Building & LinkedIn & Job search',
+  'PHD admission mentorship',
+  'Stream Selection'
 ];
 
 const ExpertSelectionModal = ({ isOpen, onClose }) => {
@@ -37,6 +81,7 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
   const [categorySearch, setCategorySearch] = useState("");
   const [experts, setExperts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const sliderRef = useRef(null);
   const navigate = useNavigate();
   const { user } = useUserStore();
   const { userType } = useUserTypeStore();
@@ -46,6 +91,18 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
   const filteredIndustries = industries.filter(industry =>
     industry.toLowerCase().includes(categorySearch.toLowerCase())
   );
+
+  const scrollLeft = () => {
+    if (sliderRef.current) {
+      sliderRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (sliderRef.current) {
+      sliderRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+    }
+  };
 
   const handleIndustrySelect = (industry) => {
     setSelectedIndustry({ name: industry });
@@ -194,22 +251,58 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
                             />
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                           </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {filteredIndustries.map((industry) => (
-                              <Motion.motion.button
-                                key={industry}
-                                onClick={() => handleIndustrySelect(industry)}
-                                className="group relative p-6 rounded-xl text-left transition-all duration-300 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100"
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                              >
-                                <div className="relative z-10">
-                                  <h3 className="font-semibold text-gray-900 group-hover:text-gray-800">
-                                    {industry}
-                                  </h3>
-                                </div>
-                                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-                              </Motion.motion.button>
+                          
+                          <div className="relative mb-8">
+                            {/* Slider Navigation Buttons */}
+                            <button 
+                              onClick={scrollLeft}
+                              className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 z-10 bg-white/80 rounded-full p-2 shadow-md hover:bg-blue-50 transition-colors"
+                              aria-label="Scroll left"
+                            >
+                              <ChevronLeft className="w-5 h-5 text-gray-700" />
+                            </button>
+                            
+                            <button 
+                              onClick={scrollRight}
+                              className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-4 z-10 bg-white/80 rounded-full p-2 shadow-md hover:bg-blue-50 transition-colors"
+                              aria-label="Scroll right"
+                            >
+                              <ChevronRight className="w-5 h-5 text-gray-700" />
+                            </button>
+                            
+                            {/* Horizontal Slider */}
+                            <div 
+                              ref={sliderRef}
+                              className="flex overflow-x-auto hide-scrollbar gap-4 pb-4 snap-x snap-mandatory"
+                              style={{
+                                scrollbarWidth: 'none',
+                                msOverflowStyle: 'none',
+                                WebkitOverflowScrolling: 'touch'
+                              }}
+                            >
+                              {filteredIndustries.map((industry) => (
+                                <Motion.motion.button
+                                  key={industry}
+                                  onClick={() => handleIndustrySelect(industry)}
+                                  className="group relative p-6 rounded-xl text-left transition-all duration-300 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 flex-shrink-0 w-[240px] snap-start"
+                                  whileHover={{ scale: 1.02 }}
+                                  whileTap={{ scale: 0.98 }}
+                                >
+                                  <div className="relative z-10">
+                                    <h3 className="font-semibold text-gray-900 group-hover:text-gray-800">
+                                      {industry}
+                                    </h3>
+                                  </div>
+                                  <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+                                </Motion.motion.button>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          {/* Pagination Indicator */}
+                          <div className="flex justify-center space-x-1">
+                            {Array.from({ length: Math.min(5, Math.ceil(filteredIndustries.length / 10)) }).map((_, i) => (
+                              <div key={i} className="w-1.5 h-1.5 rounded-full bg-gray-300" />
                             ))}
                           </div>
                         </>

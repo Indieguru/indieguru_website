@@ -4,6 +4,7 @@ import Course from "../models/Course.js";
 import Cohort from "../models/Cohort.js";
 import Payment from "../models/Payment.js";
 import Withdrawal from "../models/Withdrawal.js";
+import CommunityPost from "../models/CommunityPost.js";
 import upload from '../middlewares/uploadMiddleware.js';
 import cloudinary from 'cloudinary';
 
@@ -148,10 +149,14 @@ export const matchExperts = async (req, res) => {
     const { userType, guidanceType, industry } = req.query;
 
     // Build the query based on user requirements
-    let query = {};
+    let query = {
+      status: 'approved' // Only return approved experts
+    };
 
     // Match experts based on target audience
-    query.targetAudience = userType;
+    if (userType) {
+      query.targetAudience = userType;
+    }
 
     // Match expertise based on guidance type
     switch (guidanceType) {
@@ -565,23 +570,31 @@ export const getExpertDashboardData = async (req, res) => {
       bookedStatus: true
     });
 
+    // Fetch community posts count
+    const communityPostsCount = await CommunityPost.countDocuments({
+      author: expertId,
+      authorModel: 'Expert'
+    });
+
     const dashboardData = {
       // Basic Information
       name: `${expert.firstName} ${expert.lastName}`,
       email: expert.email,
       phone: expert.phoneNo,
       title: expert.title || "",
+      status: expert.status || "not requested", // Added the expert status field here
       
       // Profile Details
       profilePicture: expert.profilePicture || "/placeholder-user.jpg",
       profileCompletion: calculateProfileCompletion(expert),
       activeStreak: calculateActiveStreak(sessions),
       expertise: expert.expertise || [],
-      industries:expert.industries || [],
+      industries: expert.industries || [],
       targetAudience: expert.targetAudience || [],
       education: expert.education || [],
       experience: expert.experience || [],
       certifications: expert.certifications || [],
+      links: expert.links || [],
       
       // Session and Course Data
       upcomingSessions: upcomingSessions.map(session => ({
@@ -615,6 +628,9 @@ export const getExpertDashboardData = async (req, res) => {
           earnings: cohortsData[0]?.totalEarnings || 0,
           monthlyGrowth: calculateGrowthRate(cohortsData),
           delivered: cohortsData[0]?.count || 0
+        },
+        community: {
+          posts: communityPostsCount,
         }
       },
       ratings: {
@@ -755,27 +771,80 @@ export const getDashboardData = async (req, res) => {
 
 // Helper functions
 const calculateProfileCompletion = (expert) => {
-  const requiredFields = ['firstName', 'lastName', 'email', 'expertise'];
-  const optionalFields = ['education', 'experience', 'certifications'];
-  
-  let score = 0;
-  let total = requiredFields.length + optionalFields.length;
+  // Define all the profile sections that contribute to completion
+  const completionSteps = [
+    // Basic Info - 1 step
+    {
+      name: 'basicInfo',
+      fields: ['firstName', 'lastName', 'email', 'phoneNo', 'title'],
+      required: ['firstName', 'lastName', 'email'],
+      weight: 1
+    },
+    // Profile Picture - 1 step
+    {
+      name: 'profilePicture',
+      complete: !!expert.profilePicture && expert.profilePicture !== "/placeholder-user.jpg",
+      weight: 1
+    },
+    // Expertise - 1 step
+    {
+      name: 'expertise',
+      complete: Array.isArray(expert.expertise) && expert.expertise.length > 0,
+      weight: 1
+    },
+    // Target Audience - 1 step
+    {
+      name: 'targetAudience',
+      complete: Array.isArray(expert.targetAudience) && expert.targetAudience.length > 0,
+      weight: 1
+    },
+    // Links - 1 step
+    {
+      name: 'links',
+      complete: Array.isArray(expert.links) && expert.links.length > 0,
+      weight: 1
+    },
+    // Education - 1 step
+    {
+      name: 'education',
+      complete: Array.isArray(expert.education) && expert.education.length > 0,
+      weight: 1
+    },
+    // Experience - 1 step
+    {
+      name: 'experience',
+      complete: Array.isArray(expert.experience) && expert.experience.length > 0,
+      weight: 1
+    },
+  ];
 
-  requiredFields.forEach(field => {
-    if (expert[field] && (
-      !Array.isArray(expert[field]) || 
-      expert[field].length > 0
-    )) score++;
-  });
+  // Calculate score for each section
+  let totalCompleted = 0;
+  let totalWeight = 0;
 
-  optionalFields.forEach(field => {
-    if (expert[field] && (
-      !Array.isArray(expert[field]) || 
-      expert[field].length > 0
-    )) score++;
-  });
+  for (const step of completionSteps) {
+    totalWeight += step.weight;
 
-  return Math.round((score / total) * 100);
+    if (step.fields) {
+      // For sections with multiple fields
+      const requiredFields = step.required || step.fields;
+      const fieldsCompleted = requiredFields.filter(field => {
+        const value = expert[field];
+        return value && 
+          (typeof value === 'string' ? value.trim() !== '' : true);
+      }).length;
+
+      if (fieldsCompleted === requiredFields.length) {
+        totalCompleted += step.weight;
+      }
+    } else if (step.complete) {
+      // For sections with a single completion check
+      totalCompleted += step.weight;
+    }
+  }
+
+  // Return the completed steps count, not the percentage
+  return totalCompleted;
 };
 
 const calculateActiveStreak = (sessions) => {
@@ -1282,14 +1351,6 @@ export const updateExpertise = async (req, res) => {
       "Industry Specific"
     ];
 
-    // const validatedExpertise = expertise.filter(exp => 
-    //   exp && validExpertise.includes(exp.toLowerCase().trim())
-    // );
-
-    // if (validatedExpertise.length === 0) {
-    //   return res.status(400).json({ message: "No valid expertise areas provided" });
-    // }
-
     const expert = await Expert.findByIdAndUpdate(
       expertId,
       { $set: { expertise: expertise } },
@@ -1384,5 +1445,200 @@ export const updateTargetAudience = async (req, res) => {
   } catch (error) {
     console.error('Error updating target audience:', error);
     res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+// Student enrollment statistics endpoints
+export const getStudentSessionCount = async (req, res) => {
+  try {
+    const expertId = req.user.id;
+    
+    // Count unique students who have booked sessions with this expert
+    const count = await Session.distinct('bookedBy', { 
+      expert: expertId, 
+      bookedStatus: true 
+    }).then(students => students.length);
+    
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error('Error getting session student count:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+export const getStudentCourseCount = async (req, res) => {
+  try {
+    const expertId = req.user.id;
+    
+    // Get IDs of all courses created by this expert
+    const courses = await Course.find({ createdBy: expertId }).select('_id');
+    const courseIds = courses.map(course => course._id);
+    
+    // Count unique students who have enrolled in any of these courses
+    const count = await Payment.distinct('student', { 
+      itemId: { $in: courseIds }, 
+      itemType: 'course',
+      status: 'completed'
+    }).then(students => students.length);
+    
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error('Error getting course student count:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+export const getStudentCohortCount = async (req, res) => {
+  try {
+    const expertId = req.user.id;
+    
+    // Get IDs of all cohorts created by this expert
+    const cohorts = await Cohort.find({ createdBy: expertId }).select('_id');
+    const cohortIds = cohorts.map(cohort => cohort._id);
+    
+    // Count unique students who have enrolled in any of these cohorts
+    const count = await Payment.distinct('student', { 
+      itemId: { $in: cohortIds }, 
+      itemType: 'cohort',
+      status: 'completed'
+    }).then(students => students.length);
+    
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error('Error getting cohort student count:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+export const getCompletedSessionsCount = async (req, res) => {
+  try {
+    const expertId = req.user.id;
+    
+    // Count sessions that are completed for this expert
+    const count = await Session.countDocuments({ 
+      expert: expertId, 
+      status: 'completed' 
+    });
+    
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error('Error getting completed sessions count:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+export const updateLinks = async (req, res) => {
+  try {
+    const expertId = req.user.id;
+    const { links } = req.body;
+
+    if (!Array.isArray(links)) {
+      return res.status(400).json({ message: "Links must be an array" });
+    }
+
+    // Validate each link object
+    for (const link of links) {
+      if (!link.name || !link.url) {
+        return res.status(400).json({ 
+          message: "Each link must have both a name and URL" 
+        });
+      }
+
+      // Basic URL validation
+      try {
+        new URL(link.url);
+      } catch (error) {
+        return res.status(400).json({ 
+          message: `Invalid URL format for link: ${link.name}` 
+        });
+      }
+    }
+
+    const expert = await Expert.findByIdAndUpdate(
+      expertId,
+      { $set: { links: links } },
+      { new: true }
+    ).select('-password -emailOtp -gid');
+
+    if (!expert) {
+      return res.status(404).json({ message: "Expert not found" });
+    }
+
+    res.status(200).json({
+      message: "Links updated successfully",
+      links: expert.links
+    });
+  } catch (error) {
+    console.error('Error updating links:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+export const requestApproval = async (req, res) => {
+  try {
+    const expertId = req.user.id;
+    
+    // Find the expert
+    const expert = await Expert.findById(expertId);
+    
+    if (!expert) {
+      return res.status(404).json({
+        success: false,
+        message: 'Expert not found'
+      });
+    }
+    
+    // Check if expert is already approved or has a pending request
+    if (expert.status === 'approved') {
+      return res.status(400).json({
+        success: false,
+        message: 'Your profile is already approved'
+      });
+    }
+    
+    if (expert.status === 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: 'Your approval request is already pending'
+      });
+    }
+    
+    // Check if all required profile sections are completed
+    const requiredSections = {
+      basicInfo: expert.firstName && expert.lastName && expert.title,
+      expertise: expert.expertise && expert.expertise.length > 0,
+      experience: expert.experience && expert.experience.length > 0,
+      targetAudience: expert.targetAudience && expert.targetAudience.length > 0,
+      links: expert.links && expert.links.length > 0
+    };
+    
+    const incompleteFields = Object.keys(requiredSections).filter(key => !requiredSections[key]);
+    
+    if (incompleteFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please complete all required profile sections before requesting approval',
+        incompleteFields: incompleteFields
+      });
+    }
+    
+    // Update expert status to pending
+    expert.status = 'pending';
+    expert.approvalRequestedAt = new Date();
+    await expert.save();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Approval request submitted successfully',
+      status: expert.status
+    });
+    
+  } catch (error) {
+    console.error('Error requesting approval:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error requesting approval',
+      error: error.message
+    });
   }
 };

@@ -37,7 +37,11 @@ export const createCourse = async (req, res) => {
 
 export const getCourses = async (req, res) => {
     try {
-        const courses = await Course.find({ activityStatus: 'live' });
+        // Only return courses that are approved and active
+        const courses = await Course.find({ 
+            status: 'approved',
+            activityStatus: 'live' 
+        });
         res.json(courses);
     } catch (error) {
         res.status(500).json({ message: error.message });

@@ -15,10 +15,12 @@ const useExpertStore = create((set) => ({
     certifications: [],
     industries: [],
     targetAudience: [],
+    links: [], // Add links array to store
     profileCompletion: 0,
     activeStreak: 0,
     expertise: [],
     upcomingSessions: [],
+    status: "not requested", // Add status field with default value
     earnings: {
       total: 0,
       thisMonth: 0,
@@ -69,10 +71,15 @@ const useExpertStore = create((set) => ({
     set({ isLoading: true });
     try {
       const response = await axiosInstance.get('/expert/dashboard');
+      
       if (response.status === 200) {
+        console.log('Expert data received:', response.data);
+        
         set({ 
           expertData: {
             ...response.data,
+            // Make sure links field is preserved from the response
+            links: response.data.links || [],
             profilePicture: response.data.profilePicture || "/placeholder-user.jpg" // Ensure default if not provided
           },
           isLoading: false,
@@ -80,11 +87,11 @@ const useExpertStore = create((set) => ({
         });
       }
     } catch (error) {
+      console.error('Error fetching expert data:', error);
       set({ 
         error: error.response?.data?.message || "Failed to fetch expert data",
         isLoading: false
       });
-      console.error('Error fetching expert data:', error);
     }
   },
   
@@ -158,6 +165,20 @@ const useExpertStore = create((set) => ({
     }
   })),
 
+  updateLinks: (links) => set((state) => ({
+    expertData: {
+      ...state.expertData,
+      links
+    }
+  })),
+  
+  updateStatus: (status) => set((state) => ({
+    expertData: {
+      ...state.expertData,
+      status
+    }
+  })),
+  
   clearError: () => set({ error: null }),
 
   reset: () => set({
@@ -174,10 +195,12 @@ const useExpertStore = create((set) => ({
       certifications: [],
       industries: [],
       targetAudience: [],
+      links: [], // Added links array to reset
       profileCompletion: 0,
       activeStreak: 0,
       expertise: [],
       upcomingSessions: [],
+      status: "not requested", // Add status field with default value
       earnings: {
         total: 0,
         thisMonth: 0,

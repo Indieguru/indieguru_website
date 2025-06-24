@@ -9,6 +9,8 @@ import twilio from 'twilio';
 import authMiddleware from '../middlewares/authMiddleware.js';
 import cookieParser from 'cookie-parser';
 import admin from '../config/firebaseAdmin.js'; // Import Firebase Admin SDK
+import { sendEmailOtp, verifyEmailOtp } from '../controllers/otpcontroller.js';
+
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'your_jwt_refresh_secret_key';
@@ -18,7 +20,6 @@ const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_A
 const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER;
 
 // Generate JWT Token
-
 const generateToken = (user) => {
   return jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 };
@@ -27,9 +28,76 @@ const generateRefreshToken = (user) => {
   return jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
 
-
 router.use(cookieParser());
 
+// Email OTP routes - updating paths since we're now mounted at /user/auth
+router.post('/send-email-otp', sendEmailOtp);
+router.post('/verify-email-otp', async (req, res) => {
+  try {
+    const { email, otp, role } = req.body;
+    
+    // First verify the OTP
+    const otpResponse = await new Promise((resolve, reject) => {
+      verifyEmailOtp(req, {
+        status: (code) => ({
+          json: (data) => {
+            if (code === 200) {
+              resolve(data);
+            } else {
+              reject(data);
+            }
+          }
+        })
+      });
+    });
+    
+    // If OTP verification succeeds, find or create the user
+    let user = await User.findOne({ email });
+    
+    if (!user) {
+      // Create new user
+      user = new User({
+        email,
+        role: role || 'student',
+        emailVerified: true,
+        authType: 'email', // Set the authType to 'email' for email OTP authentication
+        firstName: email.split('@')[0], // Use part of email as temporary name
+        lastName: '', // Empty string for lastName
+      });
+      await user.save();
+    } else if (!user.authType) {
+      // If user exists but authType is not set (which should not happen, but just in case)
+      user.authType = 'email';
+      await user.save();
+    }
+    
+    // Generate tokens
+    const token = generateToken(user);
+    const refreshToken = generateRefreshToken(user);
+    
+    // Save refresh token to user
+    user.refreshToken = refreshToken;
+    await user.save();
+    
+    // Set cookies
+    res.cookie('token', token, { httpOnly: true, secure: true, sameSite: "none" });
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: "none" });
+    res.cookie('userId', user._id, { httpOnly: true, secure: true, sameSite: "none" });
+    
+    // Send response
+    res.status(200).json({ 
+      message: 'Authentication successful',
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Email verification error:', error);
+    res.status(401).json({ message: error.message || 'Authentication failed' });
+  }
+});
 
 router.get('/google', passport.authenticate('google-user', {
   scope: [

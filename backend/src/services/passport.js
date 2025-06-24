@@ -16,6 +16,7 @@ const generateToken = (user) => {
 const generateRefreshToken = (user) => {
   return jwt.sign({ id: user.id, userType: user.userType }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
 };
+
 const generateToken2 = (user) => {
   return jwt.sign({ id: user.id, userType: user.userType }, process.env.JWT_ESECRET, { expiresIn: '1h' });
 };
@@ -23,6 +24,7 @@ const generateToken2 = (user) => {
 const generateRefreshToken2 = (user) => {
   return jwt.sign({ id: user.id, userType: user.userType }, process.env.JWT_EREFRESH_SECRET, { expiresIn: '7d' });
 };
+
 let backendUrl = (process.env.TYPE === 'production') ? process.env.BACKEND_URL : `${process.env.BACKEND_URL}:${process.env.PORT}`;
 let callbackURL = '/api/v1/user/auth/google/callback'; // Use relative path
 if(process.env.TYPE === 'production') 
@@ -36,31 +38,45 @@ passport.use('google-user', new GoogleStrategy({
 }, async (req, accessToken, refreshToken, profile, done) => {
   try {
     const role = req.query.role || 'student'; // Get role from query parameter
-    const existingUser = await User.findOne({ gid: profile.id, authType: 'gmail' });
+    const email = profile.emails[0].value;
+    
+    // Check if user exists by Google ID or email
+    let existingUser = await User.findOne({ 
+      $or: [
+        { gid: profile.id },
+        { email: email }
+      ]
+    });
     
     if (existingUser) {
-    
+      // If user exists but doesn't have Google ID, update it
+      if (!existingUser.gid) {
+        existingUser.gid = profile.id;
+        existingUser.authType = 'gmail';
+        existingUser.emailVerified = true;
+      }
+      
       const token = generateToken(existingUser);
       const refreshToken = generateRefreshToken(existingUser);
       existingUser.refreshToken = refreshToken; // Store the Google refresh token
       await existingUser.save();
       return done(null, { user: existingUser, token, refreshToken, role });
     }
-
+    
+    // Also check if this email is registered as an expert
+ 
     // Split the display name into firstName and lastName
     const [firstName, ...lastNameParts] = profile.displayName.split(" ");
     const lastName = lastNameParts.join(" ");
-
     const newUser = new User({
       firstName,
       lastName,
-      email: profile.emails[0].value,
+      email: email,
       gid: profile.id,
       authType: 'gmail',
       emailVerified: true,
       role: role
     });
-
     const token = generateToken(newUser);
     const refreshToken = generateRefreshToken(newUser);
     newUser.refreshToken = refreshToken; // Store the Google refresh token
@@ -76,16 +92,37 @@ passport.use('google-expert', new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   callbackURL: `${backendUrl}/api/v1/expert/auth/google/callback`, // Use relative path
-}, async (accessToken, refreshToken, profile, done) => {
+  passReqToCallback: true // Add this to enable access to request object
+}, async (req, accessToken, refreshToken, profile, done) => {
   try {
-    const existingUser = await Expert.findOne({ gid: profile.id });
+    const email = profile.emails[0].value;
+    
+    // Check if expert exists by Google ID or email
+    let existingUser = await Expert.findOne({
+      $or: [
+        { gid: profile.id },
+        { email: email }
+      ]
+    });
+    
     if (existingUser) {
-      // console.log("new"+refreshToken);
+      // If expert exists but doesn't have Google ID, update it
+      if (!existingUser.gid) {
+        existingUser.gid = profile.id;
+        existingUser.authType = 'gmail';
+        existingUser.emailVerified = true;
+        await existingUser.save();
+      }
+      
       const token = generateToken2(existingUser);
       const refreshToken = generateRefreshToken2(existingUser);
-      await Expert.updateOne( { _id: existingUser._id }, { $set: { refreshToken: refreshToken } }); // Store the Google refresh token
-      return done(null, { user: existingUser, token, refreshToken});
+      existingUser.refreshToken = refreshToken;
+      await existingUser.save();
+      return done(null, { user: existingUser, token, refreshToken, role: 'expert' });
     }
+    
+    // Also check if this email is registered as a student
+   
     
     // Split the display name into firstName and lastName
     const [firstName, ...lastNameParts] = profile.displayName.split(" ");
@@ -95,20 +132,18 @@ passport.use('google-expert', new GoogleStrategy({
     const newUser = new Expert({
       firstName,
       lastName,
-      email: profile.emails[0].value,
+      email: email,
       gid: profile.id,
       authType: 'gmail',
       emailVerified: true,
       userType: 'expert',
     });
-
     // Then generate tokens
     const token = generateToken2(newUser);
     const refreshToken = generateRefreshToken2(newUser);
     newUser.refreshToken = refreshToken;
-
     await newUser.save();
-    done(null, { user: newUser, token, refreshToken });
+    done(null, { user: newUser, token, refreshToken, role: 'expert' });
   } catch (error) {
     console.error('Error during Google expert authentication:', error);
     done(error, false);
