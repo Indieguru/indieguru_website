@@ -53,4 +53,4 @@ PaymentSchema.index({ userId: 1, itemId: 1 });
 PaymentSchema.index({ 'razorpay.orderId': 1 });
 PaymentSchema.index({ 'razorpay.paymentId': 1 });
 
-export default mongoose.model("Payment", PaymentSchema);
+export default mongoose.model("Paymentsss", PaymentSchema);

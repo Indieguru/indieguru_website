@@ -9,6 +9,7 @@ import blogRouter from "./blogRoutes.js";
 import communityRouter from "./communityRoutes.js";
 import userAuthRouter from "./userAuthRoutes.js";
 import expertAuthRouter from "./expertAuthRoutes.js";
+import paymentRoutes from "./paymentRoutes.js"
 
 const router = express.Router();
 
@@ -22,5 +23,6 @@ router.use("/cohort", cohortRouter);
 router.use("/admin", adminRouter);
 router.use("/blog", blogRouter);
 router.use("/community", communityRouter);
+router.use("/payment", paymentRoutes);
 
 export default router;

@@ -23,6 +23,7 @@ import CourseDetails from "./pages/CourseDetails";
 import BookingPage from "./pages/BookingPage";
 import CohortDetails from "./pages/CohortDetails";
 import AdminDashboard from "./pages/AdminDashboard";
+import PayTestPage from "./pages/PayTestPage";
 import { Toaster } from 'react-hot-toast';
 
 function App() {
@@ -51,6 +52,7 @@ function App() {
         }}
       />
       <Routes>
+        <Route path="/testpage01" element={<PayTestPage />} />
         <Route path="/" element={<Landing />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
