@@ -8,25 +8,18 @@ import Expert from "../models/Expert.js";
 
 export const createOrder = async (req, res) => {
   try {
-    const { amount,bookingType } = req.body;
+    console.log(req.body)
+    const { amount,bookingType,id } = req.body;
     if(bookingType === "session") {
-      //  console.log(req.user)
-          const { sessionId } = req.params;
-          const sanitizedSessionId = sessionId.trim(); 
-          const { sessionTitle } = req.body;
-          // console.log("sessionId", sessionId);
-          const user = await User.findById(req.user.id);
-          const session = await Session.findById(sanitizedSessionId).populate('expert');
-          const studentName = req.body.studentName || user.firstName || user.lastName || 'Anonymous Student';
-          const expert = await Expert.findById(session.expert);
-      
+          const session = await Session.findById(id);
+          console.log(session)
           if (!session) {
-            return res.status(404).json({ success:false,message: 'Session not found' });
+            console.log("IN INVALID SESSION STATE")
+            return res.status(200).json({ success:false, message: 'Session not found' });
           }
           if (session.bookedStatus) {
-            return res.status(400).json({ sucess:false,message: 'Session already booked' });
+            return res.status(200).json({ success:false, message: 'Session already booked' });
           }
-      
     }
     const options = {
       amount: amount * 100, // amount in paise
@@ -34,7 +27,7 @@ export const createOrder = async (req, res) => {
       receipt: "receipt_" + Date.now(),
     };
     const order = await razorpay.orders.create(options);
-
+    console.log(order)
     await Payment.create({
       orderId: order.id,
       amount: order.amount,

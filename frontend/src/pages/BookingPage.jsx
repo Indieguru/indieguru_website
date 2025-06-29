@@ -77,6 +77,8 @@ const BookingPage = () => {
   // Check if user has a phone number
   const checkPhoneNumber = () => {
     if (!authData || !authData.user || !authData.user.phone) {
+      // APICALL TO GET DATA()
+      // DB_NUMBER PRESENT
       setShowPhoneModal(true);
       return false;
     }
@@ -196,37 +198,40 @@ const BookingPage = () => {
       return;
     }
 
-    try {
-      const res = await initiateRazorpayPayment({   
-        amount: selectedSession.expert.sessionPricing.total,
-        bookingType: "session"
-      });
-
-    if (res.status !== "success") {
-        toast.error(res.message || "Failed to create order", {
+    const res = await initiateRazorpayPayment({   
+      amount: expert?.sessionPricing?.total,
+      bookingType: "session",
+      id: selectedSession._id,
+    });
+    if (res){
+      if (res?.status === "failed") {
+          toast.error(res.message || "Failed while generating payment link", {
+            icon: "❌",
+            position: "top-center",
+            autoClose: 5000,
+          });
+          return;
+        }
+      try {
+        console.log(res.data)
+        const response = await axiosInstance.post(`/session/${selectedSession._id}/book`, {
+          title: sessionTitle
+        });
+        if (response.status === 200) {
+          setShowSuccessModal(true);
+        }
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to book session. Please try again later.", {
           icon: "❌",
           position: "top-center",
           autoClose: 5000,
         });
-        return;
-      } 
-
-
-      const response = await axiosInstance.post(`/session/${selectedSession._id}/book`, {
-        title: sessionTitle
-      });
-      
-      if (response.status === 200) {
-        setShowSuccessModal(true);
+      } finally {
+        setShowTitleModal(false);
       }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to book session. Please try again later.", {
-        icon: "❌",
-        position: "top-center",
-        autoClose: 5000,
-      });
-    } finally {
-      setShowTitleModal(false);
+    }
+    else{
+      console.log("Something Went Wrong")
     }
   };
 

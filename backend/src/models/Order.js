@@ -15,3 +15,6 @@ const paymentSchema = new mongoose.Schema(
 const Payment = mongoose.model("Payment", paymentSchema);
 
 export default Payment;
+
+
+// MADE BY ME FOR RAZORPAY USE PLEASE CHECK THIS
