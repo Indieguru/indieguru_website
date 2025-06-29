@@ -11,6 +11,7 @@ import checkAuth from '../utils/checkAuth';
 import useRedirectStore from '../store/redirectStore';
 import useAuthStore from '../store/authStore';
 import PhoneUpdateModal from "../components/modals/PhoneUpdateModal";
+import initiateRazorpayPayment from "../components/paymentGateway/RazorpayButton";
 
 const BookingPage = () => {
   const { expertId } = useParams();
@@ -196,6 +197,21 @@ const BookingPage = () => {
     }
 
     try {
+      const res = await initiateRazorpayPayment({   
+        amount: selectedSession.expert.sessionPricing.total,
+        bookingType: "session"
+      });
+
+    if (res.status !== "success") {
+        toast.error(res.message || "Failed to create order", {
+          icon: "❌",
+          position: "top-center",
+          autoClose: 5000,
+        });
+        return;
+      } 
+
+
       const response = await axiosInstance.post(`/session/${selectedSession._id}/book`, {
         title: sessionTitle
       });

@@ -1,10 +1,33 @@
 import crypto from "crypto";
 import razorpay from "../utils/razorpayInstance.js";
 import Payment from "../models/Order.js";
+import User from "../models/User.js";
+import Session from "../models/Session.js";
+import Expert from "../models/Expert.js";
+// import { bookSession } from "./sessionController.js";
 
 export const createOrder = async (req, res) => {
   try {
-    const { amount } = req.body;
+    const { amount,bookingType } = req.body;
+    if(bookingType === "session") {
+      //  console.log(req.user)
+          const { sessionId } = req.params;
+          const sanitizedSessionId = sessionId.trim(); 
+          const { sessionTitle } = req.body;
+          // console.log("sessionId", sessionId);
+          const user = await User.findById(req.user.id);
+          const session = await Session.findById(sanitizedSessionId).populate('expert');
+          const studentName = req.body.studentName || user.firstName || user.lastName || 'Anonymous Student';
+          const expert = await Expert.findById(session.expert);
+      
+          if (!session) {
+            return res.status(404).json({ success:false,message: 'Session not found' });
+          }
+          if (session.bookedStatus) {
+            return res.status(400).json({ sucess:false,message: 'Session already booked' });
+          }
+      
+    }
     const options = {
       amount: amount * 100, // amount in paise
       currency: "INR",
@@ -24,7 +47,7 @@ export const createOrder = async (req, res) => {
       currency: order.currency,
     });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 

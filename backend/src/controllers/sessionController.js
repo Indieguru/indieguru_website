@@ -8,23 +8,7 @@ import { cloudinary } from '../config/cloudinary.js';
 
 export const bookSession = async (req, res) => {
   try {
-    console.log(req.user)
-    const { sessionId } = req.params;
-    const sanitizedSessionId = sessionId.trim(); 
-    const { sessionTitle } = req.body;
-    console.log("sessionId", sessionId);
-    const user = await User.findById(req.user.id);
-    const session = await Session.findById(sanitizedSessionId).populate('expert');
-    const studentName = req.body.studentName || user.firstName || user.lastName || 'Anonymous Student';
-    const expert = await Expert.findById(session.expert);
-
-    if (!session) {
-      return res.status(404).json({ message: 'Session not found' });
-    }
-    if (session.bookedStatus) {
-      return res.status(400).json({ message: 'Session already booked' });
-    }
-
+   
     session.title = sessionTitle || session.title;
     session.studentName = studentName;
     session.bookedStatus = true;
