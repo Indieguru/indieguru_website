@@ -91,48 +91,6 @@ const ExpertSchema = new mongoose.Schema({
   }],
   expertise: [{
     type: String,
-    // enum: [
-    //   "Stream Selection",
-    //   "Career Counseling",
-    //   "Competitive Exams",
-    //   "Study Abroad",
-    //   "Resume Interview",
-    //   "Entrepreneurship",
-    //   "Higher Education",
-    //  " Career Transition",
-    //   "Industry Specific"
-    // ]
-  }],
-  targetAudience: [{
-    type: String,
-    // enum: [
-    //   'High School Student (Class 11-12)',
-    //   'Secondary School Student (Class 9-10)',
-    //   'Undergraduate Student',
-    //   'Postgraduate Student',
-    //   'Working Professional'
-    // ]
-  }],
-  industries: [{
-    type: String,
-    // enum: [
-    //   'Technology',
-    //   'Healthcare',
-    //   'Finance',
-    //   'Education',
-    //   'Engineering',
-    //   'Marketing',
-    //   'Design',
-    //   'Business Management',
-    //   'Data Science',
-    //   'Research & Development',
-    //   'Manufacturing',
-    //   'Consulting',
-    //   'Law',
-    //   'Media & Entertainment',
-    //   'Architecture',
-    //   'Life Sciences'
-    // ]
   }],
   education: [{
     degree: {

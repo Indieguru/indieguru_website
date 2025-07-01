@@ -168,7 +168,7 @@ const AssessmentPage = () => {
             className="bg-white p-8 rounded-2xl shadow-xl max-w-2xl mx-auto"
           >
             <h2 className="text-2xl font-bold text-[#003265] mb-6">Tell us a bit about yourself</h2>
-            <p className="text-gray-600 mb-8">Helps us understand your current role to tailor our guidance.</p>
+            <p className="text-gray-600 mb-8">Help us understand your background.</p>
             <div className="space-y-4">
               {roleOptions.map((option) => (
                 <button

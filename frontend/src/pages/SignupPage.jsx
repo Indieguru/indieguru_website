@@ -19,7 +19,13 @@ const LoginPage = () => {
   const { isAuthenticated, fetchIsAuthenticated } = useAuthStore();
   const { userType, setUserType } = useUserTypeStore();
   const [assessmentData, setAssessmentData] = useState(null);
-
+// useEffect(() => {
+//   if (userType === "student") {
+//     navigate("/dashboard", { replace: true });
+//   } else {
+//     navigate("/expert", { replace: true });
+//   }
+// }, [userType, navigate]);
   useEffect(() => {
     // Load saved assessment data if it exists
     const savedData = localStorage.getItem("assessmentData");
@@ -89,22 +95,35 @@ const LoginPage = () => {
   };
 
   const handleVerifyOtp = async () => {
+    console.log("verifying otp");
     if (otp.length !== 6) {
       setErrorMessage("Please enter a valid 6-digit OTP");
       return;
     }
-
+    
     try {
-      // Make API call to verify OTP
       const response = await axiosInstance.post("/user/auth/verify-email-otp", {
         email: email,
         otp: otp,
         role: userType,
       });
-
-      // Navigate based on user role after successful verification
-      userType === "student" ? navigate("/dashboard") : navigate("/expert");
+      
+      console.log("OTP verified successfully:", response.data);
+      
+      // Update authentication state
+      await fetchIsAuthenticated();
+      
+      // Small delay to ensure auth state is updated
+      setTimeout(() => {
+        if (userType === "student") {
+          navigate("/dashboard", { replace: true });
+        } else {
+          navigate("/expert", { replace: true });
+        }
+      }, 100);
+      
     } catch (err) {
+      console.error("Verification error:", err);
       setErrorMessage("Invalid OTP. Please try again.");
     }
   };

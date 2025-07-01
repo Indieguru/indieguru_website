@@ -17,6 +17,8 @@ import axiosInstance from "../config/axios.config"
 import useUserTypeStore from "../store/userTypeStore"
 import ProfilePictureModal from "../components/modals/ProfilePictureModal"
 import checkAuth from '../utils/checkAuth'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Profile() {
   const { user, fetchUser, refreshUser } = useUserStore()
@@ -27,6 +29,15 @@ function Profile() {
   const [authData, setAuthData] = useState(null);
   const [coursesCount, setCoursesCount] = useState(0);
   const [sessionsCount, setSessionsCount] = useState(0);
+  const [careerFlowData, setCareerFlowData] = useState({
+    currentRole: "",
+    degree: "",
+    stream: "",
+    linkedinUrl: "",
+    careerJourney: "",
+    learningStyle: "",
+    otherLearningStyle: ""
+  });
 
   useEffect(() => {
     const handleAuth = async () => {
@@ -124,6 +135,20 @@ function Profile() {
       totalSteps: 8,
     })
   }, [user])
+
+  useEffect(() => {
+    if (user?.careerFlow) {
+      setCareerFlowData({
+        currentRole: user.careerFlow.currentRole || "",
+        degree: user.careerFlow.degree || "",
+        stream: user.careerFlow.stream || "",
+        linkedinUrl: user.careerFlow.linkedinUrl || "",
+        careerJourney: user.careerFlow.careerJourney || "",
+        learningStyle: user.careerFlow.learningStyle || "",
+        otherLearningStyle: user.careerFlow.otherLearningStyle || ""
+      });
+    }
+  }, [user]);
 
   useEffect(() => {
     const calculateCompletedSteps = () => {
@@ -370,6 +395,24 @@ function Profile() {
     }
   };
 
+  const handleCareerFlowSubmit = async () => {
+    try {
+      await axiosInstance.post("/user/career-flow", {
+        careerFlow: {
+          ...careerFlowData,
+          lastUpdated: new Date()
+        }
+      });
+      toast.success("Career preferences updated successfully");
+      
+      // Refresh user data to get the updated career flow
+      refreshUser();
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(err.response?.data?.message || "Failed to update career preferences");
+    }
+  };
+
   if (loading || !authData) {
     return (
       <>
@@ -380,6 +423,7 @@ function Profile() {
       </>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-gray-50 pt-24">
@@ -696,6 +740,135 @@ function Profile() {
             </div>
           </div>
         </Card>
+
+        <Card className="p-8 mb-8 border border-gray-200 rounded-xl bg-white">
+          <h2 className="text-2xl font-semibold text-[#232636] mb-6 border-b border-gray-200 pb-3 flex items-center">
+            <span className="bg-purple-100 text-purple-700 p-1.5 rounded-full mr-2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+            </span>
+            Career Journey
+          </h2>
+
+          <div className="space-y-6">
+            {/* Current Role Selection */}
+            <div className="space-y-4">
+              <label className="block text-lg font-medium text-gray-900">Tell us a bit about yourself:</label>
+              <p className="text-sm text-gray-500">Helps us understand your current role to tailor our guidance.</p>
+              <select 
+                value={careerFlowData.currentRole}
+                onChange={(e) => setCareerFlowData(prev => ({ ...prev, currentRole: e.target.value }))}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400"
+              >
+                <option value="">Select your current role</option>
+                <option value="undergraduate">Undergraduate Student</option>
+                <option value="working">Working Professional</option>
+                <option value="postgraduate">Postgraduate Student</option>
+                <option value="highschool">High School Student (Class 11-12)</option>
+                <option value="secondary">Secondary School Student (Class 9-10)</option>
+              </select>
+            </div>
+
+            {/* Conditional Fields Based on Role */}
+            {careerFlowData.currentRole && careerFlowData.currentRole !== 'secondary' && (
+              <div className="space-y-4">
+                {(careerFlowData.currentRole === 'undergraduate' || careerFlowData.currentRole === 'postgraduate') && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">What's your degree?</label>
+                    <input
+                      type="text"
+                      value={careerFlowData.degree}
+                      onChange={(e) => setCareerFlowData(prev => ({ ...prev, degree: e.target.value }))}
+                      className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400"
+                      placeholder="Enter your degree"
+                    />
+                  </div>
+                )}
+
+                {careerFlowData.currentRole === 'working' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">LinkedIn Profile or Resume URL (Optional)</label>
+                    <input
+                      type="url"
+                      value={careerFlowData.linkedinUrl}
+                      onChange={(e) => setCareerFlowData(prev => ({ ...prev, linkedinUrl: e.target.value }))}
+                      className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400"
+                      placeholder="https://linkedin.com/in/yourprofile"
+                    />
+                  </div>
+                )}
+
+                {careerFlowData.currentRole === 'highschool' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">What's your stream?</label>
+                    <input
+                      type="text"
+                      value={careerFlowData.stream}
+                      onChange={(e) => setCareerFlowData(prev => ({ ...prev, stream: e.target.value }))}
+                      className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400"
+                      placeholder="Enter your stream"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Career Journey Question */}
+            <div className="space-y-4">
+              <label className="block text-lg font-medium text-gray-900">What defines you the best when it comes to your career journey?</label>
+              <p className="text-sm text-gray-500">Choose the option that resonates most with you.</p>
+              <select
+                value={careerFlowData.careerJourney}
+                onChange={(e) => setCareerFlowData(prev => ({ ...prev, careerJourney: e.target.value }))}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400"
+              >
+                <option value="">Select your career journey</option>
+                <option value="validate">I just need to validate the career path I'm on</option>
+                <option value="clarity">I need to get more clarity/depth regarding my career field</option>
+                <option value="explore">I need to explore more fields and decide</option>
+                <option value="guidance">I don't know how to move ahead</option>
+              </select>
+            </div>
+
+            {/* Learning Style Question */}
+            <div className="space-y-4">
+              <label className="block text-lg font-medium text-gray-900">My learning style is correctly described as -</label>
+              <p className="text-sm text-gray-500">Select the option that best fits how you learn.</p>
+              <select
+                value={careerFlowData.learningStyle}
+                onChange={(e) => setCareerFlowData(prev => ({ ...prev, learningStyle: e.target.value }))}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400"
+              >
+                <option value="">Select your learning style</option>
+                <option value="oneOnOne">I need regular 1:1 sessions for personalized guidance</option>
+                <option value="selfPaced">I prefer to take things forward on my own after the session</option>
+                <option value="structured">I need a structured course with a clear curriculum and action plan</option>
+                <option value="group">I prefer group discussions and peer learning</option>
+                <option value="other">Others (Please specify)</option>
+              </select>
+
+              {careerFlowData.learningStyle === 'other' && (
+                <input
+                  type="text"
+                  value={careerFlowData.otherLearningStyle}
+                  onChange={(e) => setCareerFlowData(prev => ({ ...prev, otherLearningStyle: e.target.value }))}
+                  className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400"
+                  placeholder="Please specify your learning style"
+                />
+              )}
+            </div>
+
+            <Button
+              onClick={handleCareerFlowSubmit}
+              className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Save Career Preferences
+            </Button>
+          </div>
+        </Card>
+
         <Button onClick={handleLogout} className="bg-red-600 text-white mt-4 px-8 py-3 rounded-lg font-medium flex items-center gap-2">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

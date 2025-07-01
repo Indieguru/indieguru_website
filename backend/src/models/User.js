@@ -30,7 +30,6 @@ const UserSchema = new mongoose.Schema({
   emailVerified: { type: Boolean, default: false },
   phone: {
     type: String,
-    unique: true,
     sparse: true, // Allows null values while maintaining uniqueness
   },
   phoneVerified: { 
@@ -73,36 +72,73 @@ const UserSchema = new mongoose.Schema({
   assessment: {
     role: {
       type: String,
-      enum: [
-        'High School Student (Class 11-12)',
-        'Secondary School Student (Class 9-10)',
-        'Undergraduate Student',
-        'Postgraduate Student',
-        'Working Professional'
-      ],
-      default: 'High School Student (Class 11-12)'
+      // enum: [
+      //   'undergraduate',
+      //   'working', 
+      //   'postgraduate',
+      //   'highschool',
+      //   'secondary',
+      //   null,
+      //   ''
+      // ],
+      default: null
     },
     stream: {
       type: String,
-      enum: ['Science (PCM)', 'Science (PCB)', 'Commerce', 'Arts/Humanities'],
-      default: 'Science (PCM)'
+      // enum: ['Science (PCM)', 'Science (PCB)', 'Commerce', 'Arts/Humanities', null, ''],
+      default: null
     },
     degree: String,
-    learningStyle: String,
+    linkedinUrl: String,
+    fullName: String,
+    phoneNumber: String,
+    email: String,
+    cityOfResidence: String,
     confusion: {
       type: Number,
       min: 1,
       max: 10
     },
-    careerJourney: String,
-    lastUpdated: Date,
+    careerJourney: {
+      type: String,
+      // enum: ['validate', 'clarity', 'explore', 'guidance'],
+      default: null
+    },
+    learningStyle: {
+      type: String,
+      // enum: ['oneOnOne', 'selfPaced', 'structured', 'group', 'other']
+    },
+    otherLearningStyle: String,
+    guidanceFor: {
+      type: String
+    },
+    submittedAt: {
+      type: Date,
+      default: Date.now
+    }
+  },
+  careerFlow: {
+    currentRole: {
+      type: String,
+      // enum: ['undergraduate', 'working', 'postgraduate', 'highschool', 'secondary'],
+    },
+    degree: String,
+    stream: String,
     linkedinUrl: String,
-    fullName: String,
-    phoneNumber: String,
-    email: String,
-    city: String,
-    guidanceFor: String,
-    submittedAt: Date
+    careerJourney: {
+      type: String,
+      // enum: ['validate', 'clarity', 'explore', 'guidance'],
+      default: null
+    },
+    learningStyle: {
+      type: String,
+      // enum: ['oneOnOne', 'selfPaced', 'structured', 'group', 'other']
+    },
+    otherLearningStyle: String,
+    lastUpdated: {
+      type: Date,
+      default: Date.now
+    }
   }
 }, {
   timestamps: true

@@ -2,44 +2,21 @@
 import axios from "axios";
 import crypto from "crypto";
 import { sendMail } from "../utils/sendMail.js";
+import User from '../models/User.js';
+import sendgridMail from '@sendgrid/mail';
 
 // Store OTPs in memory (in production, you would use Redis or another database)
 const otpStorage = {};
-
-export const sendOtp = async (req, res) => {
-  const { phone, otp } = req.body;
-
-  const options = {
-    method: 'POST',
-    url: 'https://www.fast2sms.com/dev/bulkV2',
-    headers: {
-      'authorization': 'xPvftU1m8z0nIlojQ5aXGZFNh6q4JTEMp2yuObAidY7kerHW9Sd2t0fi5IS4yKjcOzNG3Aqp8sEbl9mr',
-      'Content-Type': 'application/json'
-    },
-    data: {
-      variables_values: otp,
-      route: 'otp',
-      numbers: phone
-    }
-  };
-
-  try {
-    const response = await axios.request(options);
-    res.status(200).json({ message: 'OTP sent', data: response.data });
-  } catch (error) {
-    res.status(500).json({ message: 'OTP failed', error });
-  }
-};
 
 // Generate a 6-digit OTP
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Send OTP via email using the existing mail service
+// Send OTP via email
 export const sendEmailOtp = async (req, res) => {
   try {
-    const { email, role } = req.body;
+    const { email } = req.body;
     
     if (!email) {
       return res.status(400).json({ message: 'Email is required' });
@@ -55,7 +32,6 @@ export const sendEmailOtp = async (req, res) => {
     otpStorage[email] = {
       otp,
       expiry: expiryTime,
-      role: role || 'student', // Default to student if no role provided
       verified: false
     };
 
@@ -71,66 +47,102 @@ export const sendEmailOtp = async (req, res) => {
       </div>
     `;
 
-    // Use the existing mail service to send the OTP
+    // Send email
     await sendMail({
       to: email,
       subject: 'Your Verification Code for IndieGuru',
       html: htmlContent
     });
     
-    res.status(200).json({ message: 'OTP sent to your email' });
+    // In development mode, return OTP for easier testing
+    if (process.env.NODE_ENV === 'development') {
+      return res.status(200).json({ 
+        message: 'OTP sent successfully', 
+        otp: otp // Only included in development mode
+      });
+    }
+
+    res.status(200).json({ message: 'OTP sent successfully' });
   } catch (error) {
-    console.error('Email OTP error:', error);
-    res.status(500).json({ message: 'Failed to send OTP email', error: error.message });
+    console.error('Error sending OTP:', error);
+    res.status(500).json({ message: 'Failed to send OTP', error: error.message });
   }
 };
 
 // Verify email OTP
 export const verifyEmailOtp = async (req, res) => {
   try {
-    const { email, otp, role } = req.body;
+    const { email, otp, assessmentData } = req.body;
     
-    if (!email || !otp) {
-      return res.status(400).json({ message: 'Email and OTP are required' });
+    // Check if OTP exists and is valid
+    const storedOTPData = otpStorage[email];
+    if (!storedOTPData) {
+      return res.status(400).json({ message: 'No OTP found. Please request a new one.' });
     }
 
-    // Check if OTP exists for this email
-    if (!otpStorage[email]) {
-      return res.status(400).json({ message: 'No OTP found for this email' });
-    }
-
-    const storedOtpData = otpStorage[email];
-    
     // Check if OTP has expired
-    if (new Date() > new Date(storedOtpData.expiry)) {
+    if (new Date() > storedOTPData.expiry) {
       delete otpStorage[email];
-      return res.status(400).json({ message: 'OTP has expired' });
+      return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
     }
 
-    // Check if OTP matches
-    if (storedOtpData.otp !== otp) {
+    // Verify OTP
+    if (storedOTPData.otp !== otp) {
       return res.status(400).json({ message: 'Invalid OTP' });
     }
 
-    // Mark as verified
-    storedOtpData.verified = true;
-    
-    // In a real application, you would:
-    // 1. Create or update the user in your database
-    // 2. Generate and return JWT tokens
-    // 3. Set up session data
-    
-    // For now, we'll just return success
-    res.status(200).json({ 
-      message: 'OTP verified successfully',
-      user: {
+    // Find or create user
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = new User({
         email,
-        role: storedOtpData.role
-      }
-    });
-    
+        emailVerified: true,
+        authType: 'email'
+      });
+    }
+
+    // Mark email as verified
+    user.emailVerified = true;
+
+    // If assessment data is provided, save it
+    if (assessmentData) {
+      const roleMapping = {
+        'Undergraduate Student': 'undergraduate',
+        'Working Professional': 'working',
+        'Postgraduate Student': 'postgraduate',
+        'High School Student (Class 11-12)': 'highschool',
+        'Secondary School Student (Class 9-10)': 'secondary'
+      };
+
+      const careerJourneyMapping = {
+        "I just need to validate the career path I'm on": 'validate',
+        "I need to get more clarity/depth regarding my career field": 'clarity',
+        "I need to explore more fields and decide": 'explore',
+        "I don't know how to move ahead": 'guidance'
+      };
+
+      const cleanedData = {
+        currentRole: roleMapping[assessmentData.role] || null,
+        stream: assessmentData.stream || null,
+        degree: assessmentData.degree || null,
+        linkedinUrl: assessmentData.linkedinUrl || null,
+        careerJourney: careerJourneyMapping[assessmentData.careerJourney] || null,
+        learningStyle: assessmentData.learningStyle || null,
+        otherLearningStyle: assessmentData.otherLearningStyle || null,
+        lastUpdated: new Date()
+      };
+      
+      user.careerFlow = cleanedData;
+    }
+
+    await user.save();
+
+    // Clear OTP after successful verification
+    delete otpStorage[email];
+
+    res.status(200).json({ message: 'OTP verified successfully' });
   } catch (error) {
-    console.error('Email OTP verification error:', error);
-    res.status(500).json({ message: 'Failed to verify OTP', error: error.message });
+    console.error('Error verifying OTP:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

@@ -73,7 +73,8 @@ const HowItWorks = () => {
 
   return (
     <div ref={sectionRef} className="max-w-[100vw] pb-40 relative min-h-screen py-12 overflow-hidden bg-gradient-to-b from-white to-blue-50/30">
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes oscillate {
           0% { transform: translateX(0) rotate(0); }
           50% { transform: translateX(10px) rotate(2deg); }
@@ -90,7 +91,7 @@ const HowItWorks = () => {
         .animate-float {
           animation: float 5s ease-in-out infinite;
         }
-      `}</style>
+      `}} />
 
       {/* Floating Vectors with Circles */}
       <motion.div
@@ -112,6 +113,7 @@ const HowItWorks = () => {
           />
         </div>
       </motion.div>
+
       <motion.div
         initial={{ x: 100, opacity: 0 }}
         animate={isVisible ? { x: 0, opacity: 1 } : {}}
@@ -131,6 +133,7 @@ const HowItWorks = () => {
           />
         </div>
       </motion.div>
+
       <motion.img 
         initial={{ y: 100, opacity: 0 }}
         animate={isVisible ? { y: 0, opacity: 1 } : {}}
@@ -139,6 +142,7 @@ const HowItWorks = () => {
         alt="People vector" 
         className="absolute hidden md:block -bottom-14 left-10 w-64"
       />
+
       <motion.img 
         initial={{ y: 100, opacity: 0 }}
         animate={isVisible ? { y: 0, opacity: 1 } : {}}
@@ -202,8 +206,8 @@ const HowItWorks = () => {
                   style={{
                     top: `${(index * 100) / (steps.length - 1)}%`
                   }}
-                  className={`absolute w-4 h-4 rounded-full -left-1.5 transform -translate-y-1/2 cursor-pointer border-4
-                    hover:scale-125 transition-all duration-300 ease-out`}
+                  className="absolute w-4 h-4 rounded-full -left-1.5 transform -translate-y-1/2 cursor-pointer border-4
+                    hover:scale-125 transition-all duration-300 ease-out"
                   whileHover={{ scale: 1.3 }}
                   whileTap={{ scale: 0.95 }}
                 />

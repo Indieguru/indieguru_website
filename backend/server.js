@@ -7,6 +7,8 @@ import passport from 'passport';
 import Expert from './src/models/Expert.js'; // Retain this import
 import bodyParser from 'body-parser';
 import cookieParser from "cookie-parser"; // Added import for cookie-parser
+import { errorMiddleware } from './src/middlewares/errorMiddleware.js'; // Fixed import to use named import
+
 // Load environment variables
 
 console.log(process.env.MONGO_URI);
@@ -22,8 +24,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const corsOptions = {
   origin: [
-    `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}`,
-    `${process.env.FRONTEND_URL}`
+    process.env.TYPE === 'development' 
+      ? `${process.env.FRONTEND_URL}:${process.env.FRONTEND_PORT}`
+      : process.env.FRONTEND_URL,
+    'http://localhost:5173',
+    'http://localhost:3000'
   ],
   credentials: true,
 };
@@ -109,9 +114,25 @@ initializeExperts(); // Call the function to initialize experts
 
 // Set Content-Security-Policy headers
 app.use((req, res, next) => {
-  res.setHeader("Content-Security-Policy", "default-src 'self'; font-src 'self' data:;");
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; font-src 'self' data: https: 'unsafe-inline'; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:;"
+  );
   next();
 });
+
+// Add Google OAuth config endpoint
+app.get('/api/v1/user/auth/google/env', (req, res) => {
+  res.json({
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    callbackUrl: process.env.TYPE === 'production' 
+      ? `${process.env.BACKEND_URL}/api/v1/user/auth/google/callback`
+      : `/api/v1/user/auth/google/callback`
+  });
+});
+
+// Error Handler
+app.use(errorMiddleware);
 
 const PORT = process.env.PORT || 5000; // Use PORT from .env
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
