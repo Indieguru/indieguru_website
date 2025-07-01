@@ -10,7 +10,9 @@ import {
     markRefundProcessed, 
     getRefundRequests,
     approveRefundRequest,
-    rejectRefundRequest
+    rejectRefundRequest,
+    getAdminEarnings,
+    getAdminSessions
 } from '../controllers/adminController.js';
 
 const router = express.Router();
@@ -259,5 +261,11 @@ router.post('/sessions/:sessionId/refund-processed',  markRefundProcessed);
 router.get('/refund-requests', getRefundRequests);
 router.post('/sessions/:sessionId/approve-refund', approveRefundRequest);
 router.post('/sessions/:sessionId/reject-refund', rejectRefundRequest);
+
+// Add admin earnings route
+router.get('/earnings', getAdminEarnings);
+
+// Add admin sessions route
+router.get('/sessions', getAdminSessions);
 
 export default router;

@@ -10,7 +10,7 @@ export const createOrder = async (req, res) => {
   try {
     console.log(req.body)
     const { amount,bookingType,id } = req.body;
-    if(bookingType === "session") {
+    if(bookingType === "Session") {
           const session = await Session.findById(id);
           console.log(session)
           if (!session) {
@@ -32,6 +32,8 @@ export const createOrder = async (req, res) => {
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
+      itemId: id,
+      itemType: bookingType,
     });
     res.status(200).json({
       success: true,

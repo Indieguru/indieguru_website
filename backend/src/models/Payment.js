@@ -5,7 +5,7 @@ const PaymentSchema = new mongoose.Schema({
     //expert fee
     //student id
     //expert id
-    // date
+    //date
     //total
     //platfrom fee
     userId: {
@@ -23,11 +23,16 @@ const PaymentSchema = new mongoose.Schema({
         required: true,
         enum: ['Course', 'Cohort', 'Session'] 
     },
-    razorpay: {
-        orderId: String,
-        paymentId: String,
-        signature: String,
+    expertId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Expert',
+        required: true
     },
+    // razorpay: {
+    //     orderId: String,
+    //     paymentId: String,
+    //     signature: String,
+    // },
     amount: {
         type: Number,
         required: true
@@ -36,22 +41,33 @@ const PaymentSchema = new mongoose.Schema({
         type: String,
         default: 'INR'
     },
-    status: {
-        type: String,
-        enum: ['created', 'attempted', 'paid', 'failed'],
-        default: 'created'
+    paymentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Payment',
+        required: true
     },
-    paymentResponse: {
-        type: mongoose.Schema.Types.Mixed // Store the complete Razorpay response
-    }
+    payemntDate: {
+        type: Date,
+        default: Date.now
+    },
+    expertFee: {
+        type: Number,
+        required: true
+    },
+    platformFee: {
+        type: Number,
+        required: true,
+        default: 0
+    },
+  
 }, {
     timestamps: true
 });
 
 // Index for faster queries
 PaymentSchema.index({ userId: 1, itemId: 1 });
-PaymentSchema.index({ 'razorpay.orderId': 1 });
-PaymentSchema.index({ 'razorpay.paymentId': 1 });
+// PaymentSchema.index({ 'razorpay.orderId': 1 });
+// PaymentSchema.index({ 'razorpay.paymentId': 1 });
 
 export default mongoose.model("Paymentsss", PaymentSchema);
 

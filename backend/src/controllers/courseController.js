@@ -4,6 +4,7 @@ import Expert from '../models/Expert.js';
 import Session from '../models/Session.js';
 import Cohort from '../models/Cohort.js';
 import { sendMail } from '../utils/sendMail.js';
+import Paymentsss from '../models/Payment.js'; // Assuming you have a Payment model for handling payments
 
 export const createCourse = async (req, res) => {
     try {
@@ -155,7 +156,8 @@ export const purchaseCourse = async (req, res) => {
   try {
     const { courseId } = req.params;
     const userId = req.user.id;
-
+    const { paymentId } = req.body; 
+    
     // Find course and user
     const course = await Course.findById(courseId);
     if (!course) {
@@ -176,6 +178,21 @@ export const purchaseCourse = async (req, res) => {
     if (user.purchasedCourses?.includes(courseId)) {
       return res.status(400).json({ message: 'Course already purchased' });
     }
+
+    // Create payment entry in Paymentsss database
+    const payment = new Paymentsss({
+      userId: userId,
+      itemId: courseId,
+      itemType: 'Course',
+      expertId: course.createdBy,
+      amount: course.pricing.total || (course.pricing.expertFee + course.pricing.platformFee),
+      currency: course.pricing.currency || 'INR',
+      paymentId: paymentId || courseId, // Use provided paymentId or courseId as fallback
+      expertFee: course.pricing.expertFee,
+      platformFee: course.pricing.platformFee
+    });
+
+    await payment.save();
 
     // Add course to user's purchased courses
     if (!user.purchasedCourses) {

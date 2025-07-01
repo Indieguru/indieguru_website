@@ -1,6 +1,7 @@
 import Session from '../models/Session.js';
 import Expert from '../models/Expert.js';
 import User from '../models/User.js';
+import Payment from '../models/Payment.js';
 import { sendMail } from '../utils/sendMail.js';
 
 export const getCancelledSessions = async (req, res) => {
@@ -327,5 +328,190 @@ export const rejectRefundRequest = async (req, res) => {
   } catch (error) {
     console.error('Error rejecting refund request:', error);
     res.status(500).json({ message: 'Error rejecting refund request', error: error.message });
+  }
+};
+
+export const getAdminEarnings = async (req, res) => {
+  try {
+    const { type, startDate, endDate } = req.query;
+
+    // Build filter query
+    let filterQuery = {};
+
+    // Add type filter if provided
+    if (type && type !== 'all') {
+      filterQuery.itemType = type.charAt(0).toUpperCase() + type.slice(1);
+    }
+
+    // Add date range filter if provided
+    if (startDate || endDate) {
+      filterQuery.createdAt = {};
+      if (startDate) {
+        filterQuery.createdAt.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        // Add one day to include the end date
+        const endDateObj = new Date(endDate);
+        endDateObj.setDate(endDateObj.getDate() + 1);
+        filterQuery.createdAt.$lt = endDateObj;
+      }
+    }
+
+    // Get payments from Paymentsss database
+    const payments = await Payment.find(filterQuery)
+      .populate('userId', 'firstName lastName email')
+      .populate('expertId', 'firstName lastName email')
+      .populate('itemId')
+      .sort({ createdAt: -1 });
+
+    // Calculate total platform fees (admin earnings)
+    const totalPlatformFees = payments.reduce((total, payment) => {
+      return total + (payment.platformFee || 0);
+    }, 0);
+
+    // Calculate earnings by source using platform fees
+    const sourceEarnings = {
+      courses: 0,
+      sessions: 0,
+      cohorts: 0
+    };
+
+    payments.forEach(payment => {
+      const platformFee = payment.platformFee || 0;
+      if (payment.itemType === 'Course') {
+        sourceEarnings.courses += platformFee;
+      } else if (payment.itemType === 'Session') {
+        sourceEarnings.sessions += platformFee;
+      } else if (payment.itemType === 'Cohort') {
+        sourceEarnings.cohorts += platformFee;
+      }
+    });
+
+    // Format transactions
+    const transactions = payments.map(payment => {
+      const studentName = payment.userId ? 
+        `${payment.userId.firstName} ${payment.userId.lastName}` : 
+        'Unknown User';
+      
+      const expertName = payment.expertId ? 
+        `${payment.expertId.firstName} ${payment.expertId.lastName}` : 
+        'Unknown Expert';
+      
+      let itemName = 'Unknown Item';
+      if (payment.itemId) {
+        if (payment.itemType === 'Course') {
+          itemName = payment.itemId.title || 'Course';
+        } else if (payment.itemType === 'Session') {
+          itemName = payment.itemId.title || 'Session';
+        } else if (payment.itemType === 'Cohort') {
+          itemName = payment.itemId.title || 'Cohort';
+        }
+      }
+
+      return {
+        id: payment._id,
+        studentName,
+        expertName,
+        itemName,
+        type: payment.itemType,
+        date: payment.createdAt.toLocaleDateString(),
+        amount: payment.amount || 0,
+        expertFee: payment.expertFee || 0,
+        platformFee: payment.platformFee || 0,
+        status: 'Completed',
+        fullDate: payment.createdAt
+      };
+    });
+
+    res.status(200).json({
+      totalPlatformFees,
+      sourceEarnings,
+      transactionCount: payments.length,
+      transactions,
+      filters: {
+        type: type || 'all',
+        startDate,
+        endDate
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching admin earnings:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+export const getAdminSessions = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    // Build filter query
+    let filterQuery = {};
+
+    // Add date range filter if provided
+    if (startDate || endDate) {
+      filterQuery.date = {};
+      if (startDate) {
+        filterQuery.date.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        // Include the end date by setting time to end of day
+        const endDateObj = new Date(endDate);
+        endDateObj.setHours(23, 59, 59, 999);
+        filterQuery.date.$lte = endDateObj;
+      }
+    }
+
+    // Get sessions with populated expert and student data
+    const sessions = await Session.find(filterQuery)
+      .populate('expert', 'firstName lastName email phoneNumber')
+      .populate('bookedBy', 'firstName lastName email phoneNumber')
+      .sort({ date: 1, startTime: 1 });
+
+    // Format sessions data
+    const formattedSessions = sessions.map(session => {
+      const expertName = session.expert ? 
+        `${session.expert.firstName || ''} ${session.expert.lastName || ''}`.trim() : 
+        'N/A';
+      
+      const studentName = session.bookedBy ? 
+        `${session.bookedBy.firstName || ''} ${session.bookedBy.lastName || ''}`.trim() : 
+        'N/A';
+
+      return {
+        _id: session._id,
+        title: session.title || 'Session',
+        date: session.date,
+        startTime: session.startTime,
+        endTime: session.endTime,
+        status: session.status,
+        expertName,
+        expertEmail: session.expert?.email || 'N/A',
+        expertPhone: session.expert?.phoneNumber || 'N/A',
+        studentName,
+        studentEmail: session.bookedBy?.email || 'N/A',
+        studentPhone: session.bookedBy?.phoneNumber || 'N/A',
+        pricing: {
+          expertFee: session.pricing?.expertFee || 0,
+          platformFee: session.pricing?.platformFee || 0,
+          total: session.pricing?.total || 0
+        },
+        bookedStatus: session.bookedStatus,
+        meetLink: session.meetLink
+      };
+    });
+
+    res.status(200).json({
+      sessions: formattedSessions,
+      totalCount: formattedSessions.length,
+      filters: {
+        startDate,
+        endDate
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching admin sessions:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };

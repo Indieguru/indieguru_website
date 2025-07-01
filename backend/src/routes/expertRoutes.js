@@ -25,6 +25,7 @@ import {
   deleteEducationDocument,
   deleteCertificationDocument,
   getExpertTransactions,
+  getFilteredTransactions,
   addExperience,
   getExpertAvailableSessions,
   getExpertByIdAvailableSessions,
@@ -50,6 +51,7 @@ router.use("/auth", expertAuthRoutes);
 // Expert dashboard and common routes
 router.get('/dashboard', expertAuthMiddleware, getExpertDashboardData);
 router.get('/transactions', expertAuthMiddleware, getExpertTransactions);
+router.get('/transactions/filter', expertAuthMiddleware, getFilteredTransactions);
 
 router.get('/search', async (req, res) => {
   try {

@@ -9,31 +9,68 @@ import { cloudinary } from '../config/cloudinary.js';
 export const bookSession = async (req, res) => {
   try {
     const { sessionId } = req.params;
-        const sanitizedSessionId = sessionId.trim(); 
-        const { sessionTitle } = req.body;
-        // console.log("sessionId", sessionId);
-        const user = await User.findById(req.user.id);
-        const session = await Session.findById(sanitizedSessionId).populate('expert');
-        const studentName = req.body.studentName || user.firstName || user.lastName || 'Anonymous Student';
-        const expert = await Expert.findById(session.expert);
+    const sanitizedSessionId = sessionId.trim(); 
+    const { sessionTitle, paymentId } = req.body;
 
-        if (!session) {
-          return res.status(404).json({ success:false,message: 'Session not found' });
-        }
-        if (session.bookedStatus) {
-          return res.status(400).json({ sucess:false,message: 'Session already booked' });
+    const user = await User.findById(req.user.id);
+    const session = await Session.findById(sanitizedSessionId).populate('expert');
+    const expert = await Expert.findById(session.expert);
+
+    if (!session) {
+      return res.status(404).json({ success: false, message: 'Session not found' });
     }
+    if (session.bookedStatus) {
+      return res.status(400).json({ success: false, message: 'Session already booked' });
+    }
+
+    // Check for required user information
+    if (!user.phone) {
+      return res.status(400).json({ 
+        message: 'Phone number required',
+        missingField: 'phone'
+      });
+    }
+
+    if (!user.careerFlow) {
+      return res.status(400).json({ 
+        message: 'Career information required',
+        missingField: 'careerFlow'
+      });
+    }
+
+    // Update session details
     session.title = sessionTitle || session.title;
-    session.studentName = studentName;
+    session.studentName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Anonymous Student';
     session.bookedStatus = true;
     session.bookedBy = req.user.id;
     session.paymentStatus = 'completed';
     session.status = 'upcoming';
 
-   
-   
-    console.log("expert.outstandingAmount", expert.outstandingAmount);
-    await expert.save();
+    // Store user contact and career information
+    session.userEmail = user.email;
+    session.userPhone = user.phone;
+    session.userCareerFlow = user.careerFlow;
+
+    // Store expert contact information
+    session.expertEmail = expert.email;
+    session.expertPhone = expert.phoneNo;
+
+    // Create payment entry
+    const payment = new Payment({
+      userId: req.user.id,
+      itemId: session._id,
+      itemType: 'Session',
+      expertId: session.expert,
+      amount: session.pricing.total || (session.pricing.expertFee + session.pricing.platformFee),
+      currency: session.pricing.currency || 'INR',
+      paymentId: paymentId, // Using session ID as payment reference
+      expertFee: session.pricing.expertFee,
+      platformFee: session.pricing.platformFee
+    });
+
+    await payment.save();
+
+    // Set up Google Calendar event
     const oAuth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
@@ -44,8 +81,11 @@ export const bookSession = async (req, res) => {
     const calendar = google.calendar({ version: 'v3', auth: oAuth2Client });
 
     const event = {
-      summary: `Session with ${session.expert.firstName} ${session.expert.lastName}`,
-      description: 'Career Counseling Session',
+      summary: `${session.title} with ${expert.firstName} ${expert.lastName}`,
+      description: `Career Counseling Session
+Student: ${session.studentName}
+Email: ${session.userEmail}
+Phone: ${session.userPhone}`,
       start: {
         dateTime: new Date(`${session.date.toISOString().split('T')[0]}T${session.startTime}:00`),
         timeZone: 'Asia/Kolkata',
@@ -311,9 +351,6 @@ export const addNotesAndComplete = async (req, res) => {
         const { notes } = req.body;
         const files = req.files || [];
 
-        // console.log('Attempting to complete session:', sessionId);
-        // console.log('Files received:', files.map(f => ({ name: f.originalname, type: f.mimetype })));
-
         const session = await Session.findById(sessionId);
         const expert = await Expert.findById(session.expert);
 
@@ -330,25 +367,17 @@ export const addNotesAndComplete = async (req, res) => {
           name: file.originalname,
           type: file.mimetype
         }));
-        expert.outstandingAmount.sessions += session.pricing.expertFee;
-        expert.outstandingAmount.total += session.pricing.expertFee;
-        // console.log('All files uploaded successfully:', uploadedFiles);
-        // console.log('typeof uploadedFiles:', typeof uploadedFiles);
-        // console.log('Array.isArray(uploadedFiles):', Array.isArray(uploadedFiles));
-        // console.log('uploadedFiles[0]:', uploadedFiles[0]);
-        // console.log('Schema for notes.files:', session.schema.path('notes.files').instance);
-        // console.log('session.schema.path("notes.files"):', session.schema.path('notes.files'));
-        // console.log(notes);
+        expert.outstandingAmount.sessions += expert.sessionPricing.expertFee;
+        expert.outstandingAmount.total += expert.sessionPricing.expertFee;
+
         session.notes.text = notes || '';
         session.notes.files = uploadedFiles;
         session.notes.uploadedAt = new Date();
-        // console.log('Schema for notes.files:', session.schema.path('notes.files').instance);
 
         session.status = 'completed';
 
         await session.save();
         await expert.save();
-        // console.log('Session updated successfully with notes and files');
 
         res.status(200).json({
             success: true,
@@ -478,7 +507,7 @@ export const requestRefund = async (req, res) => {
 
     // Send email notification to admin
     await sendMail({
-      to: process.env.EMAIL_USER|| 'admin@example.com',
+      to: process.env.EMAIL_USER || 'admin@example.com',
       subject: 'New Refund Request Submitted',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">

@@ -12,6 +12,7 @@ import useUserTypeStore from "../store/userTypeStore";
 import useRedirectStore from "../store/redirectStore";
 import useUserStore from "../store/userStore";
 import PhoneUpdateModal from "../components/modals/PhoneUpdateModal";
+import initiateRazorpayPayment from "../components/paymentGateway/RazorpayButton"; // Adjust the import path as necessary
 
 const CohortDetails = () => {
   const { cohortId } = useParams();
@@ -92,46 +93,48 @@ const CohortDetails = () => {
   };
 
   const proceedWithJoining = async () => {
-    try {
-      setIsJoining(true);
-      const response = await axiosInstance.post(`/cohort/${cohortId}/purchase`);
-
-      if (response.data.paymentId) {
-        const options = {
-          key: process.env.REACT_APP_RAZORPAY_KEY_ID,
-          amount: cohort.pricing.total * 100, // Amount in smallest currency unit (paise)
-          currency: cohort.pricing.currency || "INR",
-          name: "IndieGuru",
-          description: `Cohort: ${cohort.title}`,
-          order_id: response.data.paymentId,
-          handler: function (response) {
-            navigate("/payment-success", {
-              state: {
-                type: "cohort",
-                details: {
-                  title: cohort.title,
-                  price: cohort.pricing.total,
-                  date: new Date(cohort.startDate).toLocaleDateString(),
-                },
-              },
+    console.log("Initiating payment for cohort:", cohortId,cohort.pricing?.total);
+      const res = await initiateRazorpayPayment({   
+              amount: cohort.pricing?.total,
+              bookingType: "Cohort",
+              id: cohortId,
             });
-          },
-          prefill: {
-            email: user.email,
-            contact: user.phone,
-          },
-          theme: {
-            color: "#3B82F6",
-          },
-        };
-        const rzp = new window.Razorpay(options);
-        rzp.open();
+  // Check if payment link generation was successful
+  if(res){
+    if (res?.status === "failed") {
+      toast.error(res.message || "Failed while generating payment link", {
+        icon: "❌",
+        position: "top-center",
+        autoClose: 5000,
+      });
+      return;
+    } 
+      try {
+        console.log(res);
+        console.log(":::::::::::::::::::::::::::::::::::::::::::")
+        console.log(res.data)
+        console.log(":::::::::::::::::::::::::::::::::::::::::::")
+        console.log(res.data.payment._id)
+        console.log(":::::::::::::::::::::::::::::::::::::::::::")
+        setIsJoining(true);
+        const response = await axiosInstance.post(`/cohort/${cohortId}/purchase`,{
+        paymentId: res.data.payment._id
+        });
+        if (response.status === 200) {
+          setIsJoining(false);
+          navigate('/dashboard');
+          }
+
+        
+      } catch (error) {
+        console.error("Error joining cohort:", error);
+        toast.error(error.response?.data?.message || "Failed to join cohort. Please try again.");
+      } finally {
+        setIsJoining(false);
       }
-    } catch (error) {
-      console.error("Error joining cohort:", error);
-      toast.error(error.response?.data?.message || "Failed to join cohort. Please try again.");
-    } finally {
-      setIsJoining(false);
+    }
+    else{
+      console.log("Something Went Wrong")
     }
   };
 

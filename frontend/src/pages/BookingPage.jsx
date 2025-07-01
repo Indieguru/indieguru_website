@@ -200,7 +200,7 @@ const BookingPage = () => {
 
     const res = await initiateRazorpayPayment({   
       amount: expert?.sessionPricing?.total,
-      bookingType: "session",
+      bookingType: "Session",
       id: selectedSession._id,
     });
     if (res){
@@ -213,9 +213,15 @@ const BookingPage = () => {
           return;
         }
       try {
+        console.log(res);
+        console.log(":::::::::::::::::::::::::::::::::::::::::::")
         console.log(res.data)
+        console.log(":::::::::::::::::::::::::::::::::::::::::::")
+        console.log(res.data.payment._id)
+        console.log(":::::::::::::::::::::::::::::::::::::::::::")
         const response = await axiosInstance.post(`/session/${selectedSession._id}/book`, {
-          title: sessionTitle
+          title: sessionTitle,
+          paymentId: res.data.payment._id
         });
         if (response.status === 200) {
           setShowSuccessModal(true);
@@ -224,7 +230,7 @@ const BookingPage = () => {
         toast.error(error.response?.data?.message || "Failed to book session. Please try again later.", {
           icon: "❌",
           position: "top-center",
-          autoClose: 5000,
+          autoClose: 5000,            
         });
       } finally {
         setShowTitleModal(false);

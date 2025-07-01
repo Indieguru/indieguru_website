@@ -14,6 +14,7 @@ import useUserStore from '../store/userStore';
 import useUserTypeStore from '../store/userTypeStore';
 import useRedirectStore from '../store/redirectStore';
 import PhoneUpdateModal from '../components/modals/PhoneUpdateModal';
+import initiateRazorpayPayment from '../components/paymentGateway/RazorpayButton';
 
 export default function CourseDetails() {
   const [course, setCourse] = useState(null);
@@ -102,22 +103,50 @@ export default function CourseDetails() {
   };
 
   const proceedWithPurchase = async () => {
-    try {
-      setPurchasing(true);
-      await axiosInstance.post(`/course/${courseId}/purchase`);
-      setShowSuccessModal(true);
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Error purchasing course:', error);
-      toast.error(error.response?.data?.message || 'Failed to register for the course. Please try again.', {
-        position: "top-center",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-      });
-    } finally {
-      setPurchasing(false);
+     const res = await initiateRazorpayPayment({   
+          amount: course.pricing.total,
+          bookingType: "Course",
+          id: courseId,
+        });
+    if(res){ 
+      if (res?.status === "failed") {
+        toast.error(res.message || "Failed while generating payment link", {
+          icon: "❌",
+          position: "top-center",
+          autoClose: 5000,
+        });
+        return;
+      }   
+        try {
+          console.log(res);
+          console.log(":::::::::::::::::::::::::::::::::::::::::::")
+          console.log(res.data)
+          console.log(":::::::::::::::::::::::::::::::::::::::::::")
+          console.log(res.data.payment._id)
+          console.log(":::::::::::::::::::::::::::::::::::::::::::")
+          setPurchasing(true);
+          const response = await axiosInstance.post(`/course/${courseId}/purchase`,{
+            paymentId: res.data.payment._id
+          });
+          if (response.status === 200) {
+          setShowSuccessModal(true);
+          navigate('/dashboard');
+          }
+        } catch (error) {
+          console.error('Error purchasing course:', error);
+          toast.error(error.response?.data?.message || 'Failed to register for the course. Please try again.', {
+            position: "top-center",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+          });
+        } finally {
+          setPurchasing(false);
+        }
+    }
+    else{
+      console.log("Something Went Wrong")
     }
   };
   

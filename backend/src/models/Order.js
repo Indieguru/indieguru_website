@@ -8,6 +8,16 @@ const paymentSchema = new mongoose.Schema(
     amount: { type: Number, required: true },
     currency: { type: String, default: "INR" },
     isVerified: { type: Boolean, default: false },
+    itemType: {
+      type: String,
+      required: true,
+      enum: ["Course", "Cohort", "Session"],
+    },
+    itemId: {
+      type: mongoose.Schema.Types.ObjectId,
+      refPath: "itemType",
+      required: true,
+    }
   },
   { timestamps: true }
 );

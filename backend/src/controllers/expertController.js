@@ -7,6 +7,7 @@ import Withdrawal from "../models/Withdrawal.js";
 import CommunityPost from "../models/CommunityPost.js";
 import upload from '../middlewares/uploadMiddleware.js';
 import cloudinary from 'cloudinary';
+import Paymentsss from "../models/Payment.js";
 
 export const addSlot = async (req, res) => {
   try {
@@ -1156,89 +1157,169 @@ export const getExpertTransactions = async (req, res) => {
   try {
     const expertId = req.user.id;
 
-    // Get last 6 months of earnings data
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-    const [transactions, withdrawals] = await Promise.all([
-      Payment.find({ 
-        expert: expertId,
-        createdAt: { $gte: sixMonthsAgo }
-      }).sort({ createdAt: -1 }),
-      
-      Withdrawal.find({ 
-        expert: expertId,
-        createdAt: { $gte: sixMonthsAgo }
-      }).sort({ createdAt: -1 })
-    ]);
-
-    // Calculate monthly earnings
-    const monthlyEarnings = await Payment.aggregate([
-      { 
-        $match: { 
-          expert: expertId,
-          createdAt: { $gte: sixMonthsAgo }
-        }
-      },
-      {
-        $group: {
-          _id: { 
-            year: { $year: "$createdAt" },
-            month: { $month: "$createdAt" }
-          },
-          total: { $sum: "$amount" }
-        }
-      },
-      { $sort: { "_id.year": -1, "_id.month": -1 } }
-    ]);
-
-    // Calculate weekly earnings for current month
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-
-    const weeklyEarnings = await Payment.aggregate([
-      { 
-        $match: { 
-          expert: expertId,
-          createdAt: { $gte: startOfMonth }
-        }
-      },
-      {
-        $group: {
-          _id: { 
-            week: { $week: "$createdAt" }
-          },
-          total: { $sum: "$amount" }
-        }
-      },
-      { $sort: { "_id.week": -1 } }
-    ]);
-
-    // Calculate incentives based on performance
-    const incentives = [];
-    const currentMonth = new Date().getMonth();
-    const monthTotal = monthlyEarnings.find(m => m._id.month === currentMonth + 1)?.total || 0;
-
-    if (monthTotal > 5000) {
-      incentives.push({
-        type: 'Monthly Milestone',
-        amount: 200,
-        description: 'Earned for crossing $5000 in monthly earnings'
-      });
+    // Get expert data for outstanding amounts
+    const expert = await Expert.findById(expertId);
+    if (!expert) {
+      return res.status(404).json({ message: "Expert not found" });
     }
+
+    // Get all payments from Paymentsss database for this expert
+    const allPayments = await Paymentsss.find({ expertId: expertId })
+      .populate('userId', 'firstName lastName email')
+      .populate('itemId')
+      .sort({ createdAt: -1 });
+
+    // Calculate lifetime earnings from expertFee
+    const lifetimeEarnings = allPayments.reduce((total, payment) => {
+      return total + (payment.expertFee || 0);
+    }, 0);
+
+    // Calculate earnings by source using expertFee
+    const sourceEarnings = {
+      courses: 0,
+      sessions: 0,
+      cohorts: 0
+    };
+
+    allPayments.forEach(payment => {
+      const expertFee = payment.expertFee || 0;
+      if (payment.itemType === 'Course') {
+        sourceEarnings.courses += expertFee;
+      } else if (payment.itemType === 'Session') {
+        sourceEarnings.sessions += expertFee;
+      } else if (payment.itemType === 'Cohort') {
+        sourceEarnings.cohorts += expertFee;
+      }
+    });
+
+    // Get outstanding amounts from expert model
+    const outstandingAmount = expert.outstandingAmount || {
+      total: 0,
+      sessions: 0,
+      courses: 0,
+      cohorts: 0
+    };
+
+    // Format recent transactions for the table
+    const transactions = allPayments.slice(0, 10).map(payment => {
+      const studentName = payment.userId ? 
+        `${payment.userId.firstName} ${payment.userId.lastName}` : 
+        'Unknown User';
+      
+      let itemName = 'Unknown Item';
+      if (payment.itemId) {
+        if (payment.itemType === 'Course') {
+          itemName = payment.itemId.title || 'Course';
+        } else if (payment.itemType === 'Session') {
+          itemName = payment.itemId.title || 'Session';
+        } else if (payment.itemType === 'Cohort') {
+          itemName = payment.itemId.title || 'Cohort';
+        }
+      }
+
+      return {
+        id: payment._id,
+        name: `${studentName} - ${itemName}`,
+        type: payment.itemType,
+        date: payment.createdAt.toLocaleDateString(),
+        amount: payment.expertFee || 0,
+        status: 'Completed'
+      };
+    });
 
     // Format response
     res.status(200).json({
-      transactions,
-      withdrawals,
-      monthlyEarnings,
-      weeklyEarnings,
-      incentives
+      lifetimeEarnings,
+      sourceEarnings,
+      outstandingAmount,
+      transactions
     });
 
   } catch (error) {
     console.error('Error fetching expert transactions:', error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
+export const getFilteredTransactions = async (req, res) => {
+  try {
+    const expertId = req.user.id;
+    const { type, startDate, endDate } = req.query;
+
+    // Build filter query
+    let filterQuery = { expertId: expertId };
+
+    // Add type filter if provided
+    if (type && type !== 'all') {
+      filterQuery.itemType = type.charAt(0).toUpperCase() + type.slice(1);
+    }
+
+    // Add date range filter if provided
+    if (startDate || endDate) {
+      filterQuery.createdAt = {};
+      if (startDate) {
+        filterQuery.createdAt.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        // Add one day to include the end date
+        const endDateObj = new Date(endDate);
+        endDateObj.setDate(endDateObj.getDate() + 1);
+        filterQuery.createdAt.$lt = endDateObj;
+      }
+    }
+
+    // Get filtered payments
+    const filteredPayments = await Paymentsss.find(filterQuery)
+      .populate('userId', 'firstName lastName email')
+      .populate('itemId')
+      .sort({ createdAt: -1 });
+
+    // Calculate total earnings from filtered results
+    const totalEarnings = filteredPayments.reduce((total, payment) => {
+      return total + (payment.expertFee || 0);
+    }, 0);
+
+    // Format transactions
+    const transactions = filteredPayments.map(payment => {
+      const studentName = payment.userId ? 
+        `${payment.userId.firstName} ${payment.userId.lastName}` : 
+        'Unknown User';
+      
+      let itemName = 'Unknown Item';
+      if (payment.itemId) {
+        if (payment.itemType === 'Course') {
+          itemName = payment.itemId.title || 'Course';
+        } else if (payment.itemType === 'Session') {
+          itemName = payment.itemId.title || 'Session';
+        } else if (payment.itemType === 'Cohort') {
+          itemName = payment.itemId.title || 'Cohort';
+        }
+      }
+
+      return {
+        id: payment._id,
+        name: `${studentName} - ${itemName}`,
+        type: payment.itemType,
+        date: payment.createdAt.toLocaleDateString(),
+        amount: payment.expertFee || 0,
+        status: 'Completed',
+        fullDate: payment.createdAt
+      };
+    });
+
+    res.status(200).json({
+      totalEarnings,
+      transactionCount: filteredPayments.length,
+      transactions,
+      filters: {
+        type: type || 'all',
+        startDate,
+        endDate
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching filtered transactions:', error);
     res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };

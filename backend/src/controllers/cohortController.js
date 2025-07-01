@@ -1,6 +1,7 @@
 import Cohort from '../models/Cohort.js';
 import Expert from '../models/Expert.js';
 import User from '../models/User.js';
+import Paymentsss from '../models/Payment.js';
 import { sendMail } from '../utils/sendMail.js';
 
 export const createCohort = async (req, res) => {
@@ -178,6 +179,7 @@ export const purchaseCohort = async (req, res) => {
     try {
         const { cohortId } = req.params;
         const userId = req.user.id;
+        const { paymentId } = req.body;
 
         // Find cohort and user
         const cohort = await Cohort.findById(cohortId);
@@ -204,6 +206,21 @@ export const purchaseCohort = async (req, res) => {
         if (cohort.maxParticipants && cohort.purchasedBy?.length >= cohort.maxParticipants) {
             return res.status(400).json({ message: 'Cohort is full' });
         }
+
+        // Create payment entry in Paymentsss database
+        const payment = new Paymentsss({
+            userId: userId,
+            itemId: cohortId,
+            itemType: 'Cohort',
+            expertId: cohort.createdBy,
+            amount: cohort.pricing.total || (cohort.pricing.expertFee + cohort.pricing.platformFee),
+            currency: cohort.pricing.currency || 'INR',
+            paymentId: paymentId || cohortId, // Use provided paymentId or cohortId as fallback
+            expertFee: cohort.pricing.expertFee,
+            platformFee: cohort.pricing.platformFee
+        });
+
+        await payment.save();
 
         // Add user to cohort's purchasedBy array
         if (!cohort.purchasedBy) {

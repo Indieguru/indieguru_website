@@ -62,12 +62,15 @@ const RejectionModal = ({ isOpen, onClose, onReject, type }) => {
 };
 
 export default function AdminDashboard() {
+  const [activeTab, setActiveTab] = useState('pending-experts');
   const [pendingExperts, setPendingExperts] = useState([]);
   const [expertsWithOutstanding, setExpertsWithOutstanding] = useState([]);
   const [pendingCourses, setPendingCourses] = useState([]);
   const [pendingCohorts, setPendingCohorts] = useState([]);
   const [pendingBlogs, setPendingBlogs] = useState([]);
   const [cancelledSessions, setCancelledSessions] = useState([]);
+  const [earningsData, setEarningsData] = useState(null);
+  const [sessionsData, setSessionsData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedExpert, setSelectedExpert] = useState(null);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
@@ -83,6 +86,18 @@ export default function AdminDashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedExpertDetails, setSelectedExpertDetails] = useState(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+
+  // Earnings filter states
+  const [filterType, setFilterType] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Sessions filter states
+  const [sessionStartDate, setSessionStartDate] = useState('');
+  const [sessionEndDate, setSessionEndDate] = useState('');
+  const [isSearchingSessions, setIsSearchingSessions] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -142,6 +157,41 @@ export default function AdminDashboard() {
     } catch (error) {
       toast.error('Failed to fetch cancelled sessions');
       console.error('Error fetching cancelled sessions:', error);
+    }
+  };
+
+  const fetchEarnings = async (type = 'all', start = '', end = '') => {
+    setIsSearching(true);
+    try {
+      const params = new URLSearchParams();
+      if (type && type !== 'all') params.append('type', type);
+      if (start) params.append('startDate', start);
+      if (end) params.append('endDate', end);
+
+      const response = await axiosInstance.get(`/admin/earnings?${params.toString()}`);
+      setEarningsData(response.data);
+    } catch (error) {
+      console.error('Error fetching admin earnings:', error);
+      toast.error('Failed to fetch earnings data');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const fetchSessions = async (start = '', end = '') => {
+    setIsSearchingSessions(true);
+    try {
+      const params = new URLSearchParams();
+      if (start) params.append('startDate', start);
+      if (end) params.append('endDate', end);
+
+      const response = await axiosInstance.get(`/admin/sessions?${params.toString()}`);
+      setSessionsData(response.data);
+    } catch (error) {
+      console.error('Error fetching admin sessions:', error);
+      toast.error('Failed to fetch sessions data');
+    } finally {
+      setIsSearchingSessions(false);
     }
   };
 
@@ -280,6 +330,27 @@ export default function AdminDashboard() {
     setIsModalOpen(false);
     setSelectedItem(null);
     setModalType(null);
+  };
+
+  const handleEarningsSearch = () => {
+    fetchEarnings(filterType, startDate, endDate);
+  };
+
+  const resetEarningsFilters = () => {
+    setFilterType('all');
+    setStartDate('');
+    setEndDate('');
+    setEarningsData(null);
+  };
+
+  const handleSessionsSearch = () => {
+    fetchSessions(sessionStartDate, sessionEndDate);
+  };
+
+  const resetSessionsFilters = () => {
+    setSessionStartDate('');
+    setSessionEndDate('');
+    setSessionsData(null);
   };
 
   const ExpertDetails = ({ expert }) => {
@@ -499,6 +570,626 @@ export default function AdminDashboard() {
     </div>
   );
 
+  const renderPendingExperts = () => (
+    <div className="bg-white rounded-lg shadow p-6">
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">Pending Expert Approvals</h2>
+      
+      {pendingExperts.length === 0 ? (
+        <p className="text-gray-600">No pending expert approvals</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expertise</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {pendingExperts.map((expert) => (
+                <tr key={expert._id} onClick={() => handleItemClick(expert, 'expert')} className="hover:bg-gray-50 cursor-pointer">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
+                      {expert.firstName} {expert.lastName}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-500">{expert.email}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{expert.title}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-gray-900">
+                      {expert.expertise.join(", ")}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedExpert(expert);
+                        setShowApprovalModal(true);
+                      }}
+                      className="text-indigo-600 hover:text-indigo-900 mr-4"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedExpert(expert);
+                        setShowRejectionModal(true);
+                      }}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      Reject
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderOutstanding = () => (
+    <div className="bg-white rounded-lg shadow p-6">
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">Outstanding Payments</h2>
+      
+      {expertsWithOutstanding.length === 0 ? (
+        <p className="text-gray-600">No outstanding payments to show</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sessions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Courses</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cohorts</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {expertsWithOutstanding.map((expert) => (
+                <tr key={expert._id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
+                      {expert.firstName} {expert.lastName}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-500">{expert.email}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">₹{expert.outstandingAmount.sessions}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">₹{expert.outstandingAmount.courses}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">₹{expert.outstandingAmount.cohorts}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">₹{expert.outstandingAmount.total}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <button
+                      onClick={() => handleClearOutstanding(expert._id)}
+                      className="text-indigo-600 hover:text-indigo-900 font-medium text-sm"
+                    >
+                      Clear Outstanding
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderPendingContent = () => (
+    <div className="space-y-8">
+      {/* Pending Courses Section */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">Pending Courses</h2>
+        
+        {pendingCourses.length === 0 ? (
+          <p className="text-gray-600">No pending courses to approve</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expert</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {pendingCourses.map((course) => (
+                  <tr key={course._id} onClick={() => handleItemClick(course, 'course')} className="hover:bg-gray-50 cursor-pointer">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{course.title}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {course.expertName || 'N/A'}
+                      </div>
+                      <div className="text-sm text-gray-500">{course.expert?.email || 'N/A'}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">₹{course.pricing?.expertFee || 0}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedContent({ type: 'course', item: course });
+                          setShowPlatformPriceModal(true);
+                        }}
+                        className="text-indigo-600 hover:text-indigo-900 mr-4"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedContent({ type: 'course', item: course });
+                          setShowRejectionModal(true);
+                        }}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Reject
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Pending Cohorts Section */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">Pending Cohorts</h2>
+        
+        {pendingCohorts.length === 0 ? (
+          <p className="text-gray-600">No pending cohorts to approve</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expert</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {pendingCohorts.map((cohort) => (
+                  <tr key={cohort._id} onClick={() => handleItemClick(cohort, 'cohort')} className="hover:bg-gray-50 cursor-pointer">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{cohort.title}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {cohort.expertName || 'N/A'}
+                      </div>
+                      <div className="text-sm text-gray-500">{cohort.expert?.email || 'N/A'}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">₹{cohort.pricing?.expertFee || 0}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {new Date(cohort.startDate).toLocaleDateString()}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedContent({ type: 'cohort', item: cohort });
+                          setShowPlatformPriceModal(true);
+                        }}
+                        className="text-indigo-600 hover:text-indigo-900 mr-4"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedContent({ type: 'cohort', item: cohort });
+                          setShowRejectionModal(true);
+                        }}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Reject
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderSessionsTab = () => (
+    <div className="space-y-6">
+      {/* Filter Section */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Filter Sessions</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          {/* Start Date */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+            <input
+              type="date"
+              value={sessionStartDate}
+              onChange={(e) => setSessionStartDate(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          {/* End Date */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+            <input
+              type="date"
+              value={sessionEndDate}
+              onChange={(e) => setSessionEndDate(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          {/* Search Button */}
+          <div className="flex space-x-2">
+            <button
+              onClick={handleSessionsSearch}
+              disabled={isSearchingSessions}
+              className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            >
+              {isSearchingSessions ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                  Searching...
+                </div>
+              ) : (
+                'Search'
+              )}
+            </button>
+            {sessionsData && (
+              <button
+                onClick={resetSessionsFilters}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Results Summary */}
+        {sessionsData && (
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-800">
+                  <span className="font-semibold">{sessionsData.totalCount}</span> sessions found
+                </p>
+              </div>
+              <div className="text-xs text-blue-600">
+                {sessionsData.filters.startDate && (
+                  <span className="inline-block bg-blue-100 px-2 py-1 rounded mr-2">
+                    From: {sessionsData.filters.startDate}
+                  </span>
+                )}
+                {sessionsData.filters.endDate && (
+                  <span className="inline-block bg-blue-100 px-2 py-1 rounded">
+                    To: {sessionsData.filters.endDate}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Sessions Table */}
+      {sessionsData && (
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Sessions</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expert</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pricing</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Meet Link</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {sessionsData.sessions.map((session) => (
+                    <tr key={session._id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          {new Date(session.date).toLocaleDateString()}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {session.startTime} - {session.endTime}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{session.expertName}</div>
+                        <div className="text-sm text-gray-500">{session.expertEmail}</div>
+                        <div className="text-xs text-gray-400">{session.expertPhone}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{session.studentName}</div>
+                        <div className="text-sm text-gray-500">{session.studentEmail}</div>
+                        <div className="text-xs text-gray-400">{session.studentPhone}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          session.status === 'completed' ? 'bg-green-100 text-green-800' :
+                          session.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                          session.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {session.status}
+                        </span>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {session.bookedStatus ? 'Booked' : 'Available'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-600">Expert: ₹{session.pricing.expertFee}</div>
+                        <div className="text-sm text-gray-600">Platform: ₹{session.pricing.platformFee}</div>
+                        <div className="text-sm font-medium text-gray-900">Total: ₹{session.pricing.total}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {session.meetLink ? (
+                          <a
+                            href={session.meetLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-indigo-600 hover:text-indigo-900 text-sm"
+                          >
+                            Join Meeting
+                          </a>
+                        ) : (
+                          <span className="text-gray-400 text-sm">No link</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {sessionsData.sessions.length === 0 && (
+                    <tr>
+                      <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
+                        No sessions found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'earnings':
+        return renderEarningsTab();
+      case 'pending-experts':
+        return renderPendingExperts();
+      case 'outstanding':
+        return renderOutstanding();
+      case 'pending-content':
+        return renderPendingContent();
+      case 'refunds':
+        return <RefundRequestsSection />;
+      case 'sessions':
+        return renderSessionsTab();
+      default:
+        return renderPendingExperts();
+    }
+  };
+
+  const renderEarningsTab = () => (
+    <div className="space-y-6">
+      {/* Filter Section */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Filter Earnings</h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          {/* Type Dropdown */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="all">All Types</option>
+              <option value="session">Sessions</option>
+              <option value="course">Courses</option>
+              <option value="cohort">Cohorts</option>
+            </select>
+          </div>
+
+          {/* Start Date */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          {/* End Date */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          {/* Search Button */}
+          <div className="flex space-x-2">
+            <button
+              onClick={handleEarningsSearch}
+              disabled={isSearching}
+              className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            >
+              {isSearching ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                  Searching...
+                </div>
+              ) : (
+                'Search'
+              )}
+            </button>
+            {earningsData && (
+              <button
+                onClick={resetEarningsFilters}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Results Summary */}
+        {earningsData && (
+          <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-green-800">
+                  <span className="font-semibold">{earningsData.transactionCount}</span> transactions found
+                </p>
+                <p className="text-sm text-green-600">
+                  Total platform earnings: <span className="font-semibold">₹{earningsData.totalPlatformFees}</span>
+                </p>
+              </div>
+              <div className="text-xs text-green-600">
+                {earningsData.filters.type !== 'all' && (
+                  <span className="inline-block bg-green-100 px-2 py-1 rounded mr-2">
+                    Type: {earningsData.filters.type}
+                  </span>
+                )}
+                {earningsData.filters.startDate && (
+                  <span className="inline-block bg-green-100 px-2 py-1 rounded mr-2">
+                    From: {earningsData.filters.startDate}
+                  </span>
+                )}
+                {earningsData.filters.endDate && (
+                  <span className="inline-block bg-green-100 px-2 py-1 rounded">
+                    To: {earningsData.filters.endDate}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Earnings Summary Cards */}
+      {earningsData && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg shadow-md border border-green-200">
+            <h4 className="text-sm font-medium text-gray-500 mb-2">Total Platform Earnings</h4>
+            <div className="text-2xl font-bold text-gray-900">₹{earningsData.totalPlatformFees}</div>
+          </div>
+          <div className="bg-blue-50 p-4 rounded-lg shadow-md border border-blue-200">
+            <h4 className="text-sm font-medium text-blue-800 mb-2">From Sessions</h4>
+            <div className="text-2xl font-bold text-gray-900">₹{earningsData.sourceEarnings.sessions}</div>
+          </div>
+          <div className="bg-purple-50 p-4 rounded-lg shadow-md border border-purple-200">
+            <h4 className="text-sm font-medium text-purple-800 mb-2">From Courses</h4>
+            <div className="text-2xl font-bold text-gray-900">₹{earningsData.sourceEarnings.courses}</div>
+          </div>
+          <div className="bg-orange-50 p-4 rounded-lg shadow-md border border-orange-200">
+            <h4 className="text-sm font-medium text-orange-800 mb-2">From Cohorts</h4>
+            <div className="text-2xl font-bold text-gray-900">₹{earningsData.sourceEarnings.cohorts}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Transactions Table */}
+      {earningsData && (
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Platform Earnings Transactions</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expert</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Platform Fee</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {earningsData.transactions.map((transaction) => (
+                    <tr key={transaction.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.studentName}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.expertName}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.itemName}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.type}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.date}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">₹{transaction.platformFee}</td>
+                    </tr>
+                  ))}
+                  {earningsData.transactions.length === 0 && (
+                    <tr>
+                      <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
+                        No transactions found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -512,543 +1203,197 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>
         
-        {/* Cancelled Sessions Section */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Cancelled Sessions Pending Refund</h2>
-          
-          {cancelledSessions.length === 0 ? (
-            <p className="text-gray-600">No cancelled sessions pending refund</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expert Details</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Details</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pricing</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {cancelledSessions.map((session) => (
-                    <tr key={session._id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {new Date(session.date).toLocaleDateString()}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {session.startTime} - {session.endTime}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {session.expertDetails?.email || 'N/A'}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {session.expertDetails?.phone || 'N/A'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {session.studentDetails?.email || 'N/A'}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {session.studentDetails?.phone || 'N/A'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-600">Expert: ₹{session.pricing?.expertPrice || 0}</div>
-                        <div className="text-sm text-gray-600">Platform: ₹{session.pricing?.platformPrice || 0}</div>
-                        <div className="text-sm font-medium text-gray-900">Total: ₹{session.pricing?.totalPrice || 0}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => handleMarkRefundProcessed(session._id)}
-                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                        >
-                          Refund Done
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-        
-        {/* Outstanding Amounts Section */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Outstanding Payments</h2>
-          
-          {expertsWithOutstanding.length === 0 ? (
-            <p className="text-gray-600">No outstanding payments to show</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sessions</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Courses</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cohorts</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {expertsWithOutstanding.map((expert) => (
-                    <tr key={expert._id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {expert.firstName} {expert.lastName}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{expert.email}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">₹{expert.outstandingAmount.sessions}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">₹{expert.outstandingAmount.courses}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">₹{expert.outstandingAmount.cohorts}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">₹{expert.outstandingAmount.total}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => handleClearOutstanding(expert._id)}
-                          className="text-indigo-600 hover:text-indigo-900 font-medium text-sm"
-                        >
-                          Clear Outstanding
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+        {/* Tab Navigation */}
+        <div className="mb-8">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              {[
+                { id: 'pending-experts', label: 'Pending Experts' },
+                { id: 'outstanding', label: 'Outstanding Payments' },
+                { id: 'pending-content', label: 'Pending Content' },
+                { id: 'earnings', label: 'Earnings' },
+                { id: 'refunds', label: 'Refund Requests' },
+                { id: 'sessions', label: 'Sessions' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === tab.id
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </nav>
+          </div>
         </div>
 
-        {/* Pending Experts Section */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Pending Expert Approvals</h2>
-          
-          {pendingExperts.length === 0 ? (
-            <p className="text-gray-600">No pending expert approvals</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expertise</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {pendingExperts.map((expert) => (
-                    <tr key={expert._id} onClick={() => handleItemClick(expert, 'expert')} className="hover:bg-gray-50 cursor-pointer">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {expert.firstName} {expert.lastName}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{expert.email}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{expert.title}</div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900">
-                          {expert.expertise.join(", ")}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => {
-                            setSelectedExpert(expert);
-                            setShowApprovalModal(true);
-                          }}
-                          className="text-indigo-600 hover:text-indigo-900 mr-4"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedExpert(expert);
-                            setShowRejectionModal(true);
-                          }}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Reject
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+        {/* Tab Content */}
+        {renderTabContent()}
 
-        {/* Pending Courses Section */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Pending Courses</h2>
-          
-          {pendingCourses.length === 0 ? (
-            <p className="text-gray-600">No pending courses to approve</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expert</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {pendingCourses.map((course) => (
-                    <tr key={course._id} onClick={() => handleItemClick(course, 'course')} className="hover:bg-gray-50 cursor-pointer">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{course.title}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {course.expertName || 'N/A'}
-                        </div>
-                        <div className="text-sm text-gray-500">{course.expert?.email || 'N/A'}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">₹{course.pricing?.expertFee || 0}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => {
-                            setSelectedContent({ type: 'course', item: course });
-                            setShowPlatformPriceModal(true);
-                          }}
-                          className="text-indigo-600 hover:text-indigo-900 mr-4"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedContent({ type: 'course', item: course });
-                            setShowRejectionModal(true);
-                          }}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Reject
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {/* Approval Modal */}
+        {showApprovalModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg p-6 w-96">
+              <h3 className="text-lg font-semibold mb-4">Set Session Pricing</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Expert Fee (₹)
+                  </label>
+                  <input
+                    type="number"
+                    value={sessionPrice}
+                    onChange={(e) => setSessionPrice(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-md"
+                    placeholder="Enter session price"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Platform Fee (₹)
+                  </label>
+                  <input
+                    type="number"
+                    value={platformFee}
+                    onChange={(e) => setPlatformFee(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-md"
+                    placeholder="Enter platform fee"
+                  />
+                </div>
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    onClick={() => setShowApprovalModal(false)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 border rounded-md"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleApprove}
+                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md"
+                  >
+                    Approve Expert
+                  </button>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Pending Cohorts Section */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Pending Cohorts</h2>
-          
-          {pendingCohorts.length === 0 ? (
-            <p className="text-gray-600">No pending cohorts to approve</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expert</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {pendingCohorts.map((cohort) => (
-                    <tr key={cohort._id} onClick={() => handleItemClick(cohort, 'cohort')} className="hover:bg-gray-50 cursor-pointer">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{cohort.title}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {cohort.expertName || 'N/A'}
-                        </div>
-                        <div className="text-sm text-gray-500">{cohort.expert?.email || 'N/A'}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">₹{cohort.pricing?.expertFee || 0}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {new Date(cohort.startDate).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => {
-                            setSelectedContent({ type: 'cohort', item: cohort });
-                            setShowPlatformPriceModal(true);
-                          }}
-                          className="text-indigo-600 hover:text-indigo-900 mr-4"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedContent({ type: 'cohort', item: cohort });
-                            setShowRejectionModal(true);
-                          }}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Reject
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {/* Rejection Modal */}
+        <RejectionModal 
+          isOpen={showRejectionModal}
+          onClose={() => {
+            setShowRejectionModal(false);
+            setSelectedContent(null);
+          }}
+          onReject={(reason) => {
+            if (selectedContent?.type === 'blog') {
+              handleBlogReject(selectedContent.item._id, reason);
+            } else {
+              handleContentReject(selectedContent.type, selectedContent.item._id, reason);
+            }
+          }}
+          type={selectedContent?.type === 'blog' ? 'Blog' : 
+                selectedContent?.type === 'course' ? 'Course' : 'Cohort'}
+        />
+
+        {/* Platform Price Modal */}
+        {showPlatformPriceModal && selectedContent && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg p-6 w-96">
+              <h3 className="text-lg font-semibold mb-4">
+                Set Platform Price for {selectedContent.type === 'course' ? 'Course' : 'Cohort'}
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Platform Price (₹)
+                  </label>
+                  <input
+                    type="number"
+                    value={platformPrice}
+                    onChange={(e) => setPlatformPrice(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-md"
+                    placeholder="Enter platform price"
+                  />
+                </div>
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    onClick={() => {
+                      setShowPlatformPriceModal(false);
+                      setPlatformPrice('');
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 border rounded-md"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => handleContentApprove(selectedContent.type, selectedContent.item._id)}
+                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md"
+                  >
+                    Approve
+                  </button>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Pending Blogs Section */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Pending Blogs</h2>
-          
-          {pendingBlogs.length === 0 ? (
-            <p className="text-gray-600">No pending blogs to approve</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {pendingBlogs.map((blog) => (
-                    <tr 
-                      key={blog._id} 
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => handleBlogClick(blog._id)}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{blog.title}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{blog.authorName}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{blog.category}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => handleBlogApprove(blog._id)}
-                          className="text-indigo-600 hover:text-indigo-900 mr-4"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedContent({ type: 'blog', item: blog });
-                            setShowRejectionModal(true);
-                          }}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Reject
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {/* Details Modal */}
+        <Transition appear show={isModalOpen} as={Fragment}>
+          <Dialog as="div" className="relative z-50" onClose={closeModal}>
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <div className="fixed inset-0 bg-black bg-opacity-25" />
+            </Transition.Child>
+
+            <div className="fixed inset-0 overflow-y-auto">
+              <div className="flex min-h-full items-center justify-center p-4">
+                <Transition.Child
+                  as={Fragment}
+                  enter="ease-out duration-300"
+                  enterFrom="opacity-0 scale-95"
+                  enterTo="opacity-100 scale-100"
+                  leave="ease-in duration-200"
+                  leaveFrom="opacity-100 scale-100"
+                  leaveTo="opacity-0 scale-95"
+                >
+                  <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
+                    <div className="flex justify-between items-center mb-4">
+                      <Dialog.Title className="text-xl font-semibold">
+                        {modalType === 'expert' ? 'Expert Details' :
+                         modalType === 'course' ? 'Course Details' :
+                         'Cohort Details'}
+                      </Dialog.Title>
+                      <button
+                        onClick={closeModal}
+                        className="text-gray-500 hover:text-gray-700"
+                      >
+                        <X className="h-6 w-6" />
+                      </button>
+                    </div>
+                    
+                    {modalType === 'expert' && <ExpertDetails expert={selectedItem} />}
+                    {modalType === 'course' && <CourseDetails course={selectedItem} />}
+                    {modalType === 'cohort' && <CohortDetails cohort={selectedItem} />}
+                  </Dialog.Panel>
+                </Transition.Child>
+              </div>
             </div>
-          )}
-        </div>
-
-        {/* Refund Requests Section */}
-        <RefundRequestsSection />
+          </Dialog>
+        </Transition>
       </div>
-
-      {/* Approval Modal */}
-      {showApprovalModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 w-96">
-            <h3 className="text-lg font-semibold mb-4">Set Session Pricing</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Expert Fee (₹)
-                </label>
-                <input
-                  type="number"
-                  value={sessionPrice}
-                  onChange={(e) => setSessionPrice(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md"
-                  placeholder="Enter session price"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Platform Fee (₹)
-                </label>
-                <input
-                  type="number"
-                  value={platformFee}
-                  onChange={(e) => setPlatformFee(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md"
-                  placeholder="Enter platform fee"
-                />
-              </div>
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowApprovalModal(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 border rounded-md"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleApprove}
-                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md"
-                >
-                  Approve Expert
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Rejection Modal */}
-      <RejectionModal 
-        isOpen={showRejectionModal}
-        onClose={() => {
-          setShowRejectionModal(false);
-          setSelectedContent(null);
-        }}
-        onReject={(reason) => {
-          if (selectedContent?.type === 'blog') {
-            handleBlogReject(selectedContent.item._id, reason);
-          } else {
-            handleContentReject(selectedContent.type, selectedContent.item._id, reason);
-          }
-        }}
-        type={selectedContent?.type === 'blog' ? 'Blog' : 
-              selectedContent?.type === 'course' ? 'Course' : 'Cohort'}
-      />
-
-      {/* Platform Price Modal */}
-      {showPlatformPriceModal && selectedContent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 w-96">
-            <h3 className="text-lg font-semibold mb-4">
-              Set Platform Price for {selectedContent.type === 'course' ? 'Course' : 'Cohort'}
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Platform Price (₹)
-                </label>
-                <input
-                  type="number"
-                  value={platformPrice}
-                  onChange={(e) => setPlatformPrice(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-md"
-                  placeholder="Enter platform price"
-                />
-              </div>
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => {
-                    setShowPlatformPriceModal(false);
-                    setPlatformPrice('');
-                  }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 border rounded-md"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleContentApprove(selectedContent.type, selectedContent.item._id)}
-                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md"
-                >
-                  Approve
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Details Modal */}
-      <Transition appear show={isModalOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={closeModal}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-black bg-opacity-25" />
-          </Transition.Child>
-
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-              >
-                <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all">
-                  <div className="flex justify-between items-center mb-4">
-                    <Dialog.Title className="text-xl font-semibold">
-                      {modalType === 'expert' ? 'Expert Details' :
-                       modalType === 'course' ? 'Course Details' :
-                       'Cohort Details'}
-                    </Dialog.Title>
-                    <button
-                      onClick={closeModal}
-                      className="text-gray-500 hover:text-gray-700"
-                    >
-                      <X className="h-6 w-6" />
-                    </button>
-                  </div>
-                  
-                  {modalType === 'expert' && <ExpertDetails expert={selectedItem} />}
-                  {modalType === 'course' && <CourseDetails course={selectedItem} />}
-                  {modalType === 'cohort' && <CohortDetails cohort={selectedItem} />}
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </div>
-        </Dialog>
-      </Transition>
     </div>
   );
 }
