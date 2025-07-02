@@ -45,6 +45,7 @@ export const addSlot = async (req, res) => {
       date: new Date(date),
       startTime,
       endTime,
+      // Don't set title here - let it be set during booking
       pricing: {
         expertFee: expert.sessionPricing.expertFee,
         platformFee: expert.sessionPricing.platformFee,
@@ -115,6 +116,7 @@ export const addBatchSlots = async (req, res) => {
         date: new Date(date),
         startTime,
         endTime,
+        // Don't set title here - let it be set during booking
         pricing: {
           expertFee: expert.sessionPricing.expertFee,
           platformFee: expert.sessionPricing.platformFee,
@@ -494,13 +496,13 @@ export const getExpertDashboardData = async (req, res) => {
       return res.status(404).json({ message: "Expert not found" });
     }
 
-    // Get upcoming sessions that are BOOKED
+    // Get upcoming sessions that are BOOKED with complete student details
     const upcomingSessions = await Session.find({
       expert: expertId,
       bookedStatus: true,  // This is the key change - focusing on bookedStatus first
       date: { $gte: new Date() }
     })
-    .populate('bookedBy', 'firstName lastName') // Populate student information
+    .populate('bookedBy', 'firstName lastName email phone careerFlow') // Include all needed fields
     .sort({ date: 1, startTime: 1 })
     .limit(5);
 
@@ -583,7 +585,8 @@ export const getExpertDashboardData = async (req, res) => {
       email: expert.email,
       phone: expert.phoneNo,
       title: expert.title || "",
-      status: expert.status || "not requested", // Added the expert status field here
+      status: expert.status || "not requested",
+      isAdmin: expert.isAdmin || false, // Add isAdmin field
       
       // Profile Details
       profilePicture: expert.profilePicture || "/placeholder-user.jpg",
@@ -597,18 +600,33 @@ export const getExpertDashboardData = async (req, res) => {
       certifications: expert.certifications || [],
       links: expert.links || [],
       
-      // Session and Course Data
+      // Session Pricing
+      sessionPricing: expert.sessionPricing || {
+        expertFee: 0,
+        platformFee: 0,
+        currency: 'INR'
+      },
+      
+      // Session and Course Data with enhanced student details
       upcomingSessions: upcomingSessions.map(session => ({
+        _id: session._id, // Include the session ID
         id: session._id,
         title: session.title || 'One-on-One Session',
         date: session.date,
         time: session.startTime,
+        startTime: session.startTime, // Include both time formats for compatibility
+        endTime: session.endTime,
         students: 1,
         type: '1-on-1',
         studentName: session.bookedBy ? `${session.bookedBy.firstName} ${session.bookedBy.lastName}` : 'Not booked yet',
+        // Enhanced student details for SessionDetailsModal
+        userEmail: session.bookedBy?.email || session.userEmail,
+        userPhone: session.bookedBy?.phone || session.userPhone,
+        userCareerFlow: session.bookedBy?.careerFlow || session.userCareerFlow,
         meetLink: session.meetLink || 'To be generated',
         status: session.bookedStatus ? 'booked' : 'not booked'
       })),
+      
       earnings: {
         total: calculateTotalEarnings(coursesData, sessionsData, cohortsData),
         thisMonth: calculateMonthlyEarnings(coursesData, sessionsData, cohortsData, 0),

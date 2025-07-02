@@ -39,7 +39,7 @@ export const bookSession = async (req, res) => {
     }
 
     // Update session details
-    session.title = sessionTitle || session.title;
+    session.title = sessionTitle && sessionTitle.trim() ? sessionTitle.trim() : 'One-on-One Session';
     session.studentName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Anonymous Student';
     session.bookedStatus = true;
     session.bookedBy = req.user.id;
@@ -117,7 +117,7 @@ Phone: ${session.userPhone}`,
     session.meetLink = meetLink;
     await session.save();
     await expert.save();
-
+    console.log(session)
     // Send Email to User
     await sendMail({
       to: user.email,

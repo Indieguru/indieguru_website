@@ -56,7 +56,7 @@ const ExpertCard = ({ expert }) => {
         {/* Price Section */}
         <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
           <div className="text-2xl font-bold text-gray-900">
-            ₹{expert.sessionPricing?.expertFee || 0}
+            ₹{expert.sessionPricing?.total || 0}
           </div>
           <div className="text-xs text-gray-600 font-medium">per session</div>
         </div>
@@ -92,36 +92,147 @@ const ExpertCard = ({ expert }) => {
   );
 };
 
-const ExpertSearch = () => {
+const ExpertSearch = ({ selectedExpertise = [] }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [experts, setExperts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [totalExperts, setTotalExperts] = useState(0);
 
-  const handleSearch = async (query = '') => {
+  const handleSearch = async (query = '', expertiseFilter = []) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axiosInstance.get("/expert/search", {
-        params: { filter: query }
-      });
-      setExperts(response.data?.data || []);
+      
+      console.log('Searching with query:', query, 'expertise filter:', expertiseFilter);
+      
+      // Build query parameters
+      const params = {};
+      if (query) {
+        params.filter = query;
+      }
+      
+      // Convert expertise filter to search terms
+      if (expertiseFilter.length > 0) {
+        // Join selected expertise areas as search filter
+        const expertiseSearchTerms = expertiseFilter.map(expertise => 
+          expertise.toLowerCase().replace(/[^a-z0-9]/g, '-')
+        ).join(',');
+        params.expertise = expertiseSearchTerms;
+        console.log('Expertise search terms:', expertiseSearchTerms);
+      }
+
+      console.log('API request params:', params);
+      const response = await axiosInstance.get("/expert/search", { params });
+      console.log('API response:', response.data);
+      
+      let expertsData = response.data?.data || [];
+      console.log('Raw experts data:', expertsData.length, 'experts');
+
+      // Enhanced client-side filtering for better expertise matching
+      if (expertiseFilter.length > 0) {
+        console.log('Applying client-side expertise filtering...');
+        expertsData = expertsData.filter(expert => {
+          if (!expert.expertise || expert.expertise.length === 0) {
+            return false;
+          }
+          
+          // Check if any selected expertise matches any expert expertise
+          const matches = expertiseFilter.some(selectedExp => 
+            expert.expertise.some(expertExp => {
+              // Multiple matching strategies for better results
+              const normalizedSelected = selectedExp.toLowerCase().trim();
+              const normalizedExpert = expertExp.toLowerCase().trim();
+              
+              return (
+                normalizedExpert.includes(normalizedSelected) ||
+                normalizedSelected.includes(normalizedExpert) ||
+                // Partial word matching
+                normalizedSelected.split(' ').some(word => 
+                  word.length > 2 && normalizedExpert.includes(word)
+                ) ||
+                normalizedExpert.split(' ').some(word => 
+                  word.length > 2 && normalizedSelected.includes(word)
+                )
+              );
+            })
+          );
+          
+          if (matches) {
+            console.log(`Expert ${expert.firstName} ${expert.lastName} matches:`, 
+              expert.expertise, 'with selected:', expertiseFilter);
+          }
+          
+          return matches;
+        });
+        console.log('After client-side filtering:', expertsData.length, 'experts');
+      }
+
+      setExperts(expertsData);
+      setTotalExperts(expertsData.length);
     } catch (error) {
       console.error("Error searching experts:", error);
-      setError("Failed to load experts. Please try again.");
+      console.error("Error details:", error.response?.data);
+      setError(`Failed to load experts: ${error.response?.data?.message || error.message}`);
       setExperts([]);
+      setTotalExperts(0);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log('selectedExpertise changed:', selectedExpertise);
+    handleSearch(searchQuery, selectedExpertise);
+  }, [selectedExpertise]);
+
+  useEffect(() => {
+    console.log('Component mounted, fetching initial experts...');
     handleSearch();
   }, []);
 
+  const handleSearchInputChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    console.log('Search query changed:', query);
+    handleSearch(query, selectedExpertise);
+  };
+
+  // Enhanced no results messaging
+  const getNoResultsMessage = () => {
+    if (selectedExpertise.length > 0 && searchQuery) {
+      return "No experts found matching both your search query and selected expertise areas. Try removing some filters or using different keywords.";
+    } else if (selectedExpertise.length > 0) {
+      return `No experts found with expertise in: ${selectedExpertise.join(', ')}. Try selecting different expertise areas or contact support to add relevant experts.`;
+    } else if (searchQuery) {
+      return `No experts found for "${searchQuery}". Try using different keywords or browse all experts by clearing the search.`;
+    } else {
+      return "No experts are currently available. Our team is working to onboard more experts. Please check back soon!";
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-white rounded-xl shadow-sm">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6">Find Your Perfect Mentor</h2>
+      <div className="mb-6">
+        <h2 className="text-2xl font-semibold text-gray-800">
+          Find Your Perfect Mentor
+        </h2>
+        {selectedExpertise.length > 0 && (
+          <div className="mt-2">
+            <span className="text-lg font-normal text-gray-600">
+              {experts.length} expert{experts.length !== 1 ? 's' : ''} match your criteria
+            </span>
+            <div className="mt-2 text-sm text-blue-600">
+              Filtering by: {selectedExpertise.join(', ')}
+            </div>
+          </div>
+        )}
+        {!selectedExpertise.length && totalExperts > 0 && (
+          <p className="text-gray-600 text-sm mt-1">
+            Showing {totalExperts} available expert{totalExperts !== 1 ? 's' : ''}
+          </p>
+        )}
+      </div>
       
       <div className="relative mb-8">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -130,17 +241,23 @@ const ExpertSearch = () => {
         <input
           type="text"
           value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            handleSearch(e.target.value);
-          }}
+          onChange={handleSearchInputChange}
           placeholder="Search experts by name, expertise, or title..."
           className="block w-full pl-10 pr-3 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm placeholder-gray-400 focus:outline-none"
         />
       </div>
 
       {error && (
-        <div className="text-center text-red-600 mb-4">{error}</div>
+        <div className="text-center text-red-600 mb-4 p-4 bg-red-50 rounded-lg border border-red-200">
+          <p className="font-medium">Error loading experts</p>
+          <p className="text-sm mt-1">{error}</p>
+          <button 
+            onClick={() => handleSearch(searchQuery, selectedExpertise)}
+            className="mt-2 text-sm bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
       )}
 
       {loading ? (
@@ -154,16 +271,25 @@ const ExpertSearch = () => {
               <ExpertCard key={expert._id} expert={expert} />
             ))}
           </div>
-
-          {experts.length === 0 && !loading && (
+          
+          {experts.length === 0 && !loading && !error && (
             <div className="text-center py-12">
               <div className="text-gray-400 text-6xl mb-4">🔍</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No experts found</h3>
-              <p className="text-gray-500">
-                {searchQuery 
-                  ? "Try adjusting your search terms"
-                  : "Start typing to search for experts"}
+              <p className="text-gray-500 max-w-md mx-auto leading-relaxed">
+                {getNoResultsMessage()}
               </p>
+              {(selectedExpertise.length > 0 || searchQuery) && (
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    handleSearch('', []);
+                  }}
+                  className="mt-4 text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Show all experts
+                </button>
+              )}
             </div>
           )}
         </>

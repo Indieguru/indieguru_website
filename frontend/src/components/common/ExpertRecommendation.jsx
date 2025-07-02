@@ -182,7 +182,7 @@ const ExpertRecommendation = ({ formData, selectedIndustry, onClose }) => {
                   <span className="text-gray-400">|</span>
                   <span className="text-gray-600">{expert.totalFeedbacks || 0} reviews</span>
                   <span className="text-gray-400">|</span>
-                  <span className="text-gray-900 font-semibold">₹{expert.sessionPricing?.expertFee || 0}/session</span>
+                  <span className="text-gray-900 font-semibold">₹{expert.sessionPricing?.total || 0}/session</span>
                 </div>
               </div>
             </div>

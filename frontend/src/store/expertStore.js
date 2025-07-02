@@ -21,6 +21,7 @@ const useExpertStore = create((set) => ({
     expertise: [],
     upcomingSessions: [],
     status: "not requested", // Add status field with default value
+    isAdmin: false, // Add isAdmin field with default value
     earnings: {
       total: 0,
       thisMonth: 0,
@@ -80,7 +81,16 @@ const useExpertStore = create((set) => ({
             ...response.data,
             // Make sure links field is preserved from the response
             links: response.data.links || [],
-            profilePicture: response.data.profilePicture || "/placeholder-user.jpg" // Ensure default if not provided
+            profilePicture: response.data.profilePicture || "/placeholder-user.jpg", // Ensure default if not provided
+            // Ensure sessionPricing is properly set from response
+            sessionPricing: response.data.sessionPricing || {
+              expertFee: 0,
+              platformFee: 0,
+              currency: 'INR'
+            },
+            // Ensure status is properly set from response
+            status: response.data.status || "not requested",
+            isAdmin: response.data.isAdmin || false // Ensure isAdmin is properly set from response
           },
           isLoading: false,
           error: null
@@ -178,6 +188,13 @@ const useExpertStore = create((set) => ({
       status
     }
   })),
+
+  updateSessionPricing: (sessionPricing) => set((state) => ({
+    expertData: {
+      ...state.expertData,
+      sessionPricing: { ...state.expertData.sessionPricing, ...sessionPricing }
+    }
+  })),
   
   clearError: () => set({ error: null }),
 
@@ -201,6 +218,7 @@ const useExpertStore = create((set) => ({
       expertise: [],
       upcomingSessions: [],
       status: "not requested", // Add status field with default value
+      isAdmin: false, // Add isAdmin field with default value
       earnings: {
         total: 0,
         thisMonth: 0,

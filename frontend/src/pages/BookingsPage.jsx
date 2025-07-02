@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../components/ui/button";
-import { Calendar, Clock, Users, Award, ArrowRight, Link as LinkIcon, Video, Book, GraduationCap, MessageSquare, X, Star, AlertTriangle, CheckCircle2, Download, Eye, XCircle } from "lucide-react";
+import { Calendar, Clock, Users, Award, ArrowRight, Link as LinkIcon, Video, Book, GraduationCap, MessageSquare, X, Star, AlertTriangle, CheckCircle2, Download, Eye, XCircle, Info } from "lucide-react";
 import Header from "../components/layout/Header";
 import useExpertSessionsStore from '../store/expertSessionsStore';
 import useExpertCohortsStore from '../store/expertCohortsStore';
@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 import FeedbackModal from "../components/modals/FeedbackModal";
 import RejectionReasonModal from "../components/modals/RejectionReasonModal";
 import SessionNotesModal from '../components/modals/SessionNotesModal';
+import SessionDetailsModal from '../components/modals/SessionDetailsModal';
 import axiosInstance from "../config/axios.config";
 
 const TabIndicator = ({ active, label, icon, onClick }) => (
@@ -43,6 +44,8 @@ const BookingsPage = () => {
   const [selectedSessionForNotes, setSelectedSessionForNotes] = useState(null);
   const [showFilePreviewModal, setShowFilePreviewModal] = useState(false);
   const [previewFile, setPreviewFile] = useState(null);
+  const [showSessionDetailsModal, setShowSessionDetailsModal] = useState(false);
+  const [selectedSessionForDetails, setSelectedSessionForDetails] = useState(null);
   const { sessions, fetchExpertSessions, isLoading: isLoadingSessions } = useExpertSessionsStore();
   const { cohorts, fetchExpertCohorts, isLoading: isLoadingCohorts } = useExpertCohortsStore();
   const { courses, fetchExpertCourses, isLoading: isLoadingCourses } = useExpertCoursesStore();
@@ -397,6 +400,18 @@ const BookingsPage = () => {
                   <Video className="w-4 h-4" />
                   <span>Join Session</span>
                 </Button>
+                {sessionType === 'upcoming' && (
+                  <Button 
+                    onClick={() => {
+                      setSelectedSessionForDetails(session);
+                      setShowSessionDetailsModal(true);
+                    }}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2"
+                  >
+                    <Info className="w-4 h-4" />
+                    <span>View Details</span>
+                  </Button>
+                )}
                 {!isCancelled && (
                   <Button 
                     onClick={handleCancel}
@@ -820,6 +835,15 @@ const BookingsPage = () => {
           setPreviewFile(null);
         }}
         file={previewFile}
+      />
+
+      <SessionDetailsModal
+        isOpen={showSessionDetailsModal}
+        onClose={() => {
+          setShowSessionDetailsModal(false);
+          setSelectedSessionForDetails(null);
+        }}
+        session={selectedSessionForDetails}
       />
     </div>
   );

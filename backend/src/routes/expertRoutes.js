@@ -55,93 +55,131 @@ router.get('/transactions/filter', expertAuthMiddleware, getFilteredTransactions
 
 router.get('/search', async (req, res) => {
   try {
-    const { filter } = req.query;
+    const { filter, expertise } = req.query;
+    
+    console.log('Expert search request:', { filter, expertise });
     
     // If no filter provided, return all approved experts
-    if (!filter) {
+    if (!filter && !expertise) {
       const experts = await Expert.find({ status: 'approved' });
+      console.log(`Found ${experts.length} total approved experts`);
       return res.status(200).json({ success: true, data: experts });
     }
     
-    // Convert kebab-case filter to readable format for better matching
-    // e.g., "software-development" becomes "Software Development"
-    const readableFilter = filter
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+    let query = { status: 'approved' };
+    let orConditions = [];
     
-    console.log('Searching for experts with filter:', filter);
-    console.log('Readable filter:', readableFilter);
-    
-    // Special case handling for specific categories
-    let specialCasePatterns = [];
-    
-    // For AI/ML, add common variations
-    if (filter === 'ai-ml') {
-      specialCasePatterns = [
-        new RegExp('ai', 'i'),
-        new RegExp('ml', 'i'),
-        new RegExp('artificial intelligence', 'i'),
-        new RegExp('machine learning', 'i'),
-        new RegExp('deep learning', 'i'),
-        new RegExp('neural network', 'i')
-      ];
-      console.log('Added special case patterns for AI/ML');
-    }
-    
-    // Create regex patterns for both the original filter and readable version
-    const filterPattern = new RegExp(filter.replace(/-/g, '[ -]'), 'i'); // Allow spaces or hyphens
-    const readablePattern = new RegExp(readableFilter, 'i');
-    
-    // Build the query with OR conditions
-    const orConditions = [
-      // Expertise is the primary field we want to match
-      { expertise: { $elemMatch: { $regex: readablePattern } } },
-      { expertise: { $elemMatch: { $regex: filterPattern } } },
+    // Handle expertise-based filtering
+    if (expertise) {
+      console.log('Processing expertise filter:', expertise);
       
-      // Title matches are also relevant for expertise
-      { title: { $regex: readablePattern } },
-      { title: { $regex: filterPattern } },
+      // Handle both string and array formats
+      let expertiseTerms;
+      if (Array.isArray(expertise)) {
+        expertiseTerms = expertise.map(term => term.trim());
+      } else if (typeof expertise === 'string') {
+        expertiseTerms = expertise.split(',').map(term => term.trim());
+      } else {
+        expertiseTerms = [];
+      }
       
-      // Industries can be relevant
-      { industries: { $elemMatch: { $regex: readablePattern } } },
-      { industries: { $elemMatch: { $regex: filterPattern } } },
-    ];
-    
-    // Add special case patterns if any
-    if (specialCasePatterns.length > 0) {
-      specialCasePatterns.forEach(pattern => {
-        orConditions.push({ expertise: { $elemMatch: { $regex: pattern } } });
-        orConditions.push({ title: { $regex: pattern } });
+      expertiseTerms.forEach(term => {
+        // Convert back from URL-safe format
+        const readableTerm = term.replace(/-/g, ' ');
+        const termPattern = new RegExp(readableTerm, 'i');
+        const originalPattern = new RegExp(term, 'i');
+        
+        orConditions.push(
+          { expertise: { $elemMatch: { $regex: termPattern } } },
+          { expertise: { $elemMatch: { $regex: originalPattern } } },
+          { title: { $regex: termPattern } },
+          { title: { $regex: originalPattern } }
+        );
       });
     }
     
-    const query = {
-      status: 'approved',
-      $or: orConditions
-    };
+    // Handle general text filtering
+    if (filter) {
+      const readableFilter = filter
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+      
+      console.log('Processing text filter:', filter, '->', readableFilter);
+      
+      // Special case handling for specific categories
+      let specialCasePatterns = [];
+      
+      if (filter === 'ai-ml') {
+        specialCasePatterns = [
+          new RegExp('ai', 'i'),
+          new RegExp('ml', 'i'),
+          new RegExp('artificial intelligence', 'i'),
+          new RegExp('machine learning', 'i'),
+          new RegExp('deep learning', 'i'),
+          new RegExp('neural network', 'i')
+        ];
+      }
+      
+      const filterPattern = new RegExp(filter.replace(/-/g, '[ -]'), 'i');
+      const readablePattern = new RegExp(readableFilter, 'i');
+      
+      orConditions.push(
+        { expertise: { $elemMatch: { $regex: readablePattern } } },
+        { expertise: { $elemMatch: { $regex: filterPattern } } },
+        { title: { $regex: readablePattern } },
+        { title: { $regex: filterPattern } },
+        { industries: { $elemMatch: { $regex: readablePattern } } },
+        { industries: { $elemMatch: { $regex: filterPattern } } },
+        { firstName: { $regex: readablePattern } },
+        { lastName: { $regex: readablePattern } }
+      );
+      
+      // Add special case patterns
+      specialCasePatterns.forEach(pattern => {
+        orConditions.push(
+          { expertise: { $elemMatch: { $regex: pattern } } },
+          { title: { $regex: pattern } }
+        );
+      });
+    }
     
-    console.log('Query:', JSON.stringify(query, null, 2));
+    if (orConditions.length > 0) {
+      query.$or = orConditions;
+    }
+    
+    console.log('Final query:', JSON.stringify(query, null, 2));
     
     const experts = await Expert.find(query);
-    console.log(`Found ${experts.length} experts matching the filter`);
+    console.log(`Found ${experts.length} experts matching the criteria`);
     
-    // If we found no experts with the exact pattern, try a more lenient search
-    if (experts.length === 0) {
-      console.log('No experts found with exact match, trying more lenient search');
+    // If no experts found with current query, try a more lenient search
+    if (experts.length === 0 && (filter || expertise)) {
+      console.log('No experts found, trying lenient search...');
       
-      // Extract keywords from the filter
-      const keywords = filter.split('-').filter(k => k.length > 2);
+      let keywords = [];
+      if (filter) keywords.push(...filter.split('-').filter(k => k.length > 2));
+      
+      // Handle expertise parameter for lenient search too
+      if (expertise) {
+        if (Array.isArray(expertise)) {
+          keywords.push(...expertise.map(e => e.replace(/-/g, ' ')).filter(k => k.length > 2));
+        } else if (typeof expertise === 'string') {
+          keywords.push(...expertise.split(',').map(e => e.replace(/-/g, ' ')).filter(k => k.length > 2));
+        }
+      }
       
       if (keywords.length > 0) {
-        const keywordPatterns = keywords.map(keyword => new RegExp(keyword, 'i'));
+        const keywordPatterns = keywords.map(keyword => new RegExp(keyword.trim(), 'i'));
         
         const lenientQuery = {
           status: 'approved',
           $or: [
             ...keywordPatterns.map(pattern => ({ expertise: { $elemMatch: { $regex: pattern } } })),
             ...keywordPatterns.map(pattern => ({ title: { $regex: pattern } })),
-            ...keywordPatterns.map(pattern => ({ industries: { $elemMatch: { $regex: pattern } } }))
+            ...keywordPatterns.map(pattern => ({ industries: { $elemMatch: { $regex: pattern } } })),
+            ...keywordPatterns.map(pattern => ({ firstName: { $regex: pattern } })),
+            ...keywordPatterns.map(pattern => ({ lastName: { $regex: pattern } }))
           ]
         };
         

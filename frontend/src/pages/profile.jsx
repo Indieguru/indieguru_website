@@ -39,6 +39,91 @@ function Profile() {
     otherLearningStyle: ""
   });
 
+  const [newSkill, setNewSkill] = useState("")
+  const [newGoal, setNewGoal] = useState("")
+  const [isEditingGoal, setIsEditingGoal] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
+  const [isProfilePictureModalOpen, setIsProfilePictureModalOpen] = useState(false)
+  const [showSkillDropdown, setShowSkillDropdown] = useState(false)
+  const [showGoalDropdown, setShowGoalDropdown] = useState(false)
+  
+  // New state for multiple selections
+  const [tempSelectedSkills, setTempSelectedSkills] = useState([])
+  const [tempSelectedGoals, setTempSelectedGoals] = useState([])
+  const [isAddingSkills, setIsAddingSkills] = useState(false)
+  const [isAddingGoals, setIsAddingGoals] = useState(false)
+
+  // Skills list
+  const skillsList = [
+    "Software Development",
+    "AI/ML", 
+    "Data Science",
+    "Cybersecurity",
+    "Cloud Computing & DevOps",
+    "Product Management",
+    "Psychology & Therapy",
+    "Business Analysis",
+    "Strategy & Operations",
+    "Data Analysis",
+    "Chartered Accountancy (CA)",
+    "CFA",
+    "Investment Banking",
+    "Financial Planning & Analysis",
+    "FinTech Roles",
+    "Corporate & Criminal Law",
+    "Company Secretary",
+    "Digital Marketing",
+    "SEO",
+    "Graphic Designing",
+    "PR & Corporate Communication",
+    "Content Writing & Copywriting",
+    "Growth Marketing",
+    "Industrial Design",
+    "Robotics & Mechatronics",
+    "UI/UX & Interaction Design",
+    "Fashion Design",
+    "Interior & Spatial Design",
+    "Animation & Illustration",
+    "Fine Arts & Applied Arts",
+    "Architecture",
+    "Public Policy & Governance",
+    "Exam Prep Mentorship -UPSC",
+    "Exam Prep Mentorship- CUET",
+    "Exam Prep Mentorship - NET",
+    "Exam Prep Mentorship - JEE",
+    "Exam Prep Mentorship - GMAT/GRE",
+    "Exam Prep Mentorship - Banking and other govt exams",
+    "Exam Prep Mentorship - NET/JRF",
+    "Journalism (Print & Digital)",
+    "Content Creation (YouTube, Podcasting)",
+    "Film & Video Production",
+    "Advertising & Copywriting",
+    "OTT & New Media",
+    "Business Growth",
+    "Program Management",
+    "Hotel Management",
+    "Culinary Arts & Bakery",
+    "Tourism & Travel",
+    "Aviation & Cabin Crew",
+    "Event Management",
+    "Make Up Artist",
+    "Dietitian/ Nutrition",
+    "Fitness Training",
+    "Career Discovery/ Career Councelling",
+    "Study Abroad Guidance",
+    "Soft Skills & Interview Prep",
+    "Resume Building & LinkedIn & Job search",
+    "PHD admission mentorship",
+    "Stream Selection"
+  ];
+
+  // Goals list
+  const goalsList = [
+    "Sessions",
+    "Cohort",
+    "Courses"
+  ];
+
   useEffect(() => {
     const handleAuth = async () => {
       const data = await checkAuth(setUserType, setLoading);
@@ -115,11 +200,6 @@ function Profile() {
   const [editingField, setEditingField] = useState(null)
   const [isEditing, setIsEditing] = useState(false)
   const [editedData, setEditedData] = useState({})
-  const [newSkill, setNewSkill] = useState("")
-  const [newGoal, setNewGoal] = useState("")
-  const [isEditingGoal, setIsEditingGoal] = useState(false)
-  const [errorMessage, setErrorMessage] = useState("")
-  const [isProfilePictureModalOpen, setIsProfilePictureModalOpen] = useState(false)
 
   useEffect(() => {
     setProfileData({
@@ -254,6 +334,7 @@ function Profile() {
             }));
             setNewSkill("");
             setIsEditing(false);
+            setShowSkillDropdown(false);
           } else {
             setErrorMessage("Failed to update. Please try again.");
           }
@@ -286,6 +367,7 @@ function Profile() {
             }));
             setNewGoal("");
             setIsEditingGoal(false);
+            setShowGoalDropdown(false);
           } else {
             setErrorMessage("Failed to update. Please try again.");
           }
@@ -295,6 +377,64 @@ function Profile() {
           setErrorMessage("Failed to update. Please try again.");
         });
     }
+  };
+
+  const handleSkillSelect = (skill) => {
+    if (profileData.skills.some(existingSkill => existingSkill.toLowerCase() === skill.toLowerCase())) {
+      setErrorMessage("This skill is already added!");
+      setShowSkillDropdown(false);
+      return;
+    }
+
+    axiosInstance
+      .put("/user/update", {
+        interests: [...profileData.skills, skill]
+      })
+      .then((res) => {
+        if (res.status === 200) {
+          refreshUser();
+          setProfileData((prev) => ({
+            ...prev,
+            skills: [...prev.skills, skill],
+          }));
+          setShowSkillDropdown(false);
+        } else {
+          setErrorMessage("Failed to update. Please try again.");
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setErrorMessage("Failed to update. Please try again.");
+      });
+  };
+
+  const handleGoalSelect = (goal) => {
+    if (profileData.goals.some(existingGoal => existingGoal.toLowerCase() === goal.toLowerCase())) {
+      setErrorMessage("This goal is already added!");
+      setShowGoalDropdown(false);
+      return;
+    }
+
+    axiosInstance
+      .put("/user/update", {
+        goals: [...profileData.goals, goal]
+      })
+      .then((res) => {
+        if (res.status === 200) {
+          refreshUser();
+          setProfileData((prev) => ({
+            ...prev,
+            goals: [...prev.goals, goal],
+          }));
+          setShowGoalDropdown(false);
+        } else {
+          setErrorMessage("Failed to update. Please try again.");
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setErrorMessage("Failed to update. Please try again.");
+      });
   };
 
   const handleCancelSkill = () => {
@@ -413,6 +553,149 @@ function Profile() {
     }
   };
 
+  // New handler functions for multiple selections
+  const handleSkillDropdownSelect = (skill) => {
+    if (profileData.skills.some(existingSkill => existingSkill.toLowerCase() === skill.toLowerCase())) {
+      setErrorMessage("This skill is already added!");
+      return;
+    }
+    if (tempSelectedSkills.some(tempSkill => tempSkill.toLowerCase() === skill.toLowerCase())) {
+      setErrorMessage("This skill is already selected!");
+      return;
+    }
+    setTempSelectedSkills([...tempSelectedSkills, skill]);
+    setIsAddingSkills(true);
+  };
+
+  const handleGoalDropdownSelect = (goal) => {
+    if (profileData.goals.some(existingGoal => existingGoal.toLowerCase() === goal.toLowerCase())) {
+      setErrorMessage("This goal is already added!");
+      return;
+    }
+    if (tempSelectedGoals.some(tempGoal => tempGoal.toLowerCase() === goal.toLowerCase())) {
+      setErrorMessage("This goal is already selected!");
+      return;
+    }
+    setTempSelectedGoals([...tempSelectedGoals, goal]);
+    setIsAddingGoals(true);
+  };
+
+  const handleRemoveTempSkill = (skillToRemove) => {
+    setTempSelectedSkills(tempSelectedSkills.filter(skill => skill !== skillToRemove));
+    if (tempSelectedSkills.length === 1) {
+      setIsAddingSkills(false);
+    }
+  };
+
+  const handleRemoveTempGoal = (goalToRemove) => {
+    setTempSelectedGoals(tempSelectedGoals.filter(goal => goal !== goalToRemove));
+    if (tempSelectedGoals.length === 1) {
+      setIsAddingGoals(false);
+    }
+  };
+
+  const handleRemoveSkill = (skillToRemove) => {
+    const updatedSkills = profileData.skills.filter(skill => skill !== skillToRemove);
+    axiosInstance
+      .put("/user/update", { interests: updatedSkills })
+      .then((res) => {
+        if (res.status === 200) {
+          refreshUser();
+          setProfileData(prev => ({ ...prev, skills: updatedSkills }));
+        } else {
+          setErrorMessage("Failed to remove skill. Please try again.");
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setErrorMessage("Failed to remove skill. Please try again.");
+      });
+  };
+
+  const handleRemoveGoal = (goalToRemove) => {
+    const updatedGoals = profileData.goals.filter(goal => goal !== goalToRemove);
+    axiosInstance
+      .put("/user/update", { goals: updatedGoals })
+      .then((res) => {
+        if (res.status === 200) {
+          refreshUser();
+          setProfileData(prev => ({ ...prev, goals: updatedGoals }));
+        } else {
+          setErrorMessage("Failed to remove goal. Please try again.");
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setErrorMessage("Failed to remove goal. Please try again.");
+      });
+  };
+
+  const handleSaveSkills = () => {
+    if (tempSelectedSkills.length === 0) {
+      setErrorMessage("No skills selected to save!");
+      return;
+    }
+
+    const newSkills = [...profileData.skills, ...tempSelectedSkills];
+    axiosInstance
+      .put("/user/update", { interests: newSkills })
+      .then((res) => {
+        if (res.status === 200) {
+          refreshUser();
+          setProfileData(prev => ({ ...prev, skills: newSkills }));
+          setTempSelectedSkills([]);
+          setIsAddingSkills(false);
+          setShowSkillDropdown(false);
+          toast.success("Skills saved successfully!");
+        } else {
+          setErrorMessage("Failed to save skills. Please try again.");
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setErrorMessage("Failed to save skills. Please try again.");
+      });
+  };
+
+  const handleSaveGoals = () => {
+    if (tempSelectedGoals.length === 0) {
+      setErrorMessage("No goals selected to save!");
+      return;
+    }
+
+    const newGoals = [...profileData.goals, ...tempSelectedGoals];
+    axiosInstance
+      .put("/user/update", { goals: newGoals })
+      .then((res) => {
+        if (res.status === 200) {
+          refreshUser();
+          setProfileData(prev => ({ ...prev, goals: newGoals }));
+          setTempSelectedGoals([]);
+          setIsAddingGoals(false);
+          setShowGoalDropdown(false);
+          toast.success("Goals saved successfully!");
+        } else {
+          setErrorMessage("Failed to save goals. Please try again.");
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setErrorMessage("Failed to save goals. Please try again.");
+      });
+  };
+
+  const handleCancelSkillSelection = () => {
+    setTempSelectedSkills([]);
+    setIsAddingSkills(false);
+    setShowSkillDropdown(false);
+  };
+
+  const handleCancelGoalSelection = () => {
+    setTempSelectedGoals([]);
+    setIsAddingGoals(false);
+    setShowGoalDropdown(false);
+  };
+
   if (loading || !authData) {
     return (
       <>
@@ -501,45 +784,65 @@ function Profile() {
                 {profileData.skills?.map((skill, index) => (
                   <span key={index} className="px-5 py-2.5 mt-2 bg-blue-600 text-white rounded-lg text-sm font-medium border border-blue-700 flex items-center h-10">
                     {skill}
+                    <button
+                      onClick={() => handleRemoveSkill(skill)}
+                      className="ml-2 text-white hover:text-red-200 font-bold text-lg"
+                    >
+                      &times;
+                    </button>
                   </span>
                 ))}
 
-                {isEditing ? (
-                  <div className="flex gap-3 items-center mt-4 w-full">
-                    <Input
-                      value={newSkill}
-                      onChange={(e) => setNewSkill(e.target.value)}
-                      placeholder="Enter skill"
-                      className="border border-blue-300 rounded-lg w-64 focus:ring-2 focus:ring-blue-500 focus:border-blue-400"
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          handleAddSkill();
-                        }
-                      }}
-                    />
-                    <Button
-                      onClick={handleAddSkill}
-                      className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium"
-                    >
-                      Save
-                    </Button>
-                    <Button
-                      onClick={handleCancelSkill}
-                      className="bg-white text-gray-700 px-6 py-2.5 rounded-lg font-medium border border-gray-300"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                ) : (
+                <div className="relative">
                   <Button
-                    onClick={() => setIsEditing(true)}
+                    onClick={() => setShowSkillDropdown(!showSkillDropdown)}
                     className="px-5 py-2.5 border border-blue-300 bg-white text-blue-700 rounded-lg text-sm font-medium flex items-center gap-1.5 mt-3"
                   >
                     <Plus size={16} />
-                    Add Skill
+                    Select Skill
                   </Button>
-                )}
+                  {showSkillDropdown && (
+                    <div className="absolute mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                      {skillsList.map((skill, index) => (
+                        <div
+                          key={index}
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => handleSkillDropdownSelect(skill)}
+                        >
+                          {skill}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {isAddingSkills && (
+                <div className="mt-4">
+                  <h3 className="text-lg font-medium text-gray-700 mb-2">Selected Skills:</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {tempSelectedSkills.map((skill, index) => (
+                      <span key={index} className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium border border-blue-300 flex items-center">
+                        {skill}
+                        <button
+                          onClick={() => handleRemoveTempSkill(skill)}
+                          className="ml-2 text-red-500 hover:text-red-700"
+                        >
+                          &times;
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-4 flex gap-2">
+                    <Button onClick={handleSaveSkills} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
+                      Save Skills
+                    </Button>
+                    <Button onClick={handleCancelSkillSelection} className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg">
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
             </Card>
             <Card id="goals" className="p-8 mb-8 border border-gray-200 rounded-xl bg-white">
               <h2 className="text-2xl font-semibold text-[#232636] mb-4 border-b border-gray-200 pb-3 flex items-center">
@@ -553,47 +856,67 @@ function Profile() {
 
               <div className="flex flex-wrap gap-3 mb-5">
                 {profileData.goals?.map((goal, index) => (
-                  <span key={index} className="px-5 py-2.5 bg-[#00b6c4] text-white rounded-lg text-sm font-medium border border-[#00b6c4] mb-1">
+                  <span key={index} className="px-5 py-2.5 bg-[#00b6c4] text-white rounded-lg text-sm font-medium border border-[#00b6c4] mb-1 flex items-center">
                     {goal}
+                    <button
+                      onClick={() => handleRemoveGoal(goal)}
+                      className="ml-2 text-white hover:text-red-200 font-bold text-lg"
+                    >
+                      &times;
+                    </button>
                   </span>
                 ))}
 
-                {isEditingGoal ? (
-                  <div className="flex gap-3 items-center mt-4 w-full">
-                    <Input
-                      value={newGoal}
-                      onChange={(e) => setNewGoal(e.target.value)}
-                      placeholder="Add new goal"
-                      className="border border-green-300 rounded-lg w-64 focus:ring-2 focus:ring-green-500 focus:border-green-400"
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          handleAddGoal();
-                        }
-                      }}
-                    />
-                    <Button
-                      onClick={handleAddGoal}
-                      className="bg-[#00b6c4] text-white px-6 py-2.5 rounded-lg font-medium"
-                    >
-                      Save
-                    </Button>
-                    <Button
-                      onClick={handleCancelGoal}
-                      className="bg-white text-gray-700 px-6 py-2.5 rounded-lg font-medium border border-gray-300"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                ) : (
-                  <Button 
-                    onClick={handleGoalClick}
+                <div className="relative">
+                  <Button
+                    onClick={() => setShowGoalDropdown(!showGoalDropdown)}
                     className="px-5 py-2.5 border border-green-300 bg-white text-[#00b6c4] rounded-lg text-sm font-medium flex items-center gap-1.5 h-10"
                   >
                     <Plus size={16} />
-                    New Goal
+                    Select Goal
                   </Button>
-                )}
+                  {showGoalDropdown && (
+                    <div className="absolute mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+                      {goalsList.map((goal, index) => (
+                        <div
+                          key={index}
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => handleGoalDropdownSelect(goal)}
+                        >
+                          {goal}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {isAddingGoals && (
+                <div className="mt-4">
+                  <h3 className="text-lg font-medium text-gray-700 mb-2">Selected Goals:</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {tempSelectedGoals.map((goal, index) => (
+                      <span key={index} className="px-4 py-2 bg-green-100 text-[#00b6c4] rounded-lg text-sm font-medium border border-green-300 flex items-center">
+                        {goal}
+                        <button
+                          onClick={() => handleRemoveTempGoal(goal)}
+                          className="ml-2 text-red-500 hover:text-red-700"
+                        >
+                          &times;
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-4 flex gap-2">
+                    <Button onClick={handleSaveGoals} className="bg-[#00b6c4] text-white px-4 py-2 rounded-lg">
+                      Save Goals
+                    </Button>
+                    <Button onClick={handleCancelGoalSelection} className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg">
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
             </Card>
           </>
         ) : (

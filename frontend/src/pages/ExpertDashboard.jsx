@@ -11,6 +11,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import AddCourseModal from '../components/modals/AddCourseModal';
 import AddCohortModal from '../components/modals/AddCohortModal';
 import BlogModal from '../components/modals/BlogModal';
+import SessionDetailsModal from '../components/modals/SessionDetailsModal';
 import useUserTypeStore from '../store/userTypeStore';
 import checkAuth from '../utils/checkAuth';
 import { Calendar, Clock, X, Plus, Check, AlertCircle } from 'lucide-react';
@@ -288,6 +289,14 @@ function ExpertDashboard() {
     }
   }, [userType, navigate, fetchExpertData, fetchExpertCourses, fetchExpertCohorts, authData]);
 
+  // Add effect to check expert approval status after data is loaded
+  useEffect(() => {
+    // Only redirect if data has been loaded (not loading) and expert status is not approved
+    if (!isLoading && expertData && expertData.status && expertData.status !== 'approved') {
+      navigate('/expert/profile');
+    }
+  }, [isLoading, expertData, navigate]);
+
   if (authLoading || !authData || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -353,7 +362,7 @@ function ExpertDashboard() {
   const isExpertApproved = expertData && expertData.status === 'approved';
 
   return (
-    <ExpertApprovalCheck>
+    // <ExpertApprovalCheck>
       <div className="min-h-screen bg-gray-50">
         <Header />
 
@@ -388,13 +397,13 @@ function ExpertDashboard() {
                 <div className="flex items-center gap-3 mb-4 bg-gray-50 p-3 rounded-lg">
                   <div className="text-yellow-500">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2" fill="none" />
-                      <path d="M12 8V12L15 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      <path d="M12 2V6M12 18V22M4.93 4.93L7.76 7.76M16.24 16.24L19.07 19.07M2 12H6M18 12H22M4.93 19.07L7.76 16.24M16.24 7.76L19.07 4.93" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
                     </svg>
                   </div>
                   <div>
-                    <div className="text-xl font-bold text-indigo-900">{expertData.activeStreak} Days</div>
-                    <div className="text-sm text-gray-600">Active Streak</div>
+                    <div className="text-xl font-bold text-indigo-900">₹{expertData.sessionPricing?.expertFee || 0}</div>
+                    <div className="text-sm text-gray-600">Session Fee</div>
                   </div>
                 </div>
                 <div className="flex-grow"></div>
@@ -1000,155 +1009,38 @@ function ExpertDashboard() {
             </div>
           </div>
         </section>
-      </main>
 
-      {showCalendarModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-[#003265] to-[#004080] px-6 py-4">
+        {/* Admin Access Button - Only visible for admin users - Moved to lower position */}
+        {expertData.isAdmin && (
+          <section className="mb-8">
+            <div className="bg-gradient-to-r from-red-500 to-red-600 rounded-lg p-4 shadow-lg">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                    <Calendar className="w-4 h-4 text-white" />
+                <div className="flex items-center">
+                  <div className="bg-white/20 p-2 rounded-lg mr-3">
+                    <svg className="w-6 h-6 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                      <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                    </svg>
                   </div>
-                  <h2 className="text-xl font-semibold text-white">Schedule Time Slots</h2>
-                </div>
-                <button 
-                  onClick={() => setShowCalendarModal(false)}
-                  className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition-colors"
-                >
-                  <X className="w-4 h-4 text-white" />
-                </button>
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="p-6 space-y-6 scrollbar-hidden overflow-y-auto max-h-[calc(90vh-80px)]">
-              {message && (
-                <div className={`p-4 rounded-xl flex items-center space-x-3 ${
-                  message.includes('Error') || message.includes('Please select')
-                    ? 'bg-red-50 border border-red-200 text-red-700' 
-                    : 'bg-green-50 border border-green-200 text-green-700'
-                }`}>
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                    message.includes('Error') || message.includes('Please select') ? 'bg-red-100' : 'bg-green-100'
-                  }`}>
-                    {message.includes('Error') || message.includes('Please select') ? '!' : '✓'}
-                  </div>
-                  <span className="text-sm font-medium">{message}</span>
-                </div>
-              )}
-
-              {/* Date Selection */}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <label className="flex items-center space-x-2 text-sm font-semibold text-[#003265]">
-                    <Calendar className="w-4 h-4" />
-                    <span>Select Multiple Dates</span>
-                  </label>
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                    {selectedDates.length} selected
-                  </span>
-                </div>
-                <div className="relative">
-                  <DatePicker
-                    selected={null}
-                    onChange={handleDateSelect}
-                    minDate={new Date()}
-                    highlightDates={selectedDates}
-                    inline
-                    className="w-full border-2 border-gray-200 rounded-xl focus:border-[#003265] focus:ring-4 focus:ring-[#003265]/10 outline-none transition-all font-medium text-gray-700 placeholder-gray-400"
-                  />
-                </div>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {selectedDates.map((date, index) => (
-                    <div key={index} className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full flex items-center">
-                      <span>{date.toLocaleDateString()}</span>
-                      <button 
-                        onClick={() => handleDateSelect(date)}
-                        className="ml-2 text-blue-500 hover:text-blue-700"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Time Slot Selection */}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <label className="flex items-center space-x-2 text-sm font-semibold text-[#003265]">
-                    <Clock className="w-4 h-4" />
-                    <span>Select Multiple Time Slots</span>
-                  </label>
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                    {selectedTimeSlots.length} selected
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto scrollbar-hidden p-1">
-                  {timeSlots.map((slot) => (
-                    <button
-                      key={slot}
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleTimeSlotSelect(slot);
-                      }}
-                      className={`p-3 text-sm font-medium border-2 rounded-xl transition-all flex justify-between items-center ${
-                        selectedTimeSlots.includes(slot)
-                          ? 'bg-[#003265] text-white border-[#003265] shadow-lg'
-                          : 'bg-white text-gray-700 border-gray-200 hover:border-[#003265] hover:bg-[#003265]/5'
-                      }`}
-                    >
-                      <span>{slot}</span>
-                      {selectedTimeSlots.includes(slot) && (
-                        <Check className="w-4 h-4" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Calculation Summary */}
-              {selectedDates.length > 0 && selectedTimeSlots.length > 0 && (
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Summary</h3>
-                  <div className="text-sm text-gray-600">
-                    <p>Creating {selectedDates.length * selectedTimeSlots.length} slots across:</p>
-                    <ul className="list-disc list-inside mt-1 ml-2">
-                      <li>{selectedDates.length} dates</li>
-                      <li>{selectedTimeSlots.length} time slots per day</li>
-                    </ul>
+                  <div>
+                    <h3 className="text-white font-semibold text-lg">Admin Access</h3>
+                    <p className="text-white/90 text-sm">You have administrative privileges</p>
                   </div>
                 </div>
-              )}
-
-              {/* Add Button */}
-              <div className="pt-2">
                 <button
-                  onClick={handleAddSlot}
-                  disabled={selectedDates.length === 0 || selectedTimeSlots.length === 0 || isProcessing}
-                  className="w-full bg-[#003265] hover:bg-[#004080] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-xl transition-colors flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
+                  onClick={() => navigate('/admin')}
+                  className="bg-white text-red-600 hover:bg-red-50 font-semibold py-2 px-6 rounded-lg transition-colors duration-300 flex items-center shadow-md"
                 >
-                  {isProcessing ? (
-                    <div className="flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                      <span>Processing...</span>
-                    </div>
-                  ) : (
-                    <>
-                      <Plus className="w-4 h-4" />
-                      <span>Add Time Slots</span>
-                    </>
-                  )}
+                  <svg className="w-4 h-4 mr-2" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                    <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                  Go to Admin Dashboard
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </section>
+        )}
+        </main>
 
       <AddCourseModal 
         isOpen={showCourseModal} 
@@ -1165,10 +1057,17 @@ function ExpertDashboard() {
         onClose={handleBlogModalClose}
       />
 
+      {/* Session Details Modal */}
+      <SessionDetailsModal 
+        isOpen={showSessionDetailsModal}
+        onClose={() => setShowSessionDetailsModal(false)}
+        session={selectedSession}
+      />
+
       {/* Footer */}
       <Footer />
     </div>
-    </ExpertApprovalCheck>
+    // {/* </ExpertApprovalCheck> */}
   );
 }
 

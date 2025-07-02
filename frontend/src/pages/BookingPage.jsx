@@ -12,6 +12,7 @@ import useRedirectStore from '../store/redirectStore';
 import useAuthStore from '../store/authStore';
 import PhoneUpdateModal from "../components/modals/PhoneUpdateModal";
 import initiateRazorpayPayment from "../components/paymentGateway/RazorpayButton";
+import useUserStore from "../store/userStore";
 
 const BookingPage = () => {
   const { expertId } = useParams();
@@ -30,6 +31,7 @@ const BookingPage = () => {
   const { setRedirectUrl } = useRedirectStore();
   const { isAuthenticated } = useAuthStore();
   const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const { user, fetchUser } = useUserStore();
 
   useEffect(() => {
     const handleAuth = async () => {
@@ -76,9 +78,7 @@ const BookingPage = () => {
 
   // Check if user has a phone number
   const checkPhoneNumber = () => {
-    if (!authData || !authData.user || !authData.user.phone) {
-      // APICALL TO GET DATA()
-      // DB_NUMBER PRESENT
+    if (!user || !user.phone) {
       setShowPhoneModal(true);
       return false;
     }
@@ -88,17 +88,8 @@ const BookingPage = () => {
   // Handle phone update success
   const handlePhoneUpdateSuccess = (phoneNumber) => {
     setShowPhoneModal(false);
-    
-    // Update authData to include the new phone number
-    setAuthData(prev => ({
-      ...prev,
-      user: {
-        ...prev.user,
-        phone: phoneNumber
-      }
-    }));
-    
-    toast.success("Phone number updated! Proceeding with session booking.", {
+    fetchUser(); // Refresh user data
+    toast.success("Phone number updated! Proceeding with course registration.", {
       position: "top-center",
       autoClose: 3000,
     });
@@ -122,6 +113,11 @@ const BookingPage = () => {
       });
       return;
     }
+    if (!user.phone) {
+      setShowPhoneModal(true);
+      return;
+    }
+
 
     if (!selectedDate) {
       toast.error('Please select a date', {
@@ -197,6 +193,7 @@ const BookingPage = () => {
       setShowTitleModal(false);
       return;
     }
+    
 
     const res = await initiateRazorpayPayment({   
       amount: expert?.sessionPricing?.total,
@@ -266,6 +263,11 @@ const BookingPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-gray-50">
       <Header />
+      <PhoneUpdateModal 
+        isOpen={showPhoneModal}
+        onClose={() => setShowPhoneModal(false)}
+        onSuccess={handlePhoneUpdateSuccess}
+      />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-32">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

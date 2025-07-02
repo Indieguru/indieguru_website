@@ -18,6 +18,47 @@ const SessionSchema = new mongoose.Schema({
   expertName: String,
   expertTitle: String,
   expertExpertise: [String],
+  // User contact and career information
+  userEmail: {
+    type: String,
+    required: false
+  },
+  userPhone: {
+    type: String,
+    required: false
+  },
+  userCareerFlow: {
+    currentRole: {
+      type: String,
+      // enum: ['undergraduate', 'working', 'postgraduate', 'highschool', 'secondary'],
+    },
+    degree: String,
+    stream: String,
+    linkedinUrl: String,
+    careerJourney: {
+      type: String,
+      // enum: ['validate', 'clarity', 'explore', 'guidance'],
+      default: null
+    },
+    learningStyle: {
+      type: String,
+      // enum: ['oneOnOne', 'selfPaced', 'structured', 'group', 'other']
+    },
+    otherLearningStyle: String,
+    lastUpdated: {
+      type: Date,
+      default: Date.now
+    }
+  },
+  // Expert contact information
+  expertEmail: {
+    type: String,
+    required: false
+  },
+  expertPhone: {
+    type: String,
+    required: false
+  },
   date: {
     type: Date,
     required: true,

@@ -5,6 +5,9 @@ import { toast } from 'react-toastify';
 import { Dialog, Transition } from '@headlessui/react';
 import { X } from 'lucide-react';
 import RefundRequestsSection from '../components/admin/RefundRequestsSection';
+import useExpertStore from '../store/expertStore';
+import useUserTypeStore from '../store/userTypeStore';
+import checkAuth from '../utils/checkAuth';
 
 const RejectionModal = ({ isOpen, onClose, onReject, type }) => {
   const [reason, setReason] = useState('');
@@ -62,6 +65,12 @@ const RejectionModal = ({ isOpen, onClose, onReject, type }) => {
 };
 
 export default function AdminDashboard() {
+  // Add expertStore and auth-related state
+  const { expertData, fetchExpertData, isLoading: expertLoading } = useExpertStore();
+  const { userType, setUserType } = useUserTypeStore();
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authData, setAuthData] = useState(null);
+
   const [activeTab, setActiveTab] = useState('pending-experts');
   const [pendingExperts, setPendingExperts] = useState([]);
   const [expertsWithOutstanding, setExpertsWithOutstanding] = useState([]);
@@ -100,13 +109,48 @@ export default function AdminDashboard() {
 
   const navigate = useNavigate();
 
+  // Add authentication and admin check logic
   useEffect(() => {
-    fetchPendingExperts();
-    fetchExpertsWithOutstanding();
-    fetchPendingContent();
-    fetchPendingBlogs();
-    fetchCancelledSessions();
-  }, []);
+    const handleAuth = async () => {
+      const data = await checkAuth(setUserType, setAuthLoading);
+      setAuthData(data);
+    };
+    handleAuth();
+  }, [setUserType]);
+
+  useEffect(() => {
+    if (authData) {
+      if (userType === "student") {
+        navigate("/dashboard");
+        return;
+      } else if (userType === "not_signed_in") {
+        navigate("/signup");
+        return;
+      } else if (userType === "expert") {
+        // Fetch expert data to check admin status
+        fetchExpertData();
+      }
+    }
+  }, [userType, navigate, fetchExpertData, authData]);
+
+  // Add effect to check admin status after expert data is loaded
+  useEffect(() => {
+    // Only redirect if expert data has been loaded (not loading) and isAdmin is false
+    if (!expertLoading && expertData && expertData.hasOwnProperty('isAdmin') && !expertData.isAdmin) {
+      navigate('/expert/dashboard');
+    }
+  }, [expertLoading, expertData, navigate]);
+
+  useEffect(() => {
+    // Only fetch admin data if user is confirmed to be an admin
+    if (!expertLoading && expertData && expertData.isAdmin) {
+      fetchPendingExperts();
+      fetchExpertsWithOutstanding();
+      fetchPendingContent();
+      fetchPendingBlogs();
+      fetchCancelledSessions();
+    }
+  }, [expertLoading, expertData]);
 
   const fetchPendingExperts = async () => {
     try {
@@ -832,6 +876,76 @@ export default function AdminDashboard() {
     </div>
   );
 
+  const renderPendingBlogs = () => (
+    <div className="bg-white rounded-lg shadow p-6">
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">Pending Blog Approvals</h2>
+      
+      {pendingBlogs.length === 0 ? (
+        <p className="text-gray-600">No pending blogs to approve</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {pendingBlogs.map((blog) => (
+                <tr key={blog._id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">{blog.title}</div>
+                    <div className="text-sm text-gray-500 max-w-xs truncate">
+                      {blog.content.substring(0, 100)}...
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{blog.authorName || blog.expertName}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                      {blog.category}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(blog.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button
+                      onClick={() => handleBlogClick(blog._id)}
+                      className="text-blue-600 hover:text-blue-900 mr-4"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => handleBlogApprove(blog._id)}
+                      className="text-green-600 hover:text-green-900 mr-4"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedContent({ type: 'blog', item: blog });
+                        setShowRejectionModal(true);
+                      }}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      Reject
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+
   const renderSessionsTab = () => (
     <div className="space-y-6">
       {/* Filter Section */}
@@ -1011,6 +1125,8 @@ export default function AdminDashboard() {
         return renderOutstanding();
       case 'pending-content':
         return renderPendingContent();
+      case 'pending-blogs':
+        return renderPendingBlogs();
       case 'refunds':
         return <RefundRequestsSection />;
       case 'sessions':
@@ -1211,6 +1327,7 @@ export default function AdminDashboard() {
                 { id: 'pending-experts', label: 'Pending Experts' },
                 { id: 'outstanding', label: 'Outstanding Payments' },
                 { id: 'pending-content', label: 'Pending Content' },
+                { id: 'pending-blogs', label: 'Pending Blogs' },
                 { id: 'earnings', label: 'Earnings' },
                 { id: 'refunds', label: 'Refund Requests' },
                 { id: 'sessions', label: 'Sessions' }
