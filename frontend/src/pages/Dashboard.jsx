@@ -10,7 +10,7 @@ import ProgressSection from "../components/sections/ProgressSection"
 import ReferSection from "../components/sections/ReferSection"
 import PreviousSessionsSection from "../components/sections/PreviousSessionsSection"
 import useUserStore from "../store/userStore";
-import UpcomingCourses from '../components/sections/upcomingCourses';
+import UpcomingCohorts from '../components/sections/upcomingCourses';
 import useUserTypeStore from '../store/userTypeStore';
 import DashboardExpertSearch from '../components/expert/DashboardExpertSearch';
 import checkAuth from '../utils/checkAuth';
@@ -130,7 +130,7 @@ function Dashboard() {
             <PreviousSessionsSection />
           </motion.div>
           <motion.div variants={itemVariants}>
-            <UpcomingCourses />
+            <UpcomingCohorts />
           </motion.div>
         </motion.div>
       </motion.main>

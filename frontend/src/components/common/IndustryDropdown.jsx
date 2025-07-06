@@ -30,7 +30,7 @@ const IndustryDropdown = ({ onSelect, selectedIndustry }) => {
             onClick={() => onSelect(industry)}
             className={`p-4 rounded-lg text-left transition-all hover:scale-[1.02] active:scale-[0.98] ${
               selectedIndustry === industry
-                ? 'bg-blue-600 text-white'
+                ? 'bg-blue-800 text-white'
                 : 'bg-gray-50 text-gray-900 hover:bg-gray-100'
             } border border-gray-200`}
           >

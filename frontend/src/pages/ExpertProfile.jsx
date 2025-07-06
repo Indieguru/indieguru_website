@@ -283,7 +283,7 @@ function ExpertProfile() {
               <div className="flex gap-2 mt-2">
                 <Button
                   onClick={() => handleSaveField(field)}
-                  className="bg-blue-800 text-white hover:bg-[#143d65]"
+                  className="bg-blue-800 p-2 rounded-md text-white hover:bg-[#143d65]"
                 >
                   Save
                 </Button>
@@ -292,7 +292,7 @@ function ExpertProfile() {
                     setEditingField(null);
                     setEditValues(prev => ({ ...prev, [field]: profileData[field] }));
                   }}
-                  className="bg-gray-300 text-black hover:bg-gray-400"
+                  className="bg-gray-300 p-2 rounded-md text-black hover:bg-gray-400"
                 >
                   Cancel
                 </Button>
@@ -672,7 +672,7 @@ function ExpertProfile() {
                 <div className="flex gap-2">
                   <Button
                     onClick={handleAddLink}
-                    className="bg-blue-800 text-white hover:bg-[#143d65]"
+                    className="bg-blue-800 p-2 rounded-md text-white hover:bg-[#143d65]"
                   >
                     Save
                   </Button>
@@ -681,7 +681,7 @@ function ExpertProfile() {
                       setNewLink({ name: "", url: "" });
                       setIsEditingLink(false);
                     }}
-                    className="bg-gray-300 text-black hover:bg-gray-400"
+                    className="bg-gray-300 p-2 rounded-md text-black hover:bg-gray-400"
                   >
                     Cancel
                   </Button>

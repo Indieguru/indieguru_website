@@ -159,7 +159,7 @@ const CohortDetails = () => {
             <p className="text-gray-600">{error || "Cohort not found"}</p>
             <Button
               onClick={() => navigate("/all-courses")}
-              className="mt-4 bg-blue-600 text-white"
+              className="mt-4 bg-blue-800 text-white"
             >
               Back to Courses
             </Button>
@@ -281,7 +281,7 @@ const CohortDetails = () => {
                   <Button
                     onClick={handleJoinCohort}
                     disabled={isJoining || cohort.status !== "approved"}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-full font-medium flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="w-full bg-blue-800 hover:bg-blue-700 text-white py-3 rounded-full font-medium flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     {isJoining ? (
                       <div className="flex items-center justify-center">

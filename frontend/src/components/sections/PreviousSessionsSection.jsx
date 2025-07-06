@@ -112,7 +112,7 @@ function PreviousSessionsSection() {
             No past sessions found. Book your first session to get started!
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {sessions.map((session, index) => (
               <motion.div
                 key={session._id}

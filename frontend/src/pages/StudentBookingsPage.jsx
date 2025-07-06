@@ -398,7 +398,7 @@ function StudentBookingsPage() {
                   {sessionType === 'upcoming' ? (
                     <Button 
                       onClick={() => window.open(item.meetLink, '_blank')}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2 py-2"
+                      className="w-full bg-blue-800 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2 py-2"
                     >
                       <Video className="w-4 h-4" />
                       Join Session
@@ -455,7 +455,7 @@ function StudentBookingsPage() {
                 <div className="flex gap-2">
                   <Button 
                     onClick={() => window.open(item.driveLink, '_blank')}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2 py-2"
+                    className="flex-1 bg-blue-800 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2 py-2"
                   >
                     <Book className="w-4 h-4" />
                     Access Course
@@ -477,7 +477,7 @@ function StudentBookingsPage() {
                 <div className="flex gap-2">
                   <Button 
                     onClick={() => window.open(item.meetLink, '_blank')}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2 py-2"
+                    className="flex-1 bg-blue-800 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2 py-2"
                   >
                     <GraduationCap className="w-4 h-4" />
                     Join Cohort

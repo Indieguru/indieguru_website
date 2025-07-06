@@ -373,7 +373,7 @@ const BookingsPage = () => {
                       setSelectedSessionForNotes(session);
                       setShowNotesModal(true);
                     }}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2"
+                    className="w-full bg-blue-800 hover:bg-blue-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>Complete Session</span>
@@ -395,7 +395,7 @@ const BookingsPage = () => {
               <div className="space-y-3">
                 <Button 
                   onClick={() => window.open(session.meetLink, '_blank')}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2"
+                  className="w-full bg-blue-800 hover:bg-blue-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2"
                 >
                   <Video className="w-4 h-4" />
                   <span>Join Session</span>
@@ -661,7 +661,7 @@ const BookingsPage = () => {
           <div className="mb-6 sm:mb-0">
             <span className="text-blue-600 font-semibold mb-2 block">My Dashboard</span>
             <h1 className="text-4xl sm:text-4xl font-bold text-[#0a2540] relative">
-              My Bookings
+              My Bookings and courses
             </h1>
           </div>
           <div className="w-32 h-32 relative">

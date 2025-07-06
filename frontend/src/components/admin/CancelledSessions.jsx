@@ -113,7 +113,7 @@ const CancelledSessions = () => {
                 <div className="mt-6 flex items-center justify-end">
                   <Button
                     onClick={() => handleProcessRefund(session._id)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-2 flex items-center gap-2"
+                    className="bg-blue-800 hover:bg-blue-700 text-white rounded-full px-6 py-2 flex items-center gap-2"
                   >
                     <RefreshCw className="w-4 h-4" />
                     Process Refund

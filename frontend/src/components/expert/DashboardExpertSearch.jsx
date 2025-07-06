@@ -179,7 +179,7 @@ const ExpertiseFilterModal = ({ isOpen, onClose, selectedExpertise, onExpertiseC
           <div className="flex items-center justify-end gap-3">
             <button
               onClick={onClose}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-6 py-2 bg-blue-800 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Apply Filters
             </button>
@@ -341,17 +341,15 @@ const DashboardExpertSearch = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-white rounded-xl shadow-sm">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-semibold text-gray-800">Find Your Perfect Mentor</h2>
-        {experts.length > 4 && (
-          <button
-            onClick={handleViewAll}
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors duration-200 group"
-          >
-            <span className="border-b border-transparent group-hover:border-blue-600 transition-all duration-200">
-              View all
-            </span>
-            <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-200" />
-          </button>
-        )}
+        <button
+          onClick={handleViewAll}
+          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors duration-200 group"
+        >
+          <span className="border-b border-transparent group-hover:border-blue-600 transition-all duration-200">
+            View all
+          </span>
+          <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-200" />
+        </button>
       </div>
       
       <div className="space-y-4 mb-8">

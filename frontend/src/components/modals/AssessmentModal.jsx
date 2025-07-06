@@ -346,7 +346,7 @@ const AssessmentModal = ({ isOpen, onClose }) => {
               {!showOtpInput ? (
                 <button
                   onClick={handleSendOtp}
-                  className="w-full p-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                  className="w-full p-4 bg-blue-800 text-white rounded-xl hover:bg-blue-700 transition-colors"
                   disabled={!formData.email || !formData.fullName}
                 >
                   Continue with Email
@@ -380,7 +380,7 @@ const AssessmentModal = ({ isOpen, onClose }) => {
 
                   <button
                     onClick={handleVerifyOtp}
-                    className="w-full p-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                    className="w-full p-4 bg-blue-800 text-white rounded-xl hover:bg-blue-700 transition-colors"
                     disabled={otp.length !== 6}
                   >
                     Verify & Continue
@@ -426,7 +426,7 @@ const AssessmentModal = ({ isOpen, onClose }) => {
                     onClick={() => setFormData(prev => ({ ...prev, careerJourney: option }))}
                     className={`w-full p-4 rounded-lg text-left transition-all duration-300 ${
                       formData.careerJourney === option
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-blue-800 text-white'
                         : 'bg-gray-50 text-gray-900 hover:bg-gray-100'
                     } border border-gray-200`}
                   >
@@ -462,7 +462,7 @@ const AssessmentModal = ({ isOpen, onClose }) => {
                   }))}
                   className={`w-full p-4 rounded-lg text-left transition-all duration-300 ${
                     formData.learningStyle === option.value
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-blue-800 text-white'
                       : 'bg-gray-50 text-gray-900 hover:bg-gray-100'
                   } border border-gray-200`}
                 >
@@ -743,7 +743,7 @@ const AssessmentModal = ({ isOpen, onClose }) => {
                         <div
                           key={i}
                           className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                            i + 1 === step ? 'bg-blue-600 scale-125' : 'bg-gray-200'
+                            i + 1 === step ? 'bg-blue-800 scale-125' : 'bg-gray-200'
                           }`}
                         />
                       ))}
@@ -787,7 +787,7 @@ const AssessmentModal = ({ isOpen, onClose }) => {
                         onClick={handleNextStep}
                         className={`px-6 py-2 rounded-full ml-auto transition-all ${
                           isStepValid()
-                            ? 'bg-blue-600 text-white hover:bg-blue-700'
+                            ? 'bg-blue-800 text-white hover:bg-blue-700'
                             : 'bg-gray-200 text-gray-400 pointer-events-none opacity-60'
                         }`}
                         whileHover={isStepValid() ? { scale: 1.05 } : {}}

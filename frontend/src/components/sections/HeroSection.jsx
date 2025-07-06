@@ -1,18 +1,19 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import AssessmentModal from '../modals/AssessmentModal';
 import ExpertSelectionModal from '../modals/ExpertSelectionModal';
 
 const HeroSection = () => {
   const [displayText, setDisplayText] = useState('');
   const [textIndex, setTextIndex] = useState(0);
+  const [imageIndex, setImageIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [showAssessment, setShowAssessment] = useState(false);
   const [showExpertSelection, setShowExpertSelection] = useState(false);
   const typingRef = useRef(null);
   const eraseRef = useRef(null);
 
-  const texts = [
+  const texts = useMemo(() => [
     "Master new technologies with",
     "Transform your career with",
     "Learn from industry experts with",
@@ -21,7 +22,13 @@ const HeroSection = () => {
     "Build your future with",
     "Create your success with",
     "Design your future with",
-  ];
+  ], []);
+
+  const heroImages = useMemo(() => [
+    "/hero1.png",
+    "/hero2.png", 
+    "/hero3.png"
+  ], []);
 
   // Improved typewriter effect with better timing control
   useEffect(() => {
@@ -80,6 +87,15 @@ const HeroSection = () => {
       if (eraseRef.current) clearTimeout(eraseRef.current);
     };
   }, [textIndex, texts]);
+
+  // Image cycling effect - synchronized with text changes for better coherence
+  useEffect(() => {
+    const imageInterval = setInterval(() => {
+      setImageIndex(prev => (prev + 1) % heroImages.length);
+    }, 4000); // Slightly longer interval for smoother transitions
+
+    return () => clearInterval(imageInterval);
+  }, [heroImages.length]);
 
   return (
     <div className="pt-40 relative h-screen w-full overflow-hidden">
@@ -199,16 +215,34 @@ const HeroSection = () => {
                 isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
               }`}
             >
-              <div className="relative">
+              <div className="relative h-full flex items-end">
                 {/* Abstract shape for visual interest */}
                 <div className="absolute -top-12 right-8 w-64 h-64 bg-blue-400/20 rounded-full blur-3xl"></div>
                 
-                {/* Main image */}
-                <img
-                  src="/girl image.png"
-                  alt="Student learning"
-                  className="w-full max-w-lg mx-auto object-contain relative z-10"
-                />
+                {/* Main image container - now takes full available height */}
+                <div className="relative mb-[-200px] w-full h-full flex items-end justify-center">
+                  <img
+                    key={imageIndex} // Add key for better React transitions
+                    src={heroImages[imageIndex]}
+                    alt={`Hero section image ${imageIndex + 1}`}
+                    className="object-contain relative z-10 transition-all duration-1000 ease-in-out transform hover:scale-105"
+                    style={{
+                      width: 'auto',
+                      // Different heights for different images - hero3 stays original, hero1&2 get bigger
+                      height: imageIndex === 2 ? '80vh' : '90vh', // hero3 (index 2) stays at 80vh, others get 90vh
+                      maxWidth: '100%',
+                      filter: 'drop-shadow(0 10px 25px rgba(0, 0, 0, 0.1))',
+                      animation: 'fadeInScale 1s ease-in-out',
+                    }}
+                    onError={(e) => {
+                      console.error('Failed to load image:', heroImages[imageIndex]);
+                      e.target.style.display = 'none';
+                    }}
+                    onLoad={() => {
+                      console.log('Image loaded successfully:', heroImages[imageIndex]);
+                    }}
+                  />
+                </div>
                 
                 {/* Decorative elements */}
                 {/* <div className="absolute -bottom-4 -left-4 bg-blue-100 w-24 h-24 rounded-full"></div>

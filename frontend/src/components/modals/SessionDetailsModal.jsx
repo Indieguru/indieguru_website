@@ -142,7 +142,7 @@ const SessionDetailsModal = ({ isOpen, onClose, session }) => {
                   href={session.meetLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  className="inline-flex items-center px-4 py-2 bg-blue-800 hover:bg-blue-700 text-white rounded-lg transition-colors"
                 >
                   Join Google Meet
                 </a>

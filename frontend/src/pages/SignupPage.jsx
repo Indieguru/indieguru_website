@@ -180,8 +180,23 @@ const LoginPage = () => {
         </div>
 
         {/* Right side - Form */}
-        <div className="bg-white p-6 sm:p-10 md:p-12">
+        <div className="bg-gray-100 p-6 sm:p-10 md:p-12">
           <div className="max-w-md mx-auto">
+            {/* Logo */}
+            <div className="mb-8">
+              <Link to="/" className="flex items-center gap-3">
+                <img
+                  src="/logo.png"
+                  alt="IndieGuru Logo"
+                  className="h-10 w-auto"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+                <span className="text-2xl font-bold text-[#0a2540]">IndieGuru</span>
+              </Link>
+            </div>
+            
             <h1 className="text-3xl sm:text-4xl font-bold text-[#0a2540] mb-2">Welcome!</h1>
             <p className="text-lg text-[#185899] mb-8">Sign in to continue your journey.</p>
 

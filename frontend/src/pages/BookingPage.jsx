@@ -435,7 +435,7 @@ const BookingPage = () => {
                   
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-200 pt-5">
                     <span className="text-gray-700 font-semibold">Total Amount</span>
-                    <div className="mt-2 sm:mt-0 bg-blue-600 text-white px-6 py-2 rounded-lg shadow-sm">
+                    <div className="mt-2 sm:mt-0 bg-blue-800 text-white px-6 py-2 rounded-lg shadow-sm">
                       <span className="text-2xl font-bold">₹{expert?.sessionPricing?.total || "0"}</span>
                     </div>
                   </div>
@@ -576,7 +576,7 @@ const BookingPage = () => {
         theme="light"
         toastClassName="rounded-lg shadow-lg border border-gray-100"
         bodyClassName="text-base font-medium"
-        progressClassName="bg-blue-600"
+        progressClassName="bg-blue-800"
       />
       
       <style jsx>{`

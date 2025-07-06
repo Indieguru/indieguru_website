@@ -200,7 +200,7 @@ export default function FeedbackModal({ isOpen, onClose, session }) {
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="w-full bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300"
+              className="w-full bg-blue-800 text-white hover:bg-blue-700 disabled:bg-gray-300"
             >
               {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
             </Button>

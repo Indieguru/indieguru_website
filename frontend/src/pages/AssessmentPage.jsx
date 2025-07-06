@@ -315,7 +315,7 @@ const AssessmentPage = () => {
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                className="bg-blue-800 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${(step / 5) * 100}%` }}
               />
             </div>
@@ -337,7 +337,7 @@ const AssessmentPage = () => {
             {(step < 5 || step === 5) && step !== 1 && step !== 4 && (
               <button
                 onClick={handleNext}
-                className="ml-auto px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="ml-auto px-6 py-2 bg-blue-800 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 {step === 5 ? 'Find Experts' : 'Next'}
               </button>

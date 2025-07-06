@@ -160,7 +160,7 @@ export default function BrowseExperts() {
                   <p className="text-gray-700">{expert.bio}</p>
                 </div>
                 <Link to={`/booking/${expert._id}`}>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                  <Button className="w-full bg-blue-800 hover:bg-blue-700 text-white">
                     Book Session
                   </Button>
                 </Link>

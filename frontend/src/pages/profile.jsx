@@ -782,7 +782,7 @@ function Profile() {
 
               <div className="flex flex-wrap gap-3 mb-5 items-center">
                 {profileData.skills?.map((skill, index) => (
-                  <span key={index} className="px-5 py-2.5 mt-2 bg-blue-600 text-white rounded-lg text-sm font-medium border border-blue-700 flex items-center h-10">
+                  <span key={index} className="px-5 py-2.5 mt-2 bg-blue-800 text-white rounded-lg text-sm font-medium border border-blue-700 flex items-center h-10">
                     {skill}
                     <button
                       onClick={() => handleRemoveSkill(skill)}
@@ -834,7 +834,7 @@ function Profile() {
                     ))}
                   </div>
                   <div className="mt-4 flex gap-2">
-                    <Button onClick={handleSaveSkills} className="bg-blue-600 text-white px-4 py-2 rounded-lg">
+                    <Button onClick={handleSaveSkills} className="bg-blue-800 text-white px-4 py-2 rounded-lg">
                       Save Skills
                     </Button>
                     <Button onClick={handleCancelSkillSelection} className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg">
@@ -976,7 +976,7 @@ function Profile() {
               <span className="text-sm font-medium text-blue-700">{completionPercentage.toFixed(0)}%</span>
             </div>
             <div className="h-3 w-full bg-gray-200 rounded-full overflow-hidden">
-              <div className="h-full bg-blue-600 rounded-full" style={{ width: `${completionPercentage}%` }}></div>
+              <div className="h-full bg-blue-800 rounded-full" style={{ width: `${completionPercentage}%` }}></div>
             </div>
             <div className="text-sm text-gray-600 mt-2 flex items-center">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1">
@@ -1066,7 +1066,7 @@ function Profile() {
 
         <Card className="p-8 mb-8 border border-gray-200 rounded-xl bg-white">
           <h2 className="text-2xl font-semibold text-[#232636] mb-6 border-b border-gray-200 pb-3 flex items-center">
-            <span className="bg-purple-100 text-purple-700 p-1.5 rounded-full mr-2">
+            <span className="bg-indigo-100 text-indigo-700 p-1.5 rounded-full mr-2">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" strokeWidth="2"/>
@@ -1083,7 +1083,7 @@ function Profile() {
               <select 
                 value={careerFlowData.currentRole}
                 onChange={(e) => setCareerFlowData(prev => ({ ...prev, currentRole: e.target.value }))}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400"
               >
                 <option value="">Select your current role</option>
                 <option value="undergraduate">Undergraduate Student</option>
@@ -1104,7 +1104,7 @@ function Profile() {
                       type="text"
                       value={careerFlowData.degree}
                       onChange={(e) => setCareerFlowData(prev => ({ ...prev, degree: e.target.value }))}
-                      className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400"
+                      className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400"
                       placeholder="Enter your degree"
                     />
                   </div>
@@ -1117,7 +1117,7 @@ function Profile() {
                       type="url"
                       value={careerFlowData.linkedinUrl}
                       onChange={(e) => setCareerFlowData(prev => ({ ...prev, linkedinUrl: e.target.value }))}
-                      className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400"
+                      className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400"
                       placeholder="https://linkedin.com/in/yourprofile"
                     />
                   </div>
@@ -1130,7 +1130,7 @@ function Profile() {
                       type="text"
                       value={careerFlowData.stream}
                       onChange={(e) => setCareerFlowData(prev => ({ ...prev, stream: e.target.value }))}
-                      className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400"
+                      className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400"
                       placeholder="Enter your stream"
                     />
                   </div>
@@ -1145,7 +1145,7 @@ function Profile() {
               <select
                 value={careerFlowData.careerJourney}
                 onChange={(e) => setCareerFlowData(prev => ({ ...prev, careerJourney: e.target.value }))}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400"
               >
                 <option value="">Select your career journey</option>
                 <option value="validate">I just need to validate the career path I'm on</option>
@@ -1162,7 +1162,7 @@ function Profile() {
               <select
                 value={careerFlowData.learningStyle}
                 onChange={(e) => setCareerFlowData(prev => ({ ...prev, learningStyle: e.target.value }))}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400"
               >
                 <option value="">Select your learning style</option>
                 <option value="oneOnOne">I need regular 1:1 sessions for personalized guidance</option>
@@ -1177,7 +1177,7 @@ function Profile() {
                   type="text"
                   value={careerFlowData.otherLearningStyle}
                   onChange={(e) => setCareerFlowData(prev => ({ ...prev, otherLearningStyle: e.target.value }))}
-                  className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-400"
+                  className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400"
                   placeholder="Please specify your learning style"
                 />
               )}
@@ -1185,7 +1185,7 @@ function Profile() {
 
             <Button
               onClick={handleCareerFlowSubmit}
-              className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition-colors"
+              className="w-full bg-indigo-900 text-white py-3 rounded-lg hover:bg-indigo-800 transition-colors"
             >
               Save Career Preferences
             </Button>

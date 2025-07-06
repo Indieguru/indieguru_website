@@ -80,6 +80,9 @@ const Header = () => {
                 <Link to="/community" className="text-[#232636] font-normal hover:text-[#003265] transition-all duration-200">
                   Community
                 </Link>
+                <Link to="/all-courses" className="text-[#232636] font-normal hover:text-[#003265] transition-all duration-200">
+                  Courses
+                </Link>
                 <Link 
                   to="/signup" 
                   className="px-6 py-2 bg-indigo-900 text-white font-semibold rounded-full hover:bg-indigo-700 hover:shadow-md transition-all duration-200"
@@ -184,6 +187,13 @@ const Header = () => {
                 onClick={() => setIsOpen(false)}
               >
                 Community
+              </Link>
+              <Link
+                to="/all-courses"
+                className="block px-3 py-2 rounded-md text-base font-normal text-[#232636] hover:text-[#003265] hover:bg-gray-50 transition-all duration-200"
+                onClick={() => setIsOpen(false)}
+              >
+                Courses
               </Link>
               <Link
                 to="/signup"

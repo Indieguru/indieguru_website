@@ -1,7 +1,45 @@
 import { useState, useRef } from "react";
 import { Modal } from "../ui/modal";
 import { Input } from "../ui/input";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { 
+  Search, 
+  ChevronLeft, 
+  ChevronRight, 
+  Code, 
+  Brain, 
+  Database, 
+  Shield, 
+  Cloud, 
+  Target, 
+  Heart, 
+  BarChart3, 
+  TrendingUp, 
+  Calculator, 
+  DollarSign, 
+  Scale, 
+  FileText, 
+  Megaphone, 
+  Palette, 
+  PenTool, 
+  Lightbulb, 
+  Settings, 
+  Camera, 
+  Building, 
+  GraduationCap, 
+  BookOpen, 
+  Newspaper, 
+  Video, 
+  Briefcase, 
+  Utensils, 
+  Plane, 
+  Calendar, 
+  Sparkles, 
+  Apple, 
+  Dumbbell,
+  Star,
+  MapPin,
+  Users
+} from "lucide-react";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import axiosInstance from "../../config/axios.config";
@@ -73,6 +111,70 @@ const industries = [
   'PHD admission mentorship',
   'Stream Selection'
 ];
+
+// Icon mapping for industries
+const industryIcons = {
+  'Software Development': Code,
+  'AI/ML': Brain,
+  'Data Science': Database,
+  'Cybersecurity': Shield,
+  'Cloud Computing & DevOps': Cloud,
+  'Product Management': Target,
+  'Psychology & Therapy': Heart,
+  'Business Analysis': BarChart3,
+  'Strategy & Operations': TrendingUp,
+  'Data Analysis': BarChart3,
+  'Chartered Accountancy (CA)': Calculator,
+  'CFA': DollarSign,
+  'Investment Banking': DollarSign,
+  'Financial Planning & Analysis': Calculator,
+  'FinTech Roles': DollarSign,
+  'Corporate & Criminal Law': Scale,
+  'Company Secretary': FileText,
+  'Digital Marketing': Megaphone,
+  'SEO': Search,
+  'Graphic Designing': Palette,
+  'PR & Corporate Communication': Megaphone,
+  'Content Writing & Copywriting': PenTool,
+  'Growth Marketing': TrendingUp,
+  'Industrial Design': Lightbulb,
+  'Robotics & Mechatronics': Settings,
+  'UI/UX & Interaction Design': Palette,
+  'Fashion Design': Sparkles,
+  'Interior & Spatial Design': Building,
+  'Animation & Illustration': Camera,
+  'Fine Arts & Applied Arts': Palette,
+  'Architecture': Building,
+  'Public Policy & Governance': Scale,
+  'Exam Prep Mentorship - UPSC': GraduationCap,
+  'Exam Prep Mentorship - CUET': BookOpen,
+  'Exam Prep Mentorship - NET': GraduationCap,
+  'Exam Prep Mentorship - JEE': GraduationCap,
+  'Exam Prep Mentorship - GMAT/GRE': BookOpen,
+  'Exam Prep Mentorship - Banking and other govt exams': GraduationCap,
+  'Exam Prep Mentorship - NET/JRF': BookOpen,
+  'Journalism (Print & Digital)': Newspaper,
+  'Content Creation (YouTube, Podcasting)': Video,
+  'Film & Video Production': Camera,
+  'Advertising & Copywriting': Megaphone,
+  'OTT & New Media': Video,
+  'Business Growth': TrendingUp,
+  'Program Management': Briefcase,
+  'Hotel Management': Building,
+  'Culinary Arts & Bakery': Utensils,
+  'Tourism & Travel': MapPin,
+  'Aviation & Cabin Crew': Plane,
+  'Event Management': Calendar,
+  'Make Up Artist': Sparkles,
+  'Dietitian/ Nutrition': Apple,
+  'Fitness Training': Dumbbell,
+  'Career Discovery/ Career Councelling': Target,
+  'Study Abroad Guidance': GraduationCap,
+  'Soft Skills & Interview Prep': Users,
+  'Resume Building & LinkedIn & Job search': FileText,
+  'PHD admission mentorship': GraduationCap,
+  'Stream Selection': Target
+};
 
 const ExpertSelectionModal = ({ isOpen, onClose }) => {
   const [step, setStep] = useState(1);
@@ -148,58 +250,55 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center px-4 sm:px-0"
         >
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-md" onClick={onClose} />
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={onClose} />
           <Motion.motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
+            initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
             className="relative w-full max-w-6xl"
           >
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-white/40 backdrop-blur-xl border border-white/20">
+            <div className="relative rounded-xl overflow-hidden shadow-2xl bg-white/30 backdrop-blur-2xl border border-white/40">
               {/* Vector Decorations */}
               <Motion.motion.img
                 src="/vector1.png"
                 alt="Vector decoration"
-                className="absolute -top-16 -right-16 w-40 h-40 opacity-15 z-0"
+                className="absolute -top-12 -right-12 w-32 h-32 opacity-10 z-0"
                 animate={{ 
                   rotate: 360,
-                  scale: [1, 1.1, 1],
                 }}
                 transition={{ 
-                  rotate: { duration: 20, repeat: Infinity, ease: "linear" },
-                  scale: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+                  rotate: { duration: 30, repeat: Infinity, ease: "linear" }
                 }}
               />
               <Motion.motion.img
                 src="/vector2.png"
                 alt="Vector decoration"
-                className="absolute -bottom-16 -left-16 w-40 h-40 opacity-15 z-0 rotate-45"
+                className="absolute -bottom-12 -left-12 w-32 h-32 opacity-10 z-0 rotate-45"
                 animate={{ 
                   rotate: [45, 405],
-                  scale: [1, 1.1, 1],
                 }}
                 transition={{ 
-                  rotate: { duration: 25, repeat: Infinity, ease: "linear" },
-                  scale: { duration: 5, repeat: Infinity, ease: "easeInOut" }
+                  rotate: { duration: 35, repeat: Infinity, ease: "linear" }
                 }}
               />
 
               {/* Content Container */}
-              <div className="relative z-10 px-16 py-10 bg-gradient-to-br from-white/50 to-transparent">
+              <div className="relative z-10 px-12 py-8 bg-gradient-to-br from-white/40 via-white/30 to-white/20 backdrop-blur-xl">
                 <div className="max-w-4xl mx-auto">
                   {/* Header */}
-                  <div className="flex justify-between items-center mb-8">
+                  <div className="flex justify-between items-center mb-6">
                     <div>
-                      <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                      <h2 className="text-2xl font-bold text-gray-900">
                         {step === 1 ? "Choose Your Industry" : "Select an Expert"}
                       </h2>
                       {step === 2 && (
-                        <p className="text-gray-600 mt-1 font-medium">From {selectedIndustry.name}</p>
+                        <p className="text-blue-700 mt-1 font-medium">From {selectedIndustry.name}</p>
                       )}
                     </div>
                     <button 
                       onClick={onClose} 
-                      className="text-gray-500 hover:text-gray-700 transition-colors duration-200 hover:rotate-90 transform p-2 rounded-full hover:bg-gray-100/50"
+                      className="text-gray-700 hover:text-gray-900 transition-colors duration-200 p-2 rounded-lg hover:bg-white/30 backdrop-blur-sm"
                     >
                       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -208,24 +307,22 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
                   </div>
 
                   {/* Progress Steps */}
-                  <div className="flex justify-center mb-8">
+                  <div className="flex justify-center mb-6">
                     <div className="flex items-center space-x-3">
                       <Motion.motion.div
                         animate={{
-                          scale: step === 1 ? 1.2 : 1,
-                          backgroundColor: step === 1 ? "#3B82F6" : "#E5E7EB"
+                          backgroundColor: step === 1 ? "#1E3A8A" : "#D1D5DB"
                         }}
-                        className="w-2.5 h-2.5 rounded-full"
-                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        className="w-3 h-3 rounded-full"
+                        transition={{ duration: 0.2 }}
                       />
-                      <div className="w-8 h-0.5 bg-gray-200 rounded" />
+                      <div className="w-12 h-0.5 bg-gray-300 rounded" />
                       <Motion.motion.div
                         animate={{
-                          scale: step === 2 ? 1.2 : 1,
-                          backgroundColor: step === 2 ? "#3B82F6" : "#E5E7EB"
+                          backgroundColor: step === 2 ? "#1E3A8A" : "#D1D5DB"
                         }}
-                        className="w-2.5 h-2.5 rounded-full"
-                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        className="w-3 h-3 rounded-full"
+                        transition={{ duration: 0.2 }}
                       />
                     </div>
                   </div>
@@ -247,55 +344,88 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
                               placeholder="Search industries..."
                               value={categorySearch}
                               onChange={(e) => setCategorySearch(e.target.value)}
-                              className="w-full pl-10 pr-4 py-3 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              className="w-full pl-10 pr-4 py-3 border-white/50 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 bg-white/40 backdrop-blur-md text-gray-900 placeholder-gray-700"
                             />
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700 w-5 h-5" />
                           </div>
                           
                           <div className="relative mb-8">
                             {/* Slider Navigation Buttons */}
                             <button 
                               onClick={scrollLeft}
-                              className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 z-10 bg-white/80 rounded-full p-2 shadow-md hover:bg-blue-50 transition-colors"
+                              className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 z-10 bg-white/40 backdrop-blur-md border border-white/50 rounded-full p-2 shadow-lg hover:bg-white/60 transition-all duration-300"
                               aria-label="Scroll left"
                             >
-                              <ChevronLeft className="w-5 h-5 text-gray-700" />
+                              <ChevronLeft className="w-5 h-5 text-gray-800" />
                             </button>
                             
                             <button 
                               onClick={scrollRight}
-                              className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-4 z-10 bg-white/80 rounded-full p-2 shadow-md hover:bg-blue-50 transition-colors"
+                              className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-4 z-10 bg-white/40 backdrop-blur-md border border-white/50 rounded-full p-2 shadow-lg hover:bg-white/60 transition-all duration-300"
                               aria-label="Scroll right"
                             >
-                              <ChevronRight className="w-5 h-5 text-gray-700" />
+                              <ChevronRight className="w-5 h-5 text-gray-800" />
                             </button>
                             
                             {/* Horizontal Slider */}
                             <div 
                               ref={sliderRef}
-                              className="flex overflow-x-auto hide-scrollbar gap-4 pb-4 snap-x snap-mandatory"
+                              className="flex overflow-x-auto hide-scrollbar gap-6 pb-6 snap-x snap-mandatory"
                               style={{
                                 scrollbarWidth: 'none',
                                 msOverflowStyle: 'none',
                                 WebkitOverflowScrolling: 'touch'
                               }}
                             >
-                              {filteredIndustries.map((industry) => (
-                                <Motion.motion.button
-                                  key={industry}
-                                  onClick={() => handleIndustrySelect(industry)}
-                                  className="group relative p-6 rounded-xl text-left transition-all duration-300 overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 flex-shrink-0 w-[240px] snap-start"
-                                  whileHover={{ scale: 1.02 }}
-                                  whileTap={{ scale: 0.98 }}
-                                >
-                                  <div className="relative z-10">
-                                    <h3 className="font-semibold text-gray-900 group-hover:text-gray-800">
-                                      {industry}
-                                    </h3>
-                                  </div>
-                                  <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-                                </Motion.motion.button>
-                              ))}
+                              {filteredIndustries.map((industry) => {
+                                const IconComponent = industryIcons[industry] || Target;
+                                return (
+                                  <Motion.motion.button
+                                    key={industry}
+                                    onClick={() => handleIndustrySelect(industry)}
+                                    className="group relative p-6 rounded-xl text-left transition-all duration-300 overflow-hidden bg-white/30 hover:bg-white/50 flex-shrink-0 w-[280px] snap-start border border-white/40 backdrop-blur-lg hover:border-white/60 hover:shadow-xl"
+                                    whileHover={{ 
+                                      y: -2,
+                                    }}
+                                    whileTap={{ scale: 0.99 }}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ 
+                                      duration: 0.2,
+                                      ease: "easeOut"
+                                    }}
+                                  >
+                                    <div className="relative z-10">
+                                      {/* Icon */}
+                                      <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-blue-900 to-blue-700 backdrop-blur-sm mb-4 group-hover:from-blue-800 group-hover:to-blue-600 transition-all duration-300 shadow-lg">
+                                        <IconComponent className="w-6 h-6 text-white" />
+                                      </div>
+                                      
+                                      {/* Industry Name */}
+                                      <h3 className="font-semibold text-gray-900 group-hover:text-blue-900 transition-colors duration-300 text-base leading-tight mb-2">
+                                        {industry}
+                                      </h3>
+                                      
+                                      {/* Subtitle/Description */}
+                                      <p className="text-gray-700 text-sm group-hover:text-blue-700 transition-colors duration-300">
+                                        Find expert mentors
+                                      </p>
+                                      
+                                      {/* Arrow indicator */}
+                                      <div className="flex items-center mt-4 text-blue-700 group-hover:translate-x-1 transition-transform duration-300">
+                                        <span className="text-sm font-medium mr-2">Explore</span>
+                                        <ChevronRight className="w-4 h-4" />
+                                      </div>
+                                    </div>
+                                    
+                                    {/* White glassmorphism hover overlay */}
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-blue-50/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm" />
+                                    
+                                    {/* Glass border effect */}
+                                    <div className="absolute inset-0 rounded-xl border border-white/0 group-hover:border-white/50 transition-colors duration-300" />
+                                  </Motion.motion.button>
+                                );
+                              })}
                             </div>
                           </div>
                           
@@ -314,9 +444,9 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
                               placeholder="Search experts by name or expertise..."
                               value={searchQuery}
                               onChange={handleSearch}
-                              className="w-full pl-10 pr-4 py-3 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              className="w-full pl-10 pr-4 py-3 border-white/50 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 bg-white/40 backdrop-blur-md text-gray-900 placeholder-gray-700"
                             />
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700 w-5 h-5" />
                           </div>
 
                           <div className="relative">
@@ -325,40 +455,86 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
                                 <Loader fullScreen={false} />
                               </div>
                             ) : (
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[60vh] overflow-y-auto pr-2 scrollbar-hidden">
                                 {experts.map((expert) => (
                                   <Motion.motion.div
                                     key={expert._id}
-                                    initial={{ opacity: 0, y: 20 }}
+                                    initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
+                                    whileHover={{ 
+                                      y: -2
+                                    }}
+                                    whileTap={{ scale: 0.99 }}
+                                    transition={{ duration: 0.2, ease: "easeOut" }}
                                   >
                                     <Card
-                                      className="p-4 cursor-pointer hover:shadow-lg transition-all duration-300"
+                                      className="p-6 cursor-pointer hover:shadow-xl transition-all duration-300 bg-white/30 backdrop-blur-lg border border-white/40 hover:border-white/60 group hover:bg-white/50"
                                       onClick={() => handleExpertSelect(expert)}
                                     >
                                       <div className="flex gap-4">
-                                        <img
-                                          src={expert.avatar || "/placeholder-user.jpg"}
-                                          alt={expert.name}
-                                          className="w-16 h-16 rounded-full object-cover"
-                                        />
+                                        {/* Avatar with status indicator */}
+                                        <div className="relative">
+                                          <img
+                                            src={expert.avatar || "/placeholder-user.jpg"}
+                                            alt={expert.name}
+                                            className="w-16 h-16 rounded-full object-cover border-2 border-white/70 shadow-lg backdrop-blur-sm"
+                                          />
+                                          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 backdrop-blur-sm rounded-full border-2 border-white">
+                                            <div className="w-1.5 h-1.5 bg-white rounded-full mx-auto mt-1"></div>
+                                          </div>
+                                        </div>
+                                        
                                         <div className="flex-1">
-                                          <h3 className="font-semibold text-gray-900">{expert.name}</h3>
-                                          <p className="text-sm text-gray-600">{expert.domain}</p>
-                                          <div className="flex items-center mt-2">
-                                            <div className="flex text-yellow-400">
-                                              {[...Array(5)].map((_, i) => (
-                                                <span key={i} className="text-lg">★</span>
-                                              ))}
+                                          {/* Expert Name */}
+                                          <h3 className="font-semibold text-gray-900 group-hover:text-blue-900 transition-colors duration-300">
+                                            {expert.name}
+                                          </h3>
+                                          
+                                          {/* Domain with icon */}
+                                          <div className="flex items-center mt-1">
+                                            <Briefcase className="w-4 h-4 text-gray-600 mr-2" />
+                                            <p className="text-sm text-gray-700 group-hover:text-blue-700 transition-colors duration-300">
+                                              {expert.domain}
+                                            </p>
+                                          </div>
+                                          
+                                          {/* Rating and sessions */}
+                                          <div className="flex items-center mt-3 space-x-4">
+                                            <div className="flex items-center">
+                                              <div className="flex text-yellow-500 mr-2">
+                                                {[...Array(5)].map((_, i) => (
+                                                  <Star key={i} className="w-4 h-4 fill-current" />
+                                                ))}
+                                              </div>
+                                              <span className="text-sm font-medium text-gray-800">
+                                                {expert.ratings?.toFixed(1) || "4.5"}
+                                              </span>
                                             </div>
-                                            <span className="text-sm text-gray-600 ml-2">
-                                              {expert.ratings?.toFixed(1) || "4.5"}
-                                            </span>
-                                            <span className="text-sm text-gray-400 ml-2">
-                                              ({expert.sessionCount || "0"} sessions)
-                                            </span>
+                                            
+                                            <div className="flex items-center text-gray-600">
+                                              <Users className="w-4 h-4 mr-1" />
+                                              <span className="text-sm">
+                                                {expert.sessionCount || "0"} sessions
+                                              </span>
+                                            </div>
+                                          </div>
+                                          
+                                          {/* Call to action */}
+                                          <div className="flex items-center justify-between mt-4">
+                                            <div className="flex items-center text-blue-700 group-hover:text-blue-800 group-hover:translate-x-1 transition-all duration-300">
+                                              <span className="text-sm font-medium mr-2">Book Session</span>
+                                              <ChevronRight className="w-4 h-4" />
+                                            </div>
+                                            
+                                            {/* Price indicator if available */}
+                                            {expert.price && (
+                                              <div className="text-right">
+                                                <span className="text-lg font-bold text-green-600">
+                                                  ₹{expert.price}
+                                                </span>
+                                                <span className="text-sm text-gray-600">/session</span>
+                                              </div>
+                                            )}
                                           </div>
                                         </div>
                                       </div>

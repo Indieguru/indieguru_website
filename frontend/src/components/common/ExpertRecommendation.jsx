@@ -110,7 +110,7 @@ const ExpertRecommendation = ({ formData, selectedIndustry, onClose }) => {
         <p className="text-red-600">{error}</p>
         <button 
           onClick={submitAssessment}
-          className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="mt-4 px-6 py-2 bg-blue-800 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           Try Again
         </button>
@@ -159,7 +159,7 @@ const ExpertRecommendation = ({ formData, selectedIndustry, onClose }) => {
                   </div>
                   <button
                     onClick={() => handleExpertSelect(expert)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    className="bg-blue-800 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
                   >
                     Book Session
                   </button>

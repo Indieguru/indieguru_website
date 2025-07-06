@@ -98,7 +98,7 @@ const SessionNotesModal = ({ isOpen, onClose, onSubmit }) => {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+              className="px-4 py-2 text-white bg-blue-800 rounded-lg hover:bg-blue-700"
             >
               {isSubmitting ? 'Completing Session...' : 'Complete Session'}
             </Button>

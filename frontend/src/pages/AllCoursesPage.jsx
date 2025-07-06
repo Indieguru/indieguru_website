@@ -319,7 +319,7 @@ const AllCoursesPage = () => {
   const { fetchIsAuthenticated } = useAuthStore();
   const { userType } = useUserTypeStore();
   const isAuthenticated = userType !== "not_signed_in";
-  const [activeTab, setActiveTab] = useState("courses");
+  const [activeTab, setActiveTab] = useState("sessions");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedExpertise, setSelectedExpertise] = useState([]);
   const [showExpertiseModal, setShowExpertiseModal] = useState(false);
@@ -659,11 +659,6 @@ const AllCoursesPage = () => {
 
         <div className="bg-white rounded-xl shadow-xl p-3 mb-16 flex gap-2 w-full max-w-sm mx-auto">
           <TabButton 
-            active={activeTab === "courses"} 
-            label="Courses" 
-            onClick={() => setActiveTab("courses")}
-          />
-          <TabButton 
             active={activeTab === "sessions"} 
             label="Sessions" 
             onClick={() => setActiveTab("sessions")}
@@ -672,6 +667,11 @@ const AllCoursesPage = () => {
             active={activeTab === "cohorts"} 
             label="Cohorts" 
             onClick={() => setActiveTab("cohorts")}
+          />
+          <TabButton 
+            active={activeTab === "courses"} 
+            label="Courses" 
+            onClick={() => setActiveTab("courses")}
           />
         </div>
 

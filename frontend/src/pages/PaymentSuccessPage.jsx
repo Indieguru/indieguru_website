@@ -90,7 +90,7 @@ const PaymentSuccessPage = () => {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button 
             onClick={() => navigate('/')}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-blue-800 hover:bg-blue-700 text-white"
           >
             Return to Courses
           </Button>
