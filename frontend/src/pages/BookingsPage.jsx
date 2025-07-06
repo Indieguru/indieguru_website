@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../components/ui/button";
-import { Calendar, Clock, Users, Award, ArrowRight, Link as LinkIcon, Video, Book, GraduationCap, MessageSquare, X, Star, AlertTriangle, CheckCircle2, Download, Eye, XCircle, Info } from "lucide-react";
+import { Calendar, Clock, Users, Award, ArrowRight, Link as LinkIcon, Video, Book, GraduationCap, MessageSquare, X, Star, AlertTriangle, CheckCircle2, Download, Eye, XCircle, Info, Copy } from "lucide-react";
 import Header from "../components/layout/Header";
 import useExpertSessionsStore from '../store/expertSessionsStore';
 import useExpertCohortsStore from '../store/expertCohortsStore';
@@ -199,6 +199,16 @@ const BookingsPage = () => {
       setShowRejectionModal(true);
     };
 
+    const handleCopyLink = async () => {
+      const courseLink = `${window.location.origin}/course/${course._id}`;
+      try {
+        await navigator.clipboard.writeText(courseLink);
+        toast.success('Course link copied to clipboard!');
+      } catch {
+        toast.error('Failed to copy link');
+      }
+    };
+
     const getStatusColor = (status) => {
       switch(status) {
         case 'approved': return 'bg-green-100 text-green-700';
@@ -215,7 +225,7 @@ const BookingsPage = () => {
       <motion.div
         variants={itemVariants}
         whileHover={{ y: -8, transition: { duration: 0.2 } }}
-        className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group"
+        className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group min-h-[450px] flex flex-col"
       >
         <div className="relative h-48" style={{ backgroundColor: course.color || "#00b6c4" }}>
           <img src={course.image || "/rectangle-2749.png"} alt={course.title} className="w-full h-full object-contain" />
@@ -231,50 +241,60 @@ const BookingsPage = () => {
             )}
           </div>
         </div>
-        <div className="p-6">
-          <h3 className="text-xl font-bold text-[#003265] mb-3 group-hover:text-blue-600 transition-colors">
+        <div className="p-6 flex flex-col flex-1">
+          <h3 className="text-xl font-bold text-[#003265] mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">
             {course.title}
           </h3>
-          <p className="text-sm text-gray-600 flex items-center mb-2">
-            <span className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-2">
+          <div className="text-sm text-gray-600 flex items-center mb-3">
+            <span className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-2 flex-shrink-0">
               {(expertData?.name || "E").charAt(0)}
             </span>
-            {expertData?.name || "Expert Instructor"}
-          </p>
+            <span className="truncate">{expertData?.name || "Expert Instructor"}</span>
+          </div>
           
-          <div className="flex items-center text-sm text-gray-500 mb-6">
-            <Users className="w-4 h-4 mr-2" />
+          <div className="flex items-center text-sm text-gray-500 mb-4">
+            <Users className="w-4 h-4 mr-2 flex-shrink-0" />
             <span>{(course.purchasedBy || []).length} students enrolled</span>
           </div>
           
-          <div className="flex justify-between items-center">
-            <div className="flex items-baseline">
+          <div className="mt-auto">
+            <div className="flex items-center justify-between mb-4">
               <span className="text-2xl font-bold text-[#003265]">
-                ₹{ course.pricing?.expertFee || 0}
+                ₹{course.pricing?.expertFee || 0}
               </span>
             </div>
-            <div className="flex gap-2">
+            
+            <div className="space-y-2">
               {course.status === 'rejected' ? (
                 <Button 
                   onClick={handleViewRejection}
-                  className="bg-red-100 hover:bg-red-200 text-red-700 rounded-full px-6 flex items-center gap-2"
+                  className="w-full bg-red-100 hover:bg-red-200 text-red-700 rounded-full px-6 py-2 flex items-center justify-center gap-2"
                 >
                   <AlertTriangle className="w-4 h-4" />
                   <span>View Reason</span>
                 </Button>
               ) : (
                 <>
-                  <Button 
-                    onClick={() => handleLinkClick(course.driveLink)}
-                    className="bg-blue-800 hover:bg-[#0a2540] text-white rounded-full px-6 flex items-center gap-2"
-                  >
-                    <LinkIcon className="w-4 h-4" />
-                    <span>Access Course</span>
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleCopyLink}
+                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full px-4 py-2 flex items-center gap-2"
+                      title="Copy course link"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      onClick={() => handleLinkClick(course.driveLink)}
+                      className="flex-1 bg-blue-800 hover:bg-[#0a2540] text-white rounded-full px-6 py-2 flex items-center justify-center gap-2"
+                    >
+                      <LinkIcon className="w-4 h-4" />
+                      <span>Access Course</span>
+                    </Button>
+                  </div>
                   {courseType === 'live' && (
                     <Button
                       onClick={handleMarkCompleted}
-                      className="bg-green-600 hover:bg-green-700 text-white rounded-full px-6 flex items-center gap-2"
+                      className="w-full bg-green-600 hover:bg-green-700 text-white rounded-full px-6 py-2 flex items-center justify-center gap-2"
                     >
                       <CheckCircle2 className="w-4 h-4" />
                       <span>Mark Completed</span>
@@ -305,32 +325,52 @@ const BookingsPage = () => {
       }
     };
 
+    const handleCopyLink = async () => {
+      const sessionLink = `${window.location.origin}/session/${session._id}`;
+      try {
+        await navigator.clipboard.writeText(sessionLink);
+        toast.success('Session link copied to clipboard!');
+      } catch {
+        toast.error('Failed to copy link');
+      }
+    };
+
+    const handleCopyBookingLink = async () => {
+      const bookingLink = `${window.location.origin}/expert/${expertData?._id || 'expert'}/book`;
+      try {
+        await navigator.clipboard.writeText(bookingLink);
+        toast.success('Booking link copied to clipboard!');
+      } catch {
+        toast.error('Failed to copy booking link');
+      }
+    };
+
     return (
       <motion.div
         variants={itemVariants}
         whileHover={{ y: -8, transition: { duration: 0.2 } }}
-        className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group"
+        className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group min-h-[400px] flex flex-col"
       >
         <div className="h-2 bg-gradient-to-r from-blue-900 to-indigo-900"></div>
-        <div className="p-6">
-          <h3 className="text-xl font-bold text-[#003265] mb-3">{session.title}</h3>
+        <div className="p-6 flex flex-col flex-1">
+          <h3 className="text-xl font-bold text-[#003265] mb-3 line-clamp-2">{session.title}</h3>
           <div className="flex items-center text-sm text-gray-600 mb-4">
-            <Calendar className="w-4 h-4 mr-2" />
-            <span>{new Date(session.date).toLocaleDateString()}</span>
-            <Clock className="w-4 h-4 ml-4 mr-2" />
+            <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="mr-4">{new Date(session.date).toLocaleDateString()}</span>
+            <Clock className="w-4 h-4 mr-2 flex-shrink-0" />
             <span>{session.startTime} - {session.endTime}</span>
           </div>
           
-          <div className="flex items-center text-sm text-gray-500 mb-6">
-            <Users className="w-4 h-4 mr-2" />
-            <span>{session.studentName || "Student"}</span>
+          <div className="flex items-center text-sm text-gray-500 mb-4">
+            <Users className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="truncate">{session.studentName || "Student"}</span>
           </div>
           
-          <div className="mt-auto space-y-3">
+          <div className="flex-1 flex flex-col">
             {isCompleted && session.notes && (
               <div className="bg-blue-50 p-4 rounded-lg mb-4">
                 {session.notes.text && (
-                  <p className="text-sm text-gray-700 mb-2">{session.notes.text}</p>
+                  <p className="text-sm text-gray-700 mb-2 line-clamp-3">{session.notes.text}</p>
                 )}
                 {session.notes.files && session.notes.files.length > 0 && (
                   <div className="space-y-2">
@@ -340,7 +380,7 @@ const BookingsPage = () => {
                         <span className="text-xs text-gray-600 truncate flex-1">
                           {file.name}
                         </span>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 ml-2">
                           <Button
                             onClick={() => {
                               setPreviewFile(file);
@@ -365,70 +405,96 @@ const BookingsPage = () => {
                 )}
               </div>
             )}
-            {isPastSession ? (
-              <div className="space-y-3">
-                {session.status !== 'completed' && session.status !== 'cancelled' ? (
+            
+            <div className="mt-auto space-y-3">
+              {isPastSession ? (
+                <>
+                  {session.status !== 'completed' && session.status !== 'cancelled' && (
+                    <Button 
+                      onClick={() => {
+                        setSelectedSessionForNotes(session);
+                        setShowNotesModal(true);
+                      }}
+                      className="w-full bg-blue-800 hover:bg-blue-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Complete Session</span>
+                    </Button>
+                  )}
                   <Button 
-                    onClick={() => {
-                      setSelectedSessionForNotes(session);
-                      setShowNotesModal(true);
-                    }}
-                    className="w-full bg-blue-800 hover:bg-blue-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2"
+                    onClick={() => handleViewFeedback(session)}
+                    className={`w-full ${
+                      session.feedback?.rating > 0
+                        ? 'bg-amber-500 hover:bg-amber-600' 
+                        : 'bg-gray-400 hover:bg-gray-500'
+                    } text-white rounded-full px-6 py-3 flex items-center justify-center gap-2`}
                   >
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Complete Session</span>
+                    <MessageSquare className="w-4 h-4" />
+                    <span>{session.feedback?.rating > 0 ? 'View Feedback' : 'No Feedback'}</span>
                   </Button>
-                ) : null}
-                <Button 
-                  onClick={() => handleViewFeedback(session)}
-                  className={`w-full ${
-                    session.feedback?.rating > 0
-                      ? 'bg-amber-500 hover:bg-amber-600' 
-                      : 'bg-gray-400 hover:bg-gray-500'
-                  } text-white rounded-full px-6 py-3 flex items-center justify-center gap-2`}
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>{session.feedback?.rating > 0 ? 'View Feedback' : 'No Feedback'}</span>
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <Button 
-                  onClick={() => window.open(session.meetLink, '_blank')}
-                  className="w-full bg-blue-800 hover:bg-blue-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2"
-                >
-                  <Video className="w-4 h-4" />
-                  <span>Join Session</span>
-                </Button>
-                {sessionType === 'upcoming' && (
                   <Button 
-                    onClick={() => {
-                      setSelectedSessionForDetails(session);
-                      setShowSessionDetailsModal(true);
-                    }}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2"
+                    onClick={handleCopyBookingLink}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2"
+                    title="Copy booking link to share with others"
                   >
-                    <Info className="w-4 h-4" />
-                    <span>View Details</span>
+                    <Copy className="w-4 h-4" />
+                    <span>Copy Booking Link</span>
                   </Button>
-                )}
-                {!isCancelled && (
-                  <Button 
-                    onClick={handleCancel}
-                    className="w-full bg-red-600 hover:bg-red-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2 mt-3"
-                  >
-                    <XCircle className="w-4 h-4" />
-                    <span>Cancel Session</span>
-                  </Button>
-                )}
-                {isCancelled && (
-                  <div className="mt-3 text-red-600 flex items-center justify-center gap-2">
-                    <XCircle className="w-4 h-4" />
-                    <span>Session Cancelled</span>
+                </>
+              ) : (
+                <>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleCopyLink}
+                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full px-4 py-3 flex items-center gap-2"
+                      title="Copy session link"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      onClick={handleCopyBookingLink}
+                      className="bg-green-100 hover:bg-green-200 text-green-700 rounded-full px-4 py-3 flex items-center gap-2"
+                      title="Copy booking link to share with others"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      onClick={() => window.open(session.meetLink, '_blank')}
+                      className="flex-1 bg-blue-800 hover:bg-blue-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2"
+                    >
+                      <Video className="w-4 h-4" />
+                      <span>Join Session</span>
+                    </Button>
                   </div>
-                )}
-              </div>
-            )}
+                  {sessionType === 'upcoming' && (
+                    <Button 
+                      onClick={() => {
+                        setSelectedSessionForDetails(session);
+                        setShowSessionDetailsModal(true);
+                      }}
+                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2"
+                    >
+                      <Info className="w-4 h-4" />
+                      <span>View Details</span>
+                    </Button>
+                  )}
+                  {!isCancelled ? (
+                    <Button 
+                      onClick={handleCancel}
+                      className="w-full bg-red-600 hover:bg-red-700 text-white rounded-full px-6 py-3 flex items-center justify-center gap-2"
+                    >
+                      <XCircle className="w-4 h-4" />
+                      <span>Cancel Session</span>
+                    </Button>
+                  ) : (
+                    <div className="text-red-600 flex items-center justify-center gap-2 py-3">
+                      <XCircle className="w-4 h-4" />
+                      <span>Session Cancelled</span>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </motion.div>
@@ -443,6 +509,16 @@ const BookingsPage = () => {
     const handleViewRejection = () => {
       setSelectedCohort(cohort);
       setShowRejectionModal(true);
+    };
+
+    const handleCopyLink = async () => {
+      const cohortLink = `${window.location.origin}/cohort/${cohort._id}`;
+      try {
+        await navigator.clipboard.writeText(cohortLink);
+        toast.success('Cohort link copied to clipboard!');
+      } catch {
+        toast.error('Failed to copy link');
+      }
     };
 
     const getApprovalStatus = () => {
@@ -479,7 +555,6 @@ const BookingsPage = () => {
     const shouldShowRating = () => {
       const currentDate = new Date();
       const startDate = new Date(cohort.startDate);
-      const endDate = new Date(cohort.endDate);
       return startDate <= currentDate;
     };
 
@@ -490,7 +565,7 @@ const BookingsPage = () => {
       <motion.div
         variants={itemVariants}
         whileHover={{ y: -8, transition: { duration: 0.2 } }}
-        className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group"
+        className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group min-h-[420px] flex flex-col"
       >
         <div className="relative h-48" style={{ backgroundColor: cohort.color || "#00b6c4" }}>
           <img src={cohort.image || "/rectangle-2749.png"} alt={cohort.title} className="w-full h-full object-contain" />
@@ -508,43 +583,55 @@ const BookingsPage = () => {
             )}
           </div>
         </div>
-        <div className="p-6">
-          <h3 className="text-xl font-bold text-[#003265] mb-3 group-hover:text-blue-600 transition-colors">
+        <div className="p-6 flex flex-col flex-1">
+          <h3 className="text-xl font-bold text-[#003265] mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">
             {cohort.title}
           </h3>
           <div className="flex items-center text-sm text-gray-600 mb-4">
-            <Calendar className="w-4 h-4 mr-2" />
+            <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
             <span>Starts: {new Date(cohort.startDate).toLocaleDateString()}</span>
           </div>
           
-          <div className="flex items-center text-sm text-gray-500 mb-6">
-            <Users className="w-4 h-4 mr-2" />
+          <div className="flex items-center text-sm text-gray-500 mb-4">
+            <Users className="w-4 h-4 mr-2 flex-shrink-0" />
             <span>{(cohort.purchasedBy || []).length} students enrolled</span>
           </div>
           
-          <div className="flex justify-between items-center">
-            <div className="flex items-baseline">
+          <div className="mt-auto">
+            <div className="flex items-center justify-between mb-4">
               <span className="text-2xl font-bold text-[#003265]">
                 ₹{cohort.pricing?.expertFee || 0}
               </span>
             </div>
-            {cohort.status === 'rejected' ? (
-              <Button 
-                onClick={handleViewRejection}
-                className="bg-red-100 hover:bg-red-200 text-red-700 rounded-full px-6 flex items-center gap-2"
-              >
-                <AlertTriangle className="w-4 h-4" />
-                <span>View Reason</span>
-              </Button>
-            ) : (
-              <Button 
-                onClick={() => handleLinkClick(cohort.meetLink)}
-                className="bg-blue-800 hover:bg-[#0a2540] text-white rounded-full px-6 flex items-center gap-2"
-              >
-                <GraduationCap className="w-4 h-4" />
-                <span>Join Cohort</span>
-              </Button>
-            )}
+            
+            <div className="space-y-2">
+              {cohort.status === 'rejected' ? (
+                <Button 
+                  onClick={handleViewRejection}
+                  className="w-full bg-red-100 hover:bg-red-200 text-red-700 rounded-full px-6 py-2 flex items-center justify-center gap-2"
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>View Reason</span>
+                </Button>
+              ) : (
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleCopyLink}
+                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full px-4 py-2 flex items-center gap-2"
+                    title="Copy cohort link"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    onClick={() => handleLinkClick(cohort.meetLink)}
+                    className="flex-1 bg-blue-800 hover:bg-[#0a2540] text-white rounded-full px-6 py-2 flex items-center justify-center gap-2"
+                  >
+                    <GraduationCap className="w-4 h-4" />
+                    <span>Join Cohort</span>
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </motion.div>

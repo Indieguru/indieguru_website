@@ -181,6 +181,7 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
   const [selectedIndustry, setSelectedIndustry] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [categorySearch, setCategorySearch] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
   const [experts, setExperts] = useState([]);
   const [loading, setLoading] = useState(false);
   const sliderRef = useRef(null);
@@ -190,9 +191,11 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
 
   const isAuthenticated = !!user?.firstName;
 
-  const filteredIndustries = industries.filter(industry =>
-    industry.toLowerCase().includes(categorySearch.toLowerCase())
-  );
+  const filteredIndustries = categorySearch 
+    ? industries.filter(industry =>
+        industry.toLowerCase().includes(categorySearch.toLowerCase())
+      ).sort()
+    : [...industries].sort();
 
   const scrollLeft = () => {
     if (sliderRef.current) {
@@ -344,9 +347,34 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
                               placeholder="Search industries..."
                               value={categorySearch}
                               onChange={(e) => setCategorySearch(e.target.value)}
+                              onFocus={() => setShowDropdown(true)}
+                              onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
                               className="w-full pl-10 pr-4 py-3 border-white/50 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 bg-white/40 backdrop-blur-md text-gray-900 placeholder-gray-700"
                             />
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700 w-5 h-5" />
+                            
+                            {/* Search Dropdown */}
+                            {showDropdown && filteredIndustries.length > 0 && (
+                              <div className="absolute top-full left-0 right-0 mt-1 bg-white/90 backdrop-blur-md border border-white/50 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto">
+                                {filteredIndustries.map((industry) => {
+                                  const IconComponent = industryIcons[industry] || Target;
+                                  return (
+                                    <button
+                                      key={industry}
+                                      onClick={() => {
+                                        handleIndustrySelect(industry);
+                                        setCategorySearch("");
+                                        setShowDropdown(false);
+                                      }}
+                                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-blue-50/70 transition-colors duration-200 first:rounded-t-lg last:rounded-b-lg"
+                                    >
+                                      <IconComponent className="w-5 h-5 text-blue-700 flex-shrink-0" />
+                                      <span className="text-gray-900 font-medium">{industry}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
                           </div>
                           
                           <div className="relative mb-8">
@@ -367,14 +395,15 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
                               <ChevronRight className="w-5 h-5 text-gray-800" />
                             </button>
                             
-                            {/* Horizontal Slider */}
+                            {/* Grid Layout - 2 rows, 3 cards per row */}
                             <div 
                               ref={sliderRef}
-                              className="flex overflow-x-auto hide-scrollbar gap-6 pb-6 snap-x snap-mandatory"
+                              className="grid grid-rows-2 grid-flow-col gap-4 overflow-x-auto hide-scrollbar pb-6 snap-x snap-mandatory auto-cols-max"
                               style={{
                                 scrollbarWidth: 'none',
                                 msOverflowStyle: 'none',
-                                WebkitOverflowScrolling: 'touch'
+                                WebkitOverflowScrolling: 'touch',
+                                gridTemplateColumns: 'repeat(3, 1fr)'
                               }}
                             >
                               {filteredIndustries.map((industry) => {
@@ -383,7 +412,7 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
                                   <Motion.motion.button
                                     key={industry}
                                     onClick={() => handleIndustrySelect(industry)}
-                                    className="group relative p-6 rounded-xl text-left transition-all duration-300 overflow-hidden bg-white/30 hover:bg-white/50 flex-shrink-0 w-[280px] snap-start border border-white/40 backdrop-blur-lg hover:border-white/60 hover:shadow-xl"
+                                    className="group relative p-4 rounded-lg text-left transition-all duration-300 overflow-hidden bg-white/30 hover:bg-white/50 flex-shrink-0 w-[200px] h-[120px] snap-start border border-white/40 backdrop-blur-lg hover:border-white/60 hover:shadow-xl"
                                     whileHover={{ 
                                       y: -2,
                                     }}
@@ -395,26 +424,21 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
                                       ease: "easeOut"
                                     }}
                                   >
-                                    <div className="relative z-10">
+                                    <div className="relative z-10 h-full flex flex-col">
                                       {/* Icon */}
-                                      <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-gradient-to-br from-blue-900 to-blue-700 backdrop-blur-sm mb-4 group-hover:from-blue-800 group-hover:to-blue-600 transition-all duration-300 shadow-lg">
-                                        <IconComponent className="w-6 h-6 text-white" />
+                                      <div className="flex items-center justify-center w-10 h-10 mb-3">
+                                        <IconComponent className="w-6 h-6 text-blue-800 group-hover:text-blue-900 transition-colors duration-300" />
                                       </div>
                                       
                                       {/* Industry Name */}
-                                      <h3 className="font-semibold text-gray-900 group-hover:text-blue-900 transition-colors duration-300 text-base leading-tight mb-2">
+                                      <h3 className="font-semibold text-gray-900 group-hover:text-blue-900 transition-colors duration-300 text-sm leading-tight mb-1 flex-1">
                                         {industry}
                                       </h3>
                                       
-                                      {/* Subtitle/Description */}
-                                      <p className="text-gray-700 text-sm group-hover:text-blue-700 transition-colors duration-300">
-                                        Find expert mentors
-                                      </p>
-                                      
                                       {/* Arrow indicator */}
-                                      <div className="flex items-center mt-4 text-blue-700 group-hover:translate-x-1 transition-transform duration-300">
-                                        <span className="text-sm font-medium mr-2">Explore</span>
-                                        <ChevronRight className="w-4 h-4" />
+                                      <div className="flex items-center text-blue-700 group-hover:translate-x-1 transition-transform duration-300 mt-auto">
+                                        <span className="text-xs font-medium mr-1">Explore</span>
+                                        <ChevronRight className="w-3 h-3" />
                                       </div>
                                     </div>
                                     
@@ -422,7 +446,7 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
                                     <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-blue-50/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm" />
                                     
                                     {/* Glass border effect */}
-                                    <div className="absolute inset-0 rounded-xl border border-white/0 group-hover:border-white/50 transition-colors duration-300" />
+                                    <div className="absolute inset-0 rounded-lg border border-white/0 group-hover:border-white/50 transition-colors duration-300" />
                                   </Motion.motion.button>
                                 );
                               })}
