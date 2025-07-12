@@ -19,13 +19,7 @@ const LoginPage = () => {
   const { isAuthenticated, fetchIsAuthenticated } = useAuthStore();
   const { userType, setUserType } = useUserTypeStore();
   const [assessmentData, setAssessmentData] = useState(null);
-// useEffect(() => {
-//   if (userType === "student") {
-//     navigate("/dashboard", { replace: true });
-//   } else {
-//     navigate("/expert", { replace: true });
-//   }
-// }, [userType, navigate]);
+
   useEffect(() => {
     // Load saved assessment data if it exists
     const savedData = localStorage.getItem("assessmentData");
@@ -72,8 +66,12 @@ const LoginPage = () => {
     }
 
     try {
-      // Make API call to backend to send OTP
-      const response = await axiosInstance.post("/user/auth/send-email-otp", {
+      // Choose the correct endpoint based on userType
+      const endpoint = userType === "expert" 
+        ? "/expert/auth/send-email-otp" 
+        : "/user/auth/send-email-otp";
+      
+      const response = await axiosInstance.post(endpoint, {
         email: email,
         role: userType,
       });
@@ -102,25 +100,35 @@ const LoginPage = () => {
     }
     
     try {
-      const response = await axiosInstance.post("/user/auth/verify-email-otp", {
+      console.log("Current userType before verification:", userType);
+      
+      // Choose the correct endpoint based on userType
+      const endpoint = userType === "expert" 
+        ? "/expert/auth/verify-email-otp" 
+        : "/user/auth/verify-email-otp";
+      
+      const response = await axiosInstance.post(endpoint, {
         email: email,
         otp: otp,
         role: userType,
       });
       
       console.log("OTP verified successfully:", response.data);
+      console.log("Navigating as userType:", userType);
+      
+      // Store the userType before any async operations
+      const selectedUserType = userType;
       
       // Update authentication state
       await fetchIsAuthenticated();
       
-      // Small delay to ensure auth state is updated
-      setTimeout(() => {
-        if (userType === "student") {
-          navigate("/dashboard", { replace: true });
-        } else {
-          navigate("/expert", { replace: true });
-        }
-      }, 100);
+      // Navigate based on the originally selected userType
+      console.log("Final navigation userType:", selectedUserType);
+      if (selectedUserType === "expert") {
+        navigate("/expert", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
       
     } catch (err) {
       console.error("Verification error:", err);
