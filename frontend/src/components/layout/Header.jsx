@@ -30,7 +30,7 @@ const Header = () => {
   const isAuthenticated = userType !== "not_signed_in";
 
   return (
-    <nav className="fixed top-4 left-20 right-20 z-50 bg-white/90 backdrop-blur-sm rounded-full shadow-lg px-4 md:px-6">
+    <nav className="fixed top-0 left-0 right-0 md:top-4 md:left-20 md:right-20 z-50 bg-white/90 backdrop-blur-sm md:rounded-full shadow-lg px-4 md:px-6">
       <div className="max-w-5xl mx-auto w-full">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
