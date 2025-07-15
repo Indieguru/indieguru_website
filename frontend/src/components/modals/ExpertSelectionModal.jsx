@@ -230,11 +230,6 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
   };
 
   const handleExpertSelect = (expert) => {
-    if (!isAuthenticated || userType !== 'student') {
-      navigate("/signup");
-      onClose();
-      return;
-    }
     navigate(`/booking/${expert._id}`);
     onClose();
   };
