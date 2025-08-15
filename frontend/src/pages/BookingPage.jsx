@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import { Button } from "../components/ui/button";
+import { Loader } from "../components/ui/loader";
 import { Calendar, CheckCircle2, ChevronRight, Star, Clock, User, Award, DollarSign, X, Phone } from "lucide-react";
 import axiosInstance from "../config/axios.config";
 import { toast, ToastContainer } from "react-toastify";
@@ -245,10 +246,7 @@ const BookingPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mb-4 mx-auto"></div>
-          <p className="text-gray-600 font-medium">Loading expert information...</p>
-        </div>
+        <Loader size="large" />
       </div>
     );
   }

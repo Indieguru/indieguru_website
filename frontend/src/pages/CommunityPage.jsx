@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowUp, Heart, MessageCircle, Share2, TrendingUp, Users, Briefcase, HelpCircle, MessageSquare } from 'lucide-react';
 import { Footer } from "../components/layout/Footer";
 import { Switch } from "@headlessui/react";
+import { Loader } from "../components/ui/loader";
 import Header from "../components/layout/Header";
 import axiosInstance from "../config/axios.config";
 import { toast } from "react-toastify";
@@ -444,6 +445,14 @@ export default function CommunityPage() {
       return () => observer.disconnect();
     }
   }, [contentVisible, activeTab]);
+
+  if (loading && !authData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fffaea]">
+        <Loader size="large" />
+      </div>
+    );
+  }
 
   return (
     <div className={`w-screen mx-auto min-h-screen bg-[#fffaea] ${pageLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}>

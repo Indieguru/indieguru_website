@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from "framer-motion";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Header from "../components/layout/Header"
 import Footer from "../components/layout/Footer"
 import ProfileCard from "../components/sections/ProfileCard"
@@ -9,6 +11,7 @@ import GoalsCard from "../components/sections/GoalsCard"
 import ProgressSection from "../components/sections/ProgressSection"
 import ReferSection from "../components/sections/ReferSection"
 import PreviousSessionsSection from "../components/sections/PreviousSessionsSection"
+import { Loader } from "../components/ui/loader"
 import useUserStore from "../store/userStore";
 import UpcomingCohorts from '../components/sections/upcomingCourses';
 import useUserTypeStore from '../store/userTypeStore';
@@ -56,8 +59,8 @@ function Dashboard() {
 
   if (loading || !authData) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader size="large" />
       </div>
     );
   }
@@ -136,6 +139,7 @@ function Dashboard() {
       </motion.main>
 
       <Footer />
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 }

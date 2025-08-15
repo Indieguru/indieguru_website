@@ -7,6 +7,7 @@ import Footer from "../components/layout/Footer"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Card } from "../components/ui/card"
+import { Loader } from "../components/ui/loader"
 import { Plus, Pencil } from "lucide-react"
 import { Doughnut } from "react-chartjs-2"
 import "chart.js/auto"
@@ -701,7 +702,7 @@ function Profile() {
       <>
         <Header />
         <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+          <Loader size="large" />
         </div>
       </>
     );

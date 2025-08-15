@@ -7,6 +7,7 @@ import Footer from '../components/layout/Footer';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card } from '../components/ui/card';
+import { Loader } from '../components/ui/loader';
 import { Plus, Upload, Pencil, Link as LinkIcon, Trash2, CheckCircle, AlertCircle } from 'lucide-react';
 import { ErrorPopup } from '../components/ui/error-popup';
 import axiosInstance from '../config/axios.config';
@@ -549,10 +550,7 @@ function ExpertProfile() {
   if (loading || !authData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-800 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
+        <Loader size="large" />
       </div>
     );
   }

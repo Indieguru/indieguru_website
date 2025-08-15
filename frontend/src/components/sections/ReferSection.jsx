@@ -1,11 +1,12 @@
+import { useState } from "react"
 import { Button } from "../ui/button"
-import { useNavigate } from "react-router-dom"
+import ReferralModal from "../modals/ReferralModal"
 
 function ReferSection() {
-  const navigate = useNavigate();
+  const [showReferralModal, setShowReferralModal] = useState(false);
 
   const handleReferClick = () => {
-    navigate('/refer');
+    setShowReferralModal(true);
   };
 
   return (
@@ -37,6 +38,12 @@ function ReferSection() {
           <img src="/referillus.png" alt="Refer a friend illustration" className="w-40 h-40 transform transition-transform hover:scale-105 duration-300" />
         </div>
       </div>
+      
+      {/* Referral Modal */}
+      <ReferralModal 
+        isOpen={showReferralModal} 
+        onClose={() => setShowReferralModal(false)} 
+      />
     </section>
   )
 }

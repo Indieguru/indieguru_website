@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
+import { Loader } from "../components/ui/loader";
 import axiosInstance from '../config/axios.config';
 import useUserTypeStore from '../store/userTypeStore';
 
@@ -31,7 +32,7 @@ export default function BlogPost() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-900"></div>
+        <Loader size="large" />
       </div>
     );
   }

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import axiosInstance from '../config/axios.config';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
+import { Loader } from '../components/ui/loader';
 import { Link } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
@@ -93,7 +94,7 @@ export default function BrowseExperts() {
       <>
         <Header />
         <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          <Loader size="large" />
         </div>
       </>
     );

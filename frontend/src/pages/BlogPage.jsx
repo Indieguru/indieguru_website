@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Footer from "../components/layout/Footer";
 import Header from "../components/layout/Header";
 import BlogModal from "../components/modals/BlogModal";
+import { Loader } from "../components/ui/loader";
 import axiosInstance from '../config/axios.config';
 import useUserTypeStore from '../store/userTypeStore';
 import { Plus } from 'lucide-react';
@@ -10,6 +11,7 @@ import { Plus } from 'lucide-react';
 export default function BlogPage() {
   const navigate = useNavigate();
   const [isLoaded, setIsLoaded] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { userType } = useUserTypeStore();
   const [allPosts, setAllPosts] = useState([]); // Store all blogs
   const [posts, setPosts] = useState([]);
@@ -34,6 +36,7 @@ export default function BlogPage() {
 
   const fetchBlogs = async () => {
     try {
+      setLoading(true);
       console.log('Fetching blogs...');
       const response = await axiosInstance.get('/blog');
       console.log('Blog response:', response.data);
@@ -45,6 +48,8 @@ export default function BlogPage() {
       }
     } catch (error) {
       console.error('Error fetching blogs:', error.response || error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -71,6 +76,7 @@ export default function BlogPage() {
   const toggleMyBlogs = async () => {
     setShowMyBlogs(!showMyBlogs);
     try {
+      setLoading(true);
       if (!showMyBlogs) {
         // Fetch only expert's blogs using the API endpoint
         const response = await axiosInstance.get('/blog/expert/blogs');
@@ -82,6 +88,8 @@ export default function BlogPage() {
     } catch (error) {
       console.error('Error toggling blogs:', error);
       // Handle error appropriately
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -103,6 +111,14 @@ export default function BlogPage() {
       toggleMyBlogs();
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fffaea]">
+        <Loader size="large" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#fffaea] overflow-x-hidden">
