@@ -92,6 +92,9 @@ const ExpertSchema = new mongoose.Schema({
   expertise: [{
     type: String,
   }],
+  targetAudience: [{
+    type: String,
+  }],
   education: [{
     degree: {
       type: String,
