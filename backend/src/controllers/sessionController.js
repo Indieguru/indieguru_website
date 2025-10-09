@@ -118,63 +118,74 @@ Phone: ${session.userPhone}`,
     await session.save();
     await expert.save();
     console.log(session)
-    // Send Email to User
-    await sendMail({
-      to: user.email,
-      subject: 'Session Booking Confirmed!',
-      html: `
-        <table style="width:100%;max-width:600px;margin:auto;border:1px solid #e0e0e0;border-radius:8px;font-family:Arial,sans-serif;">
-          <thead style="background-color:#4F46E5;color:white;">
-            <tr><th style="padding:20px;font-size:24px;">Platform Name</th></tr>
-          </thead>
-          <tbody>
-            <tr><td style="padding:30px;text-align:center;">
-              <h2 style="color:#333;">Session Booked Successfully!</h2>
-              <p style="font-size:16px;color:#555;">
-                Your session with ${expert.firstName} ${expert.lastName} is booked.<br>
-                <strong>Date:</strong> ${session.date.toDateString()}<br>
-                <strong>Time:</strong> ${session.startTime} - ${session.endTime}
-              </p>
-              <a href="${meetLink}" style="display:inline-block;margin-top:20px;padding:12px 24px;background-color:#4F46E5;color:white;text-decoration:none;border-radius:5px;font-size:16px;">
-                Join Google Meet
-              </a>
-            </td></tr>
-            <tr><td style="padding:20px;text-align:center;font-size:12px;color:#999;">
-              © 2025 Platform Name. All rights reserved.
-            </td></tr>
-          </tbody>
-        </table>
-      `
-    });
+    
+    // Send Email to User (wrapped in try-catch to prevent booking failure)
+    try {
+      await sendMail({
+        to: user.email,
+        subject: 'Session Booking Confirmed!',
+        html: `
+          <table style="width:100%;max-width:600px;margin:auto;border:1px solid #e0e0e0;border-radius:8px;font-family:Arial,sans-serif;">
+            <thead style="background-color:#4F46E5;color:white;">
+              <tr><th style="padding:20px;font-size:24px;">Platform Name</th></tr>
+            </thead>
+            <tbody>
+              <tr><td style="padding:30px;text-align:center;">
+                <h2 style="color:#333;">Session Booked Successfully!</h2>
+                <p style="font-size:16px;color:#555;">
+                  Your session with ${expert.firstName} ${expert.lastName} is booked.<br>
+                  <strong>Date:</strong> ${session.date.toDateString()}<br>
+                  <strong>Time:</strong> ${session.startTime} - ${session.endTime}
+                </p>
+                <a href="${meetLink}" style="display:inline-block;margin-top:20px;padding:12px 24px;background-color:#4F46E5;color:white;text-decoration:none;border-radius:5px;font-size:16px;">
+                  Join Google Meet
+                </a>
+              </td></tr>
+              <tr><td style="padding:20px;text-align:center;font-size:12px;color:#999;">
+                © 2025 Platform Name. All rights reserved.
+              </td></tr>
+            </tbody>
+          </table>
+        `
+      });
+    } catch (emailError) {
+      console.error('Failed to send confirmation email to user:', emailError.message);
+      // Don't fail the booking - email is supplementary
+    }
 
-    // Send Email to Expert
-    await sendMail({
-      to: expert.email,
-      subject: 'New Booking Received!',
-      html: `
-        <table style="width:100%;max-width:600px;margin:auto;border:1px solid #e0e0e0;border-radius:8px;font-family:Arial,sans-serif;">
-          <thead style="background-color:#4F46E5;color:white;">
-            <tr><th style="padding:20px;font-size:24px;">Platform Name</th></tr>
-          </thead>
-          <tbody>
-            <tr><td style="padding:30px;text-align:center;">
-              <h2 style="color:#333;">New Session Booked!</h2>
-              <p style="font-size:16px;color:#555;">
-                A new session is booked by ${user.firstName || 'User'}.<br>
-                <strong>Date:</strong> ${session.date.toDateString()}<br>
-                <strong>Time:</strong> ${session.startTime} - ${session.endTime}
-              </p>
-              <a href="${meetLink}" style="display:inline-block;margin-top:20px;padding:12px 24px;background-color:#4F46E5;color:white;text-decoration:none;border-radius:5px;font-size:16px;">
-                Join Google Meet
-              </a>
-            </td></tr>
-            <tr><td style="padding:20px;text-align:center;font-size:12px;color:#999;">
-              © 2025 Platform Name. All rights reserved.
-            </td></tr>
-          </tbody>
-        </table>
-      `
-    });
+    // Send Email to Expert (wrapped in try-catch to prevent booking failure)
+    try {
+      await sendMail({
+        to: expert.email,
+        subject: 'New Booking Received!',
+        html: `
+          <table style="width:100%;max-width:600px;margin:auto;border:1px solid #e0e0e0;border-radius:8px;font-family:Arial,sans-serif;">
+            <thead style="background-color:#4F46E5;color:white;">
+              <tr><th style="padding:20px;font-size:24px;">Platform Name</th></tr>
+            </thead>
+            <tbody>
+              <tr><td style="padding:30px;text-align:center;">
+                <h2 style="color:#333;">New Session Booked!</h2>
+                <p style="font-size:16px;color:#555;">
+                  A new session is booked by ${user.firstName || 'User'}.<br>
+                  <strong>Date:</strong> ${session.date.toDateString()}<br>
+                  <strong>Time:</strong> ${session.startTime} - ${session.endTime}
+                </p>
+                <a href="${meetLink}" style="display:inline-block;margin-top:20px;padding:12px 24px;background-color:#4F46E5;color:white;text-decoration:none;border-radius:5px;font-size:16px;">
+                  Join Google Meet
+                </a>
+              </td></tr>
+              <tr><td style="padding:20px;text-align:center;font-size:12px;color:#999;">
+                © 2025 Platform Name. All rights reserved.
+              </td></tr>
+            </tbody>
+          </table>
+        `
+      });
+    } catch (emailError) {
+      console.error('Failed to send notification email to expert:', emailError.message);
+      // Don't fail the booking - email is supplementary
+    }
 
     res.status(200).json({ message: 'Session booked successfully!', meetLink });
 

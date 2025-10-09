@@ -70,7 +70,7 @@ export const verifyEmailOtp = async (req, res) => {
     }
 
     // Delete OTP record
-    await Otp.deleteOne({ _id: otpRecord._id });
+    await otp.deleteOne({ _id: otpRecord._id });
 
     // Generate JWT token
     const token = jwt.sign(

@@ -1704,7 +1704,7 @@ export const requestApproval = async (req, res) => {
     
     // Check if all required profile sections are completed
     const requiredSections = {
-      basicInfo: expert.firstName && expert.lastName && expert.title,
+      basicInfo: expert.firstName  && expert.title,
       expertise: expert.expertise && expert.expertise.length > 0,
       experience: expert.experience && expert.experience.length > 0,
       targetAudience: expert.targetAudience && expert.targetAudience.length > 0,
