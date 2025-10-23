@@ -23,12 +23,13 @@ export const sendMail = async ({ to, subject, html }) => {
   while (attempts < maxAttempts) {
     try {
       // Try sending the email using Resend API
-      console.log("ResendKey:", process.env.RESEND_API_KEY);
-      console.log(resend);
       const response = await resend.emails.send(mailOptions);
       // ✅ Log Resend's response to verify delivery
-      console.log("✅ Resend API Response:", response);
-      console.log(`ResendServiceWorking`)
+      console.log("Resend API response:", response.error);
+      if (response.error) {
+     console.error("⚠️ Resend API returned an error:", response.error);
+      throw new Error(response.error.message || "Resend API returned an unknown error");
+    }
       console.log(`✅ Email sent successfully to ${to} on attempt ${attempts + 1}`);
       return; // Success — exit the function
     } catch (error) {
