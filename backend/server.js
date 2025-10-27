@@ -29,7 +29,8 @@ const corsOptions = {
       : process.env.FRONTEND_URL,
     'http://localhost:5173',
     'http://localhost:3000',
-    'https://myindieguru.com/'
+    'https://myindieguru.com/',
+    'https://www.myindieguru.com/'
   ],
   credentials: true,
 };
