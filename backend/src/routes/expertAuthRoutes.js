@@ -73,9 +73,9 @@ router.post('/verify-email-otp', async (req, res) => {
     await expert.save();
     
     // Set cookies
-    res.cookie('token', token, { httpOnly: true, secure: true, sameSite: "none" });
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: "none" });
-    res.cookie('userId', expert._id, { httpOnly: true, secure: true, sameSite: "none" });
+    res.cookie('token', token, { httpOnly: true, secure: true, sameSite: "none", path: "/", domain: ".myindieguru.com"});
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: "none", path: "/", domain: ".myindieguru.com"});
+    res.cookie('userId', expert._id, { httpOnly: true, secure: true, sameSite: "none", path: "/", domain: ".myindieguru.com"});
     
     // Send response
     res.status(200).json({ 
