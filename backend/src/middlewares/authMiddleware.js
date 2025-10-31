@@ -40,8 +40,8 @@ const authMiddleware = async (req, res, next) => {
                 user.refreshToken = newRefreshToken;
                 await user.save();
 
-                res.cookie('token', newToken, { httpOnly: true, secure: true, sameSite: "none" });
-                res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true , sameSite: "none" });
+                res.cookie('token', newToken, { httpOnly: true, secure: true, sameSite: "none",domain: ".myindieguru.com"});
+                res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true , sameSite: "none",domain: ".myindieguru.com"});
                 req.user = { id: user._id, userType: user.userType };
                 return next();
             } catch (err) {
