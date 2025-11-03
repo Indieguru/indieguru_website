@@ -6,26 +6,26 @@ const SessionDetailsModal = ({ isOpen, onClose, session }) => {
 
   // Mapping objects to decode career flow answers
   const roleMapping = {
-    'undergraduate': 'Undergraduate Student',
-    'working': 'Working Professional', 
-    'postgraduate': 'Postgraduate Student',
-    'highschool': 'High School Student (Class 11-12)',
-    'secondary': 'Secondary School Student (Class 9-10)'
+    'undergraduate': 'I am doing my graduation',
+    'working': 'I am working currently', 
+    'postgraduate': 'I am pursuing masters',
+    'highschool': 'I am in Class 9th or 10th',
+    'secondary': 'I am in Class 11th or 12th'
   };
 
   const careerJourneyMapping = {
-    'validate': "I just need to validate the career path I'm on",
-    'clarity': "I need to get more clarity/depth regarding my career field",
-    'explore': "I need to explore more fields and decide",
-    'guidance': "I don't know how to move ahead"
+    'validate': "I’m on a path - just need to validate if it’s the right one",
+    'clarity': "I kinda know the field - but need more clarity and direction",
+    'explore': "I’m still exploring - open to discovering what fits me best",
+    'guidance': "Honestly, I feel stuck - not sure how to move forward"
   };
 
   const learningStyleMapping = {
-    'oneOnOne': "I need regular 1:1 sessions for personalized guidance",
-    'selfPaced': "I prefer to take things forward on my own after the session",
-    'structured': "I need a structured course with a clear curriculum and action plan",
-    'group': "I prefer group discussions and peer learning",
-    'other': "Others(Please specify)"
+    'oneOnOne': "I thrive with regular 1:1 sessions and personal guidance",
+    'selfPaced': "I’m good with a nudge - I prefer exploring on my own post-session",
+    'structured': "I need a structured path - give me a clear curriculum and plan",
+    'group': "I love learning with others - group discussions and shared ideas work best",
+    'other': "Something else works better for me (Please specify)"
   };
 
   const formatCareerFlow = (careerFlow) => {

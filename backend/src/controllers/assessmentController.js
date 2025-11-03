@@ -31,28 +31,28 @@ export const submitAssessment = async (req, res) => {
 
     // Map frontend role values to schema enum values
     const roleMapping = {
-      'Undergraduate Student': 'undergraduate',
-      'Working Professional': 'working',
-      'Postgraduate Student': 'postgraduate',
-      'High School Student (Class 11-12)': 'highschool',
-      'Secondary School Student (Class 9-10)': 'secondary'
+      'I am doing my graduation': 'undergraduate',
+      'I am working currently': 'working',
+      'I am pursuing masters': 'postgraduate',
+      'I am in Class 9th or 10th': 'highschool',
+      'I am in Class 11th or 12th': 'secondary'
     };
 
     // Map career journey answers to exact frontend dropdown values
     const careerJourneyMapping = {
-      "I just need to validate the career path I'm on": 'validate',
-      "I need to get more clarity/depth regarding my career field": 'clarity',
-      "I need to explore more fields and decide": 'explore',
-      "I don't know how to move ahead": 'guidance'
+      "I’m on a path - just need to validate if it’s the right one": 'validate',
+      "I kinda know the field - but need more clarity and direction": 'clarity',
+      "I’m still exploring - open to discovering what fits me best": 'explore',
+      "Honestly, I feel stuck - not sure how to move forward": 'guidance'
     };
 
     // Map learning style answers to exact frontend dropdown values
     const learningStyleMapping = {
-      "I need regular 1:1 sessions for personalized guidance": 'oneOnOne',
-      "I prefer to take things forward on my own after the session": 'selfPaced',
-      "I need a structured course with a clear curriculum and action plan": 'structured',
-      "I prefer group discussions and peer learning": 'group',
-      "Others(Please specify)": 'other'
+      "I thrive with regular 1:1 sessions and personal guidance": 'oneOnOne',
+      "I’m good with a nudge - I prefer exploring on my own post-session": 'selfPaced',
+      "I need a structured path - give me a clear curriculum and plan": 'structured',
+      "I love learning with others - group discussions and shared ideas work best": 'group',
+      "Something else works better for me (Please specify)": 'other'
     };
 
     // Create assessment data with full context

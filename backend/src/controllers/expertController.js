@@ -581,6 +581,7 @@ export const getExpertDashboardData = async (req, res) => {
 
     const dashboardData = {
       // Basic Information
+      "expert_id": expertId,
       name: `${expert.firstName} ${expert.lastName}`,
       email: expert.email,
       phone: expert.phoneNo,

@@ -117,18 +117,18 @@ export const verifyEmailOtp = async (req, res) => {
     // If assessment data is provided, save it
     if (assessmentData) {
       const roleMapping = {
-        'Undergraduate Student': 'undergraduate',
-        'Working Professional': 'working',
-        'Postgraduate Student': 'postgraduate',
-        'High School Student (Class 11-12)': 'highschool',
-        'Secondary School Student (Class 9-10)': 'secondary'
+        'I am doing my graduation': 'undergraduate',
+        'I am working currently': 'working',
+        'I am pursuing masters': 'postgraduate',
+        'I am in Class 9th or 10th': 'highschool',
+        'I am in Class 11th or 12th': 'secondary'
       };
 
       const careerJourneyMapping = {
-        "I just need to validate the career path I'm on": 'validate',
-        "I need to get more clarity/depth regarding my career field": 'clarity',
-        "I need to explore more fields and decide": 'explore',
-        "I don't know how to move ahead": 'guidance'
+        "I’m on a path - just need to validate if it’s the right one": 'validate',
+        "I kinda know the field - but need more clarity and direction": 'clarity',
+        "I’m still exploring - open to discovering what fits me best": 'explore',
+        "Honestly, I feel stuck - not sure how to move forward": 'guidance'
       };
 
       const cleanedData = {

@@ -73,7 +73,7 @@ function ProgressSection() {
                 <path d="M19.4 15C19.1277 15.8031 19.0095 16.6495 19.0526 17.4984C19.0957 18.3472 19.2994 19.1772 19.65 19.95L19.7 20H4.3L4.35 19.95C4.70062 19.1772 4.90432 18.3472 4.94743 17.4984C4.99053 16.6495 4.87227 15.8031 4.6 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <span className="text-sm">Profile Completion</span>
+            <span className="text-sm">My IndieGuru Profile</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-white">{completionData.completedSteps}/{completionData.totalSteps}</span>

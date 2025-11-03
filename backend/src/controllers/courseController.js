@@ -306,8 +306,38 @@ export const getCombinedTestimonials = async (req, res) => {
       ])
     ]);
 
+      const dummyTestimonials = [
+    {
+      rating: 5,
+      content: "Heyy, The overall experience of the meeting was great and it helped me with lots of clarity  One thing which i liked the most was the tailor made approach of solving my query. Thankyou so much for the help!!",
+      heading: "Amazing Experience",
+      author: "Prabhansh",
+      type: "Session",
+      title: "Resume Building Workshop",
+      createdAt: new Date()
+    },
+    {
+      rating: 4,
+      content: "The discussion provided me with clear guidance on how to grow professionally and navigate a career change. I walked away with a deeper understanding of my strengths, the steps I need to take, and how to strategically approach my job search. It was an eye-opening experience that left me feeling more confident and empowered about my career path. Thank you soo much.",
+      heading: "Highly Recommend",
+      author: "Richa",
+      type: "Session",
+      title: "Resume Building Workshop",
+      createdAt: new Date()
+    },
+    {
+      rating: 4,
+      content: "I had a discussion with Mr. Vardhan Dhall Sir. I really enjoyed it and also appreciate the way he taught everything, it was an interactive session. He was very polite and understanding and a lot of things, queries, questions got solved today, even I got to know many more new things. Thanks to the Team of Indiegiru.....",
+      heading: "Great Learning",
+      author: "Purvi Kalra",
+      type: "Session",
+      title: "Resume Building Workshop",
+      createdAt: new Date()
+    }
+  ];
+
     // Combine all feedbacks
-    let allFeedbacks = [...courseFeedbacks, ...sessionFeedbacks, ...cohortFeedbacks];
+    let allFeedbacks = [...courseFeedbacks, ...sessionFeedbacks, ...cohortFeedbacks, ...dummyTestimonials];
     
     // Sort by rating (highest first) and limit to 30
     allFeedbacks = allFeedbacks

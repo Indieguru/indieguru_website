@@ -42,7 +42,7 @@ function ExpertProfile() {
     certifications: [],
     targetAudience: [],
     links: [],
-    profilePicture: "/placeholder-user.jpg",
+    profilePicture: "/placeholder-expert.png",
     completedSteps: 0,
     totalSteps: 7,
     status: "not requested"
@@ -119,7 +119,7 @@ function ExpertProfile() {
         expertise: expertData.expertise || [],
         targetAudience: expertData.targetAudience || [],
         links: expertData.links || [],
-        profilePicture: expertData.profilePicture || "/placeholder-user.jpg",
+        profilePicture: expertData.profilePicture || "/placeholder-expert.png",
         completedSteps: expertData.profileCompletion || 0,
         totalSteps: 7,
         education: expertData.education || [],
@@ -130,7 +130,7 @@ function ExpertProfile() {
       if (expertData) {
         setApprovalRequirements({
           basicInfo: !!expertData.name && !!expertData.email && !!expertData.title && !!expertData.phone,
-          profilePicture: expertData.profilePicture && expertData.profilePicture !== "/placeholder-user.jpg",
+          profilePicture: expertData.profilePicture && expertData.profilePicture !== "/placeholder-expert.png",
           links: Array.isArray(expertData.links) && expertData.links.length > 0,
           expertise: Array.isArray(expertData.expertise) && expertData.expertise.length > 0,
           targetAudience: Array.isArray(expertData.targetAudience) && expertData.targetAudience.length > 0,
@@ -144,7 +144,7 @@ function ExpertProfile() {
     if (profileData) {
       setApprovalRequirements({
         basicInfo: !!profileData.name && !!profileData.email && !!profileData.title && !!profileData.phone,
-        profilePicture: profileData.profilePicture && profileData.profilePicture !== "/placeholder-user.jpg",
+        profilePicture: profileData.profilePicture && profileData.profilePicture !== "/placeholder-expert.png",
         links: Array.isArray(profileData.links) && profileData.links.length > 0,
         expertise: Array.isArray(profileData.expertise) && profileData.expertise.length > 0,
         targetAudience: Array.isArray(profileData.targetAudience) && profileData.targetAudience.length > 0,
@@ -265,61 +265,74 @@ function ExpertProfile() {
     }));
   };
 
-  const renderBasicInfoField = (field, label, type = "text") => {
-    const isEditable = field === 'email' || field === 'phone' ? !profileData[field] : true;
-    
-    return (
-      <div className="relative">
-        <label className="block text-sm font-medium text-[#232636] mb-1">{label}</label>
-        {editingField === field ? (
-          <div>
-            <Input
-              type={type}
-              value={editValues[field]}
-              onChange={(e) => setEditValues(prev => ({ ...prev, [field]: e.target.value }))}
-              className="w-full border-[#d8d8d8]"
-              disabled={!isEditable}
-            />
-            {isEditable && (
-              <div className="flex gap-2 mt-2">
-                <Button
-                  onClick={() => handleSaveField(field)}
-                  className="bg-blue-800 p-2 rounded-md text-white hover:bg-[#143d65]"
-                >
-                  Save
-                </Button>
-                <Button
-                  onClick={() => {
-                    setEditingField(null);
-                    setEditValues(prev => ({ ...prev, [field]: profileData[field] }));
-                  }}
-                  className="bg-gray-300 p-2 rounded-md text-black hover:bg-gray-400"
-                >
-                  Cancel
-                </Button>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="relative">
-            <Input
-              value={profileData[field] || ""}
-              readOnly
-              className="w-full border-[#d8d8d8] bg-[#f9fbff] pr-10"
-            />
-            {isEditable && (
+const renderBasicInfoField = (field, label, type = "text", placeholder = "") => {
+  const isEditable =
+    field === "email" || field === "phone" ? !profileData[field] : true;
+
+  return (
+    <div className="relative">
+      <label className="block text-sm font-medium text-[#232636] mb-1">
+        {label}
+      </label>
+
+      {editingField === field ? (
+        // ✏️ Edit mode
+        <div>
+          <Input
+            type={type}
+            value={editValues[field]}
+            placeholder={placeholder}
+            onChange={(e) =>
+              setEditValues((prev) => ({ ...prev, [field]: e.target.value }))
+            }
+            className="w-full border-[#d8d8d8]"
+            disabled={!isEditable}
+          />
+          {isEditable && (
+            <div className="flex gap-2 mt-2">
               <Button
-                onClick={() => handleEditField(field)}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[#003265] bg-transparent hover:bg-[#f5f5f5] p-1"
+                onClick={() => handleSaveField(field)}
+                className="bg-blue-800 p-2 rounded-md text-white hover:bg-[#143d65]"
               >
-                <Pencil size={16} />
+                Save
               </Button>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
+              <Button
+                onClick={() => {
+                  setEditingField(null);
+                  setEditValues((prev) => ({
+                    ...prev,
+                    [field]: profileData[field],
+                  }));
+                }}
+                className="bg-gray-300 p-2 rounded-md text-black hover:bg-gray-400"
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
+        </div>
+      ) : (
+        // 👁️ View mode
+        <div className="relative">
+          <Input
+            value={profileData[field] || ""}
+            readOnly
+            placeholder={placeholder}
+            className="w-full border-[#d8d8d8] bg-[#f9fbff] pr-10"
+          />
+          {isEditable && (
+            <Button
+              onClick={() => handleEditField(field)}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[#003265] bg-transparent hover:bg-[#f5f5f5] p-1"
+            >
+              <Pencil size={16} />
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
   const handleAddEducation = async () => {
     if (!newEducation.degree || !newEducation.institution || !newEducation.field || !newEducation.startYear || !newEducation.endYear) {
@@ -578,7 +591,7 @@ function ExpertProfile() {
               <AlertCircle size={20} />
             )}
             <span className="font-medium">
-              Status: {profileData.status === "not requested" 
+              Onboarding Status: {profileData.status === "not requested" 
                 ? "Not Requested" 
                 : profileData.status.charAt(0).toUpperCase() + profileData.status.slice(1)}
             </span>
@@ -591,7 +604,7 @@ function ExpertProfile() {
         </div>
 
         <Card id="basic-info" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <h2 className="text-2xl font-semibold text-[#232636] mb-6">Basic Information</h2>
+          <h2 className="text-2xl font-semibold text-[#232636] mb-6">My Profile</h2>
 
           <div className="flex flex-col md:flex-row gap-6">
             <div className="md:w-1/4 flex flex-col items-center">
@@ -612,17 +625,17 @@ function ExpertProfile() {
 
             <div className="md:w-3/4">
               <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {renderBasicInfoField('name', 'Name')}
-                {renderBasicInfoField('title', 'Title')}
-                {renderBasicInfoField('email', 'Email', 'email')}
-                {renderBasicInfoField('phone', 'Phone', 'tel')}
+                {renderBasicInfoField('name', 'Full Name', 'text', 'Enter your full name')}
+                {renderBasicInfoField('title', 'Profile Headline', 'text', 'eg- VP at ABC Company | Data enthusiast | Coach @abc')}
+                {renderBasicInfoField('email', 'Email', 'email', 'Enter your email address')}
+                {renderBasicInfoField('phone', 'Contact Number', 'tel', 'Enter your phone number')}
               </form>
             </div>
           </div>
         </Card>
 
         <Card id="links" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <h2 className="text-2xl font-semibold text-[#232636] mb-4">Social & Professional Links</h2>
+          <h2 className="text-2xl font-semibold text-[#232636] mb-4">My Social & Professional Links</h2>
           <div className="space-y-4">
             {profileData.links?.length > 0 ? (
               <div className="space-y-2 mb-4">
@@ -650,7 +663,7 @@ function ExpertProfile() {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 italic mb-4">No links added yet. Add your social media profiles, personal website, or other professional links.</p>
+              <p className="text-gray-500 italic mb-4">No links added yet. Share any links where we can explore your work or achievements (LinkedIn/ Resume/Portfolio ,etc)</p>
             )}
 
             {isEditingLink ? (
@@ -699,6 +712,7 @@ function ExpertProfile() {
 
         <Card id="expertise" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
           <h2 className="text-2xl font-semibold text-[#232636] mb-4">My Expertise</h2>
+          <p className="text-gray-500 italic mb-4">List all topics or domains where you offer guidance, mentorship, or coaching</p>
           <div className="space-y-4">
             <div className="flex flex-wrap gap-3 mb-4">
               {profileData.expertise?.map((exp, index) => (
@@ -819,7 +833,7 @@ function ExpertProfile() {
         </Card>
 
         <Card id="target-audience" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <h2 className="text-2xl font-semibold text-[#232636] mb-4">Target Audience</h2>
+          <h2 className="text-2xl font-semibold text-[#232636] mb-4">My Audience</h2>
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2 mb-4">
               {profileData.targetAudience?.map((audience, index) => (
@@ -861,11 +875,11 @@ function ExpertProfile() {
                 >
                   <option value="">+ Add Target Audience</option>
                   {[
-                    'High School Student (Class 11-12)',
-                    'Secondary School Student (Class 9-10)',
-                    'Undergraduate Student',
-                    'Postgraduate Student', 
-                    'Working Professional'
+                    'I am in Class 9th or 10th',
+                    'I am in Class 11th or 12th',
+                    'I am doing my graduation',
+                    'I am pursuing masters', 
+                    'I am working currently'
                   ].filter(audience => !profileData.targetAudience?.includes(audience))
                   .map((audience, index) => (
                     <option key={`target-audience-option-${index}-${audience}`} value={audience}>
@@ -902,7 +916,7 @@ function ExpertProfile() {
         </Card>
 
         <Card id="education" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <h2 className="text-2xl font-semibold text-[#232636] mb-4">Education</h2>
+          <h2 className="text-2xl font-semibold text-[#232636] mb-4">My Academic Background</h2>
           <div className="space-y-4">
             {profileData.education?.map((edu, index) => (
               <div key={index} className="bg-gray-50 p-4 rounded-lg">
@@ -979,7 +993,8 @@ function ExpertProfile() {
         </Card>
 
         <Card id="experience" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <h2 className="text-2xl font-semibold text-[#232636] mb-4">Experience</h2>
+          <h2 className="text-2xl font-semibold text-[#232636] mb-4">My Experience</h2>
+          <p className="text-gray-500 italic mb-4">Full time roles/ Part time & freelance projects/ Volunteering role/ Internships</p>
           <div className="space-y-4">
             {profileData.experience?.map((exp) => (
               <div key={`exp-${exp.company}-${exp.title}`} className="bg-gray-50 p-4 rounded-lg">
@@ -1047,7 +1062,7 @@ function ExpertProfile() {
         </Card>
 
         <Card id="certifications" className="p-6 mb-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <h2 className="text-2xl font-semibold text-[#232636] mb-4">Certifications</h2>
+          <h2 className="text-2xl font-semibold text-[#232636] mb-4">My Licensces and Certifications</h2>
           <div className="space-y-4">
             {profileData.certifications?.map((cert, index) => (
               <div key={index} className="bg-gray-50 p-4 rounded-lg">
@@ -1269,7 +1284,7 @@ function ExpertProfile() {
       <ProfilePictureModal
         isOpen={isProfilePictureModalOpen}
         onClose={() => setIsProfilePictureModalOpen(false)}
-        currentPicture={expertData?.profilePicture || "/placeholder-user.jpg"}
+        currentPicture={expertData?.profilePicture || "/placeholder-expert.png"}
         onSave={handleUpdateProfilePicture}
       />
 

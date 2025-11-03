@@ -288,7 +288,7 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
                   <div className="flex justify-between items-center mb-6">
                     <div>
                       <h2 className="text-2xl font-bold text-gray-900">
-                        {step === 1 ? "Choose Your Industry" : "Select an Expert"}
+                        {step === 1 ? "Pick an Industry to Match with the Right Guru" : "Select an Expert"}
                       </h2>
                       {step === 2 && (
                         <p className="text-blue-700 mt-1 font-medium">From {selectedIndustry.name}</p>

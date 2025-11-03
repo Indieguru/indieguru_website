@@ -69,7 +69,7 @@ const ExpertSchema = new mongoose.Schema({
   },
   profilePicture: {
     type: String,
-    default: '/placeholder-user.jpg',
+    default: '/placeholder-expert.png',
     set: function(value) {
       // If value is an object with url property, extract the url
       if (typeof value === 'object' && value !== null && value.url) {

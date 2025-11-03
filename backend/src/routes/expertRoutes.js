@@ -449,14 +449,14 @@ router.get('/:expertId', async (req, res) => {
   try {
     const { expertId } = req.params;
     const expert = await Expert.findById(expertId)
-      .select('firstName lastName email title expertise education experience certifications sessionPricing phoneNo outstandingAmount status rejectionReason createdAt'); // Added more fields
+      .select('firstName lastName email title expertise education experience certifications sessionPricing phoneNo outstandingAmount status rejectionReason createdAt profilePicture'); // Added more fields
     
     if (!expert) {
       return res.status(404).json({ message: "Expert not found" });
     }
-    
     res.status(200).json({
       id: expert._id,
+      profilePicture: expert.profilePicture,
       name: `${expert.firstName} ${expert.lastName}`,
       email: expert.email,
       phoneNo: expert.phoneNo,

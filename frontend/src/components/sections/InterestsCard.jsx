@@ -17,10 +17,10 @@ function InterestsCard() {
               <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2"/>
             </svg>
           </span>
-          My Interests
+          My Interest Map
         </h2>
         <p className="text-xs text-gray-600 mb-4">
-          Track your interests to get personalized recommendations for courses, webinars, and expert sessions tailored to your learning journey.
+          Pick your interests and we’ll recommend the right mix of Gurus, learning content, and experiences that align with your goals and pace
         </p>
         <div className="flex flex-wrap gap-2 mb-4">
           {user?.interests?.length > 0 ? (

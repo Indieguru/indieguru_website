@@ -19,7 +19,7 @@ function GoalsCard() {
           My Goals
         </h2>
         <p className="text-xs text-gray-600 mb-4">
-          Set and track your learning goals to stay motivated and measure your progress over time.
+          Set and track your learning goals to stay motivated and measure your progress over time
         </p>
         <div className="space-y-3 mb-4">
           {user?.goals?.length > 0 ? (

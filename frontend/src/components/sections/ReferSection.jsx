@@ -20,11 +20,10 @@ function ReferSection() {
       
       <div className="md:w-1/2 z-10">
         <h2 className="text-4xl font-bold text-white mb-3 leading-tight">
-          Refer IndieGuru to your peer
-          <br />& win amazing goodies
+          ⁠Your Friends Deserve a Guru too !!
         </h2>
         <p className="text-white text-opacity-90 max-w-md">
-          For every successful referral, earn 50 coins and unlock exclusive rewards!
+          Refer a peer and get exciting goodies when they join the movement
         </p>
       </div>
       <div className="md:w-1/2 flex md:justify-end gap-12 items-center z-10">

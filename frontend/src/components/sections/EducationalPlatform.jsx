@@ -21,7 +21,7 @@ export default function EducationalPlatform() {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <div className="text-center">
-            <h1 className="text-[#003265] text-5xl font-bold mb-4 tracking-tight">Upcoming sessions</h1>
+            <h1 className="text-[#003265] text-5xl font-bold mb-4 tracking-tight">Indie Pathshala</h1>
             {/* <div className="w-48 h-1.5 bg-gradient-to-r from-blue-800 to-[#00b6c4] mx-auto rounded-full shadow-sm"></div> */}
           </div>
         </motion.div>

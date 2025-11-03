@@ -74,26 +74,26 @@ const AssessmentPage = () => {
   };
 
   const roleOptions = [
-    { value: 'undergraduate', label: 'Undergraduate Student' },
-    { value: 'working', label: 'Working Professional' },
-    { value: 'postgraduate', label: 'Postgraduate Student' },
-    { value: 'highSchool', label: 'High School Student (Class 11-12)' },
-    { value: 'secondary', label: 'Secondary School Student (Class 9-10)' }
+    { value: 'undergraduate', label: 'I am doing my graduation' },
+    { value: 'working', label: 'I am working currently' },
+    { value: 'postgraduate', label: 'I am pursuing masters' },
+    { value: 'highSchool', label: 'I am in Class 9th or 10th' },
+    { value: 'secondary', label: 'I am in Class 11th or 12th' }
   ];
 
   const careerJourneyOptions = [
     { value: 'validate', label: 'I just need to validate the career path I\'m on' },
-    { value: 'clarity', label: 'I need to get more clarity/depth regarding my career field' },
-    { value: 'explore', label: 'I need to explore more fields and decide' },
+    { value: 'clarity', label: 'I kinda know the field - but need more clarity and direction' },
+    { value: 'explore', label: 'I’m still exploring - open to discovering what fits me best' },
     { value: 'unsure', label: 'I don\'t know how to move ahead' }
   ];
 
   const learningStyleOptions = [
-    { value: 'oneOnOne', label: 'I need regular 1:1 sessions for personalized guidance' },
+    { value: 'oneOnOne', label: 'I thrive with regular 1:1 sessions and personal guidance' },
     { value: 'selfPaced', label: 'I prefer to take things forward on my own, using the material after the session' },
-    { value: 'structured', label: 'I need a structured course with a clear curriculum and action plan' },
-    { value: 'group', label: 'I prefer group discussions and peer learning' },
-    { value: 'other', label: 'Others(Please specify)' }
+    { value: 'structured', label: 'I need a structured path - give me a clear curriculum and plan' },
+    { value: 'group', label: 'I love learning with others - group discussions and shared ideas work best' },
+    { value: 'other', label: 'Something else works better for me (Please specify)' }
   ];
 
   const renderPersonalDetailsInputs = () => (

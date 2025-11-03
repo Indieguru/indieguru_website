@@ -193,7 +193,7 @@ function Profile() {
     gender: "",
     skills: [],
     goals: [],
-    profilePicture: "/imagecopy.png",
+    profilePicture: "/placeholder-user.png",
     completedSteps: 0,
     totalSteps: 8,
   })
@@ -211,7 +211,7 @@ function Profile() {
       gender: user?.gender || "",
       skills: user?.interests || [],
       goals: user?.goals || [],
-      profilePicture: "/imagecopy.png",
+      profilePicture: "/placeholder-user.png",
       completedSteps: 0,
       totalSteps: 8,
     })
@@ -723,14 +723,14 @@ function Profile() {
                 <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </span>
-            Basic Information
+            My Profile
           </h2>
 
           <div className="flex flex-col md:flex-row gap-6">
             <div className="md:w-1/4 flex flex-col items-center">
               <div className="w-40 h-40 rounded-full overflow-hidden mb-4 border-2 border-blue-300 p-1 bg-white cursor-pointer hover:opacity-90 transition-opacity" onClick={() => setIsProfilePictureModalOpen(true)}>
                 <img
-                  src={user?.profilePicture || "/imagecopy.png"}
+                  src={user?.profilePicture || "/placeholder-user.png"}
                   alt="Profile"
                   className="w-full h-full object-cover rounded-full"
                 />
@@ -778,7 +778,7 @@ function Profile() {
                     <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </span>
-                My Skills
+                My Interest Map
               </h2>
 
               <div className="flex flex-wrap gap-3 mb-5 items-center">
@@ -800,7 +800,7 @@ function Profile() {
                     className="px-5 py-2.5 border border-blue-300 bg-white text-blue-700 rounded-lg text-sm font-medium flex items-center gap-1.5 mt-3"
                   >
                     <Plus size={16} />
-                    Select Skill
+                    Choose Your Interests
                   </Button>
                   {showSkillDropdown && (
                     <div className="absolute mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
@@ -852,7 +852,7 @@ function Profile() {
                     <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2v16z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </span>
-                My Goals
+                My Focus Areas
               </h2>
 
               <div className="flex flex-wrap gap-3 mb-5">
@@ -874,7 +874,7 @@ function Profile() {
                     className="px-5 py-2.5 border border-green-300 bg-white text-[#00b6c4] rounded-lg text-sm font-medium flex items-center gap-1.5 h-10"
                   >
                     <Plus size={16} />
-                    Select Goal
+                    Select Focus Areas
                   </Button>
                   {showGoalDropdown && (
                     <div className="absolute mt-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
@@ -1073,25 +1073,25 @@ function Profile() {
                 <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" strokeWidth="2"/>
               </svg>
             </span>
-            Career Journey
+            My Learning Profile
           </h2>
 
           <div className="space-y-6">
             {/* Current Role Selection */}
             <div className="space-y-4">
-              <label className="block text-lg font-medium text-gray-900">Tell us a bit about yourself:</label>
-              <p className="text-sm text-gray-500">Helps us understand your current role to tailor our guidance.</p>
+              <label className="block text-lg font-medium text-gray-900">Tell us where you are -</label>
+              <p className="text-sm text-gray-500">Help us know if you are a Student or a Working Professional</p>
               <select 
                 value={careerFlowData.currentRole}
                 onChange={(e) => setCareerFlowData(prev => ({ ...prev, currentRole: e.target.value }))}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400"
               >
                 <option value="">Select your current role</option>
-                <option value="undergraduate">Undergraduate Student</option>
-                <option value="working">Working Professional</option>
-                <option value="postgraduate">Postgraduate Student</option>
-                <option value="highschool">High School Student (Class 11-12)</option>
-                <option value="secondary">Secondary School Student (Class 9-10)</option>
+                <option value="undergraduate">I am doing my graduation</option>
+                <option value="working">I am working currently</option>
+                <option value="postgraduate">I am pursuing masters</option>
+                <option value="highschool">I am in Class 11th or 12th</option>
+                <option value="secondary">I am in Class 9th or 10th</option>
               </select>
             </div>
 
@@ -1141,36 +1141,36 @@ function Profile() {
 
             {/* Career Journey Question */}
             <div className="space-y-4">
-              <label className="block text-lg font-medium text-gray-900">What defines you the best when it comes to your career journey?</label>
-              <p className="text-sm text-gray-500">Choose the option that resonates most with you.</p>
+              <label className="block text-lg font-medium text-gray-900">What best describes where you are in your journey right now?</label>
+              <p className="text-sm text-gray-500">Choose the one that feels most like you</p>
               <select
                 value={careerFlowData.careerJourney}
                 onChange={(e) => setCareerFlowData(prev => ({ ...prev, careerJourney: e.target.value }))}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400"
               >
                 <option value="">Select your career journey</option>
-                <option value="validate">I just need to validate the career path I'm on</option>
-                <option value="clarity">I need to get more clarity/depth regarding my career field</option>
-                <option value="explore">I need to explore more fields and decide</option>
-                <option value="guidance">I don't know how to move ahead</option>
+                <option value="validate">I’m on a path - just need to validate if it’s the right one</option>
+                <option value="clarity">I kinda know the field - but need more clarity and direction</option>
+                <option value="explore">I’m still exploring - open to discovering what fits me best</option>
+                <option value="guidance">Honestly, I feel stuck - not sure how to move forward</option>
               </select>
             </div>
 
             {/* Learning Style Question */}
             <div className="space-y-4">
-              <label className="block text-lg font-medium text-gray-900">My learning style is correctly described as -</label>
-              <p className="text-sm text-gray-500">Select the option that best fits how you learn.</p>
+              <label className="block text-lg font-medium text-gray-900">How do you learn best?</label>
+              <p className="text-sm text-gray-500">Choose what feels most “you” — no one-size-fits-all here</p>
               <select
                 value={careerFlowData.learningStyle}
                 onChange={(e) => setCareerFlowData(prev => ({ ...prev, learningStyle: e.target.value }))}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400"
               >
                 <option value="">Select your learning style</option>
-                <option value="oneOnOne">I need regular 1:1 sessions for personalized guidance</option>
-                <option value="selfPaced">I prefer to take things forward on my own after the session</option>
-                <option value="structured">I need a structured course with a clear curriculum and action plan</option>
-                <option value="group">I prefer group discussions and peer learning</option>
-                <option value="other">Others (Please specify)</option>
+                <option value="oneOnOne">I thrive with regular 1:1 sessions and personal guidance</option>
+                <option value="selfPaced">I’m good with a nudge - I prefer exploring on my own post-session</option>
+                <option value="structured">I need a structured path - give me a clear curriculum and plan</option>
+                <option value="group">I love learning with others - group discussions and shared ideas work best</option>
+                <option value="other">Something else works better for me</option>
               </select>
 
               {careerFlowData.learningStyle === 'other' && (
@@ -1188,7 +1188,7 @@ function Profile() {
               onClick={handleCareerFlowSubmit}
               className="w-full bg-indigo-900 text-white py-3 rounded-lg hover:bg-indigo-800 transition-colors"
             >
-              Save Career Preferences
+              Save Preferences
             </Button>
           </div>
         </Card>
@@ -1205,7 +1205,7 @@ function Profile() {
       <ProfilePictureModal
         isOpen={isProfilePictureModalOpen}
         onClose={() => setIsProfilePictureModalOpen(false)}
-        currentPicture={user?.profilePicture || "/imagecopy.png"}
+        currentPicture={user?.profilePicture || "/placeholder-user.png"}
         onSave={handleUpdateProfilePicture}
       />
 

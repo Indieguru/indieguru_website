@@ -503,7 +503,7 @@ const CategoryBrowser = () => {
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          Browse by Expertise
+          Browse Gurus
         </motion.h2>
         <motion.div 
           className="w-48 h-1 bg-blue-800 mx-auto"

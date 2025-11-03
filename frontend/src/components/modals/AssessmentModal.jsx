@@ -91,10 +91,10 @@ const AssessmentModal = ({ isOpen, onClose }) => {
     try {
       // Map the career journey values to match database enum values
       const careerJourneyMapping = {
-        "I just need to validate the career path I'm on": 'validate',
-        "I need to get more clarity/depth regarding my career field": 'clarity',
-        "I need to explore more fields and decide": 'explore',
-        "I don't know how to move ahead": 'guidance'
+        "I’m on a path - just need to validate if it’s the right one": 'validate',
+        "I kinda know the field - but need more clarity and direction": 'clarity',
+        "I’m still exploring - open to discovering what fits me best": 'explore',
+        "Honestly, I feel stuck - not sure how to move forward": 'guidance'
       };
 
       const cleanedData = {
@@ -138,14 +138,15 @@ const AssessmentModal = ({ isOpen, onClose }) => {
     handleSendOtp();
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = (assignedRole) => {
+    const role = assignedRole.role;
     if (step === 1) {
-      if (formData.role === 'High School Student (Class 11-12)') {
+      if (role === 'I am in Class 11th or 12th ') {
         if (!formData.stream) {
           return;
         }
         setStep(3);
-      } else if (formData.role === 'Secondary School Student (Class 9-10)') {
+      } else if (role === 'I am in Class 9th or 10th') {
         setStep(3);
       } else {
         setStep(2);
@@ -171,7 +172,8 @@ const AssessmentModal = ({ isOpen, onClose }) => {
   };
 
   const handlePrevStep = () => {
-    setStep(prev => prev - 1);
+    if(step == 3 && formData.role === 'I am in Class 9th or 10th') setStep(prev => prev - 2);
+    else setStep(prev => prev - 1);
   };
 
   const handleExpertSelect = (expert) => {
@@ -189,10 +191,10 @@ const AssessmentModal = ({ isOpen, onClose }) => {
       case 1:
         return !!formData.role;
       case 2:
-        if (formData.role === 'High School Student (Class 11-12)') {
+        if (formData.role === 'I am in Class 11th or 12th ') {
           return !!formData.stream;
         }
-        if (['Undergraduate Student', 'Postgraduate Student'].includes(formData.role)) {
+        if (['I am doing my graduation', 'I am pursuing masters'].includes(formData.role)) {
           return !!formData.degree;
         }
         return true;
@@ -216,21 +218,22 @@ const AssessmentModal = ({ isOpen, onClose }) => {
       case 1:
         return (
           <div className="space-y-6">
-            <h3 className="text-2xl font-semibold text-gray-900 mb-6">Tell us a bit about yourself</h3>
-            <p className="text-gray-600 text-sm mb-6">Help us understand your background.</p>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-6">Tell us where you are -</h3>
+            <p className="text-gray-600 text-sm mb-6">Hey there! It’s time to meet your Guru match - Let’s get started!</p>
             <div className="space-y-4">
               {[
-                { role: 'Undergraduate Student' },
-                { role: 'Working Professional' },
-                { role: 'Postgraduate Student' },
-                { role: 'High School Student (Class 11-12)' },
-                { role: 'Secondary School Student (Class 9-10)' }
+                { role: 'I am doing my graduation' },
+                { role: 'I am working currently' },
+                { role: 'I am pursuing masters' },
+                { role: 'I am in Class 11th or 12th' },
+                { role: 'I am in Class 9th or 10th' }
               ].map(({ role }) => (
                 <button
                   key={role}
                   onClick={() => {
-                    setFormData(prev => ({ ...prev, role }));
-                    handleNextStep();
+                  const updated = { ...formData, role };
+                  setFormData(updated);
+                  handleNextStep(updated);
                   }}
                   className="w-full p-4 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-900 text-left transition-all duration-300 border border-gray-200 hover:border-gray-300"
                 >
@@ -243,44 +246,48 @@ const AssessmentModal = ({ isOpen, onClose }) => {
 
       case 2:
         switch (formData.role) {
-          case 'Undergraduate Student':
-          case 'Postgraduate Student': {
+          case 'I am doing my graduation':
+          case 'I am pursuing masters': {
+            const placeholderText =
+            formData.role === 'I am doing my graduation'
+              ? 'Enter your degree (e.g., B.Tech, B.Sc, BCA)'
+              : 'Enter your degree (e.g., M.Tech, MBA, MSc)';
             return (
               <div className="space-y-6">
-                <h3 className="text-2xl font-semibold text-gray-900 mb-6">What's your degree?</h3>
-                <p className="text-gray-600 text-sm mb-6">This helps us match you with relevant mentors.</p>
+                <h3 className="text-2xl font-semibold text-gray-900 mb-6">Awesome! What degree or course are you pursuing?</h3>
+                <p className="text-gray-600 text-sm mb-6">This helps us match you with relevant Gurus</p>
                 <input
                   type="text"
                   name="degree"
                   value={formData.degree}
                   onChange={handleInputChange}
-                  placeholder="Enter your degree (e.g., B.Tech, MBA)"
+                  placeholder= {placeholderText}
                   className="w-full p-4 rounded-xl glass-input text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all duration-300"
                 />
               </div>
             );
           }
 
-          case 'Working Professional':
+          case 'I am working currently':
             return (
               <div className="space-y-6">
                 <h3 className="text-2xl font-semibold text-gray-900 mb-6">Your Professional Profile</h3>
-                <p className="text-gray-600 text-sm mb-6">Share your LinkedIn profile to help us understand your professional journey better.</p>
+                <p className="text-gray-600 text-sm mb-6">Share your LinkedIn profile / Resume Link / Current Role  to help us understand your professional journey better</p>
                 <input
                   type="url"
                   name="linkedinUrl"
                   value={formData.linkedinUrl}
                   onChange={handleInputChange}
-                  placeholder="LinkedIn Profile URL (Optional)"
+                  placeholder="LinkedIn Profile / Resume Link / Current Role"
                   className="w-full p-4 rounded-xl glass-input text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all duration-300"
                 />
               </div>
             );
 
-          case 'High School Student (Class 11-12)':
+          case 'I am in Class 11th or 12th':
             return (
               <div className="space-y-6">
-                <h3 className="text-2xl font-semibold text-gray-900 mb-6">What's your stream?</h3>
+                <h3 className="text-2xl font-semibold text-gray-900 mb-6">Awesome! Which stream have you taken?</h3>
                 <p className="text-gray-600 text-sm mb-6">Select your current stream of study.</p>
                 <div className="space-y-4">
                   {['Science (PCM)', 'Science (PCB)', 'Commerce', 'Arts/Humanities'].map((stream) => (
@@ -414,12 +421,13 @@ const AssessmentModal = ({ isOpen, onClose }) => {
               </div>
 
               <div className="space-y-4">
-                <label className="block text-gray-900 mb-2">What defines you the best when it comes to your career journey?</label>
+                <label className="block text-gray-900 mb-2"> What best describes where you are in your journey right now?</label>
+                <p className="text-gray-600 text-sm mb-6">Choose the one that feels most like you</p>
                 {[
-                  "I just need to validate the career path I'm on",
-                  "I need to get more clarity/depth regarding my career field",
-                  "I need to explore more fields and decide",
-                  "I don't know how to move ahead"
+                  "I’m on a path - just need to validate if it’s the right one",
+                  "I kinda know the field - but need more clarity and direction",
+                  "I’m still exploring - open to discovering what fits me best",
+                  "Honestly, I feel stuck - not sure how to move forward"
                 ].map((option) => (
                   <button
                     key={option}
@@ -440,17 +448,17 @@ const AssessmentModal = ({ isOpen, onClose }) => {
 
       case 5: {
         const learningStyleOptions = [
-          { value: 'oneOnOne', label: 'I need regular 1:1 sessions for personalized guidance' },
-          { value: 'selfPaced', label: 'I prefer to take things forward on my own after the session' },
-          { value: 'structured', label: 'I need a structured course with a clear curriculum and action plan' },
-          { value: 'group', label: 'I prefer group discussions and peer learning' },
-          { value: 'other', label: 'Others(Please specify)' }
+          { value: 'oneOnOne', label: 'I thrive with regular 1:1 sessions and personal guidance' },
+          { value: 'selfPaced', label: 'I’m good with a nudge - I prefer exploring on my own post-session' },
+          { value: 'structured', label: 'I need a structured path - give me a clear curriculum and plan' },
+          { value: 'group', label: 'I love learning with others - group discussions and shared ideas work best' },
+          { value: 'other', label: 'Something else works better for me (Please specify)' }
         ];
 
         return (
           <div className="space-y-6">
-            <h3 className="text-2xl font-semibold text-gray-900 mb-6">My learning style is correctly described as -</h3>
-            <p className="text-gray-600 text-sm mb-6">Select the option that best fits how you learn.</p>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-6">How do you learn best</h3>
+            <p className="text-gray-600 text-sm mb-6">Choose what feels most “you” — no one-size-fits-all here</p>
             <div className="space-y-4">
               {learningStyleOptions.map((option) => (
                 <button

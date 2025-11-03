@@ -275,7 +275,7 @@ const BookingPage = () => {
                 <div className="relative">
                   <div className="absolute inset-0 bg-blue-100 rounded-full blur-md opacity-50"></div>
                   <img
-                    src={expert?.avatar || "/placeholder-user.jpg"}
+                    src={expert?.profilePicture || "/placeholder-expert.png"}
                     alt={expert?.name || "Expert"}
                     className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-white shadow-md"
                   />

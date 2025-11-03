@@ -11,9 +11,9 @@ function ReferralModal({ isOpen, onClose }) {
   
   // Generate a unique referral link using actual user ID or fallback
   const userId = user?._id || user?.id || "user123";
-  const referralLink = `https://indie-guru-website.vercel.app/signup?ref=${userId}`;
+  const referralLink = `https://myindieguru.com/`;
   
-  const shareText = `🚀 Join me on IndieGuru - the ultimate platform to learn from industry experts! Get personalized mentoring, exclusive courses, and grow your career. Use my referral link and let's learn together! 🎓✨`;
+  const shareText = `Join me on IndieGuru - the ultimate platform to learn from industry experts! Get personalized mentoring, exclusive courses, and grow your career. Use my referral link and let's learn together! 🎓✨`;
 
   const handleCopyLink = async () => {
     try {

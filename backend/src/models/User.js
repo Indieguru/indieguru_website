@@ -11,7 +11,7 @@ const UserSchema = new mongoose.Schema({
   },
   profilePicture: {
     type: String,
-    default: '/placeholder-user.jpg',
+    default: '/placeholder-user.png',
     // Add a setter to handle object values
     set: function(value) {
       // If value is an object with url property, extract the url

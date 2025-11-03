@@ -144,7 +144,7 @@ const TestimonialsSection = () => {
     <section className="py-16 relative overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-[#003265] mb-2">Testimonials</h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-[#003265] mb-2">Indie Tales</h2>
           <div className="w-48 h-1 bg-blue-800 mx-auto"></div>
         </div>
   
