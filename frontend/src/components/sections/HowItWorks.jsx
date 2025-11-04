@@ -178,13 +178,21 @@ const HowItWorks = () => {
             className="lg:col-span-5"
           >
             <div className="sticky top-24 hover:scale-105 transition-transform duration-500">
-              <img 
-                src="/Desktop.png"
-                alt="Desktop preview"
-                className="w-full rounded-lg shadow-xl hover:shadow-2xl transition-shadow duration-300"
-              />
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={currentStep}
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 1.05, y: -20 }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  src={`/D${currentStep}.png`}
+                  alt={`Step ${currentStep} preview`}
+                  className="w-full rounded-lg shadow-xl hover:shadow-2xl transition-shadow duration-300"
+                />
+              </AnimatePresence>
             </div>
           </motion.div>
+
 
           {/* Center - Step Path */}
           <div className="lg:col-span-2 hidden lg:flex flex-col items-center justify-center sticky top-24 h-[calc(80vh-12rem)]">

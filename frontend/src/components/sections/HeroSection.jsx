@@ -123,7 +123,7 @@ const HeroSection = () => {
                   : "-translate-x-full opacity-0"
               }`}
             >
-              {/* Reviews Section */}
+              {/* Reviews Section
               <div className="inline-flex items-center py-2 px-4 bg-white/80 backdrop-blur-sm rounded-full shadow-md">
                 <div className="flex -space-x-4">
                   {[
@@ -156,7 +156,7 @@ const HeroSection = () => {
                     (10k+ Reviews)
                   </span>
                 </div>
-              </div>
+              </div> */}
 
               {/* Main Heading - Typewriter (no cursor now) */}
               <div className="min-h-24">
