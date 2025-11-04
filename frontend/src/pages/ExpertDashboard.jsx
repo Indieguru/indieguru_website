@@ -1075,9 +1075,6 @@ function ExpertDashboard() {
                     <div className="w-full h-2 bg-gray-200 rounded-full mb-2">
                       <div className="h-2 bg-blue-900 rounded-full" style={{ width: `${(ratings.overall / 5) * 100}%` }}></div>
                     </div>
-                    <Link to="/analytics/ratings" className="text-xs text-blue-800 hover:text-yellow-800 font-medium transition-colors duration-300">
-                      View detailed ratings
-                    </Link>
                   </div>
                 </>
               )}
