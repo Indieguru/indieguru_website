@@ -138,7 +138,7 @@ router.post('/experts/:expertId/approve', async (req, res) => {
                                 </div>
 
                                 <div style="margin:20px 0;">
-                                    <a href="${process.env.FRONTEND_URL}/expert/dashboard" 
+                                    <a href="${process.env.FRONTEND_URL}/expert" 
                                        style="display:inline-block;background-color:#4F46E5;color:white;padding:12px 30px;text-decoration:none;border-radius:5px;font-weight:bold;">
                                         Go to Dashboard
                                     </a>
@@ -156,7 +156,9 @@ router.post('/experts/:expertId/approve', async (req, res) => {
                 `
             });
         }
-
+        console.log(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+        console.log(process.env.FRONTEND_URL);
+        console.log(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
         res.status(200).json({ message: 'Expert approved successfully', expert });
     } catch (error) {
         console.error('Error approving expert:', error);
@@ -320,7 +322,7 @@ router.post('/courses/:courseId/approve', async (req, res) => {
                                 </div>
 
                                 <div style="margin:20px 0;">
-                                    <a href="${process.env.FRONTEND_URL}/expert/dashboard" 
+                                    <a href="${process.env.FRONTEND_URL}/expert" 
                                        style="display:inline-block;background-color:#4F46E5;color:white;padding:12px 30px;text-decoration:none;border-radius:5px;font-weight:bold;">
                                         View Dashboard
                                     </a>
@@ -414,7 +416,7 @@ router.post('/cohorts/:cohortId/approve', async (req, res) => {
                                 </div>
 
                                 <div style="margin:20px 0;">
-                                    <a href="${process.env.FRONTEND_URL}/expert/dashboard" 
+                                    <a href="${process.env.FRONTEND_URL}/expert" 
                                        style="display:inline-block;background-color:#4F46E5;color:white;padding:12px 30px;text-decoration:none;border-radius:5px;font-weight:bold;">
                                         Manage Cohort
                                     </a>
@@ -491,7 +493,7 @@ router.post('/courses/:courseId/reject', async (req, res) => {
                                 </div>
 
                                 <div style="margin:20px 0;">
-                                    <a href="${process.env.FRONTEND_URL}/expert/dashboard" 
+                                    <a href="${process.env.FRONTEND_URL}/expert" 
                                        style="display:inline-block;background-color:#4F46E5;color:white;padding:12px 30px;text-decoration:none;border-radius:5px;font-weight:bold;">
                                         Edit Course
                                     </a>
@@ -573,7 +575,7 @@ router.post('/cohorts/:cohortId/reject', async (req, res) => {
                                 </div>
 
                                 <div style="margin:20px 0;">
-                                    <a href="${process.env.FRONTEND_URL}/expert/dashboard" 
+                                    <a href="${process.env.FRONTEND_URL}/expert" 
                                        style="display:inline-block;background-color:#4F46E5;color:white;padding:12px 30px;text-decoration:none;border-radius:5px;font-weight:bold;">
                                         Edit Cohort
                                     </a>
