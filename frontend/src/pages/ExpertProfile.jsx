@@ -153,6 +153,14 @@ function ExpertProfile() {
     }
   }, [profileData]);
 
+  const targetAudienceMap = [
+    { label: 'Undergraduate Students', value: 'I am doing my graduation' },
+    { label: 'Working Professionals', value: 'I am working currently' },
+    { label: 'Postgraduate Students', value: 'I am pursuing masters' },
+    { label: 'High School Students (Class 9-10)', value: 'I am in Class 9th or 10th' },
+    { label: 'Secondary School Students (Class 11-12)', value: 'I am in Class 11th or 12th' },
+  ];
+
   const handleEditField = (field) => {
     setEditingField(field);
     // Set the current value in editValues when starting to edit
@@ -861,11 +869,11 @@ const renderBasicInfoField = (field, label, type = "text", placeholder = "") => 
               <div className="relative flex-grow">
                 <select
                   onChange={(e) => {
-                    const selectedValue = e.target.value;
-                    if (selectedValue) {
+                    const selectedLabel = e.target.value;
+                    if (selectedLabel) {
                       setProfileData(prev => ({
                         ...prev,
-                        targetAudience: [...(prev.targetAudience || []), selectedValue]
+                        targetAudience: [...(prev.targetAudience || []), selectedLabel]
                       }));
                       e.target.value = ''; 
                     }
@@ -874,18 +882,17 @@ const renderBasicInfoField = (field, label, type = "text", placeholder = "") => 
                   defaultValue=""
                 >
                   <option value="">+ Add Target Audience</option>
-                  {[
-                    'I am in Class 9th or 10th',
-                    'I am in Class 11th or 12th',
-                    'I am doing my graduation',
-                    'I am pursuing masters', 
-                    'I am working currently'
-                  ].filter(audience => !profileData.targetAudience?.includes(audience))
-                  .map((audience, index) => (
-                    <option key={`target-audience-option-${index}-${audience}`} value={audience}>
-                      {audience}
-                    </option>
-                  ))}
+                  {targetAudienceMap.filter(
+                  (option) => !profileData.targetAudience?.includes(option.label)
+                )
+                .map((option, index) => (
+                  <option
+                    key={`target-audience-option-${index}-${option.value}`}
+                    value={option.label}
+                  >
+                    {option.label}
+                  </option>
+                ))}
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                   <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -896,8 +903,16 @@ const renderBasicInfoField = (field, label, type = "text", placeholder = "") => 
               <Button
                 onClick={async () => {
                   try {
+                    const audienceMapping = {
+                      'Undergraduate Students': 'I am doing my graduation',
+                      'Working Professionals': 'I am working currently',
+                      'Postgraduate Students': 'I am pursuing masters',
+                      'High School Students (Class 9-10)': 'I am in Class 9th or 10th',
+                      'Secondary School Students (Class 11-12)': 'I am in Class 11th or 12th'
+                    };
+                    const mappedAudience = profileData.targetAudience.map(label => audienceMapping[label] || label);
                     const response = await axiosInstance.patch('/expert/update-target-audience', 
-                      { targetAudience: profileData.targetAudience }
+                      { targetAudience: mappedAudience }
                     );
                     if (response.status === 200) {
                       toast.success('Target audience updated successfully');
