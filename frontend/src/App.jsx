@@ -7,7 +7,6 @@ import CommunityPage from './pages/CommunityPage';
 import Landing from "./pages/Landing";
 import ExpertDashboard from "./pages/ExpertDashboard";
 import ExpertProfile from "./pages/ExpertProfile";
-import Loader from "./components/layout/Loader";
 import BookingsPage from "./pages/BookingsPage";
 import StudentBookingsPage from "./pages/StudentBookingsPage";
 import ExpertPayments from "./pages/PaymentsPage";

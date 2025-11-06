@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
+import LoadingScreen from "../components/common/LoadingScreen";
 import { Button } from "../components/ui/button";
-import { Loader } from "../components/ui/loader";
 import { Calendar, CheckCircle2, ChevronRight, Star, Clock, User, Award, DollarSign, X, Phone } from "lucide-react";
 import axiosInstance from "../config/axios.config";
 import { toast, ToastContainer } from "react-toastify";
@@ -244,11 +244,7 @@ const BookingPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-gray-50">
-        <Loader size="large" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   const sessionsByDate = sessions.reduce((acc, session) => {

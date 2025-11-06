@@ -46,7 +46,7 @@ import axiosInstance from "../../config/axios.config";
 import { useNavigate } from "react-router-dom";
 import useUserTypeStore from "../../store/userTypeStore";
 import useUserStore from "../../store/userStore";
-import Loader from "../layout/Loader";
+import LoadingScreen from "../common/LoadingScreen";
 import * as Motion from "framer-motion";
 
 const industries = [
@@ -470,8 +470,8 @@ const ExpertSelectionModal = ({ isOpen, onClose }) => {
 
                           <div className="relative">
                             {loading ? (
-                              <div className="py-12">
-                                <Loader fullScreen={false} />
+                              <div className="py-12 flex justify-center items-center">
+                                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
                               </div>
                             ) : (
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[60vh] overflow-y-auto pr-2 scrollbar-hidden">

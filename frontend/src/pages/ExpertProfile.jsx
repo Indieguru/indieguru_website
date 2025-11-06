@@ -7,7 +7,7 @@ import Footer from '../components/layout/Footer';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card } from '../components/ui/card';
-import { Loader } from '../components/ui/loader';
+import LoadingScreen from '../components/common/LoadingScreen';
 import { Plus, Upload, Pencil, Link as LinkIcon, Trash2, CheckCircle, AlertCircle } from 'lucide-react';
 import { ErrorPopup } from '../components/ui/error-popup';
 import axiosInstance from '../config/axios.config';
@@ -569,11 +569,7 @@ const renderBasicInfoField = (field, label, type = "text", placeholder = "") => 
   const completionPercentage = (profileData.completedSteps / profileData.totalSteps) * 100;
 
   if (loading || !authData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader size="large" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

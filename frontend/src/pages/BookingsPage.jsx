@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../components/ui/button";
 import { Calendar, Clock, Users, Award, ArrowRight, Link as LinkIcon, Video, Book, GraduationCap, MessageSquare, X, Star, AlertTriangle, CheckCircle2, Download, Eye, XCircle, Info, Copy } from "lucide-react";
 import Header from "../components/layout/Header";
+import LoadingScreen from "../components/common/LoadingScreen";
 import useExpertSessionsStore from '../store/expertSessionsStore';
 import useExpertCohortsStore from '../store/expertCohortsStore';
 import useExpertCoursesStore from '../store/expertCoursesStore';
@@ -46,14 +47,16 @@ const BookingsPage = () => {
   const [previewFile, setPreviewFile] = useState(null);
   const [showSessionDetailsModal, setShowSessionDetailsModal] = useState(false);
   const [selectedSessionForDetails, setSelectedSessionForDetails] = useState(null);
-  const { sessions, fetchExpertSessions, isLoading: isLoadingSessions } = useExpertSessionsStore();
-  const { cohorts, fetchExpertCohorts, isLoading: isLoadingCohorts } = useExpertCohortsStore();
-  const { courses, fetchExpertCourses, isLoading: isLoadingCourses } = useExpertCoursesStore();
-  const { expertData, fetchExpertData, isLoading: isLoadingExpert } = useExpertStore();
+  const [isPageLoading, setIsPageLoading] = useState(true);
+  const { sessions, fetchExpertSessions } = useExpertSessionsStore();
+  const { cohorts, fetchExpertCohorts } = useExpertCohortsStore();
+  const { courses, fetchExpertCourses } = useExpertCoursesStore();
+  const { expertData, fetchExpertData } = useExpertStore();
 
   useEffect(() => {
     const fetchAllData = async () => {
       try {
+        // Fetch all data in parallel
         await Promise.all([
           fetchExpertSessions(),
           fetchExpertCohorts(),
@@ -62,18 +65,19 @@ const BookingsPage = () => {
         ]);
       } catch (error) {
         console.error('Error fetching data:', error);
+      } finally {
+        // Wait a bit to ensure all state updates are complete, then hide loader
+        setTimeout(() => {
+          setIsPageLoading(false);
+        }, 500);
       }
     };
 
     fetchAllData();
   }, [fetchExpertSessions, fetchExpertCohorts, fetchExpertCourses, fetchExpertData]);
 
-  if (isLoadingSessions || isLoadingCohorts || isLoadingCourses || isLoadingExpert) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-      </div>
-    );
+  if (isPageLoading) {
+    return <LoadingScreen />;
   }
 
   const containerVariants = {
@@ -878,12 +882,9 @@ const BookingsPage = () => {
                 <h3 className="text-3xl font-bold text-gray-700 mb-4">
                   No {activeTab === "cohorts" ? cohortType : activeTab === "courses" ? courseType : sessionType} {activeTab} found
                 </h3>
-                <p className="text-gray-500 text-lg mb-8">
+                <p className="text-gray-500 text-lg">
                   You don't have any {activeTab === "cohorts" ? cohortType : activeTab === "courses" ? courseType : sessionType} {activeTab} at the moment.
                 </p>
-                <Button className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-full px-8 py-6 text-lg hover:shadow-lg hover:shadow-blue-200 transition-all">
-                  Create New {activeTab.slice(0, -1)}
-                </Button>
               </motion.div>
             )}
           </motion.div>

@@ -4,10 +4,10 @@ import { useState, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import Header from "../components/layout/Header"
 import Footer from "../components/layout/Footer"
+import LoadingScreen from "../components/common/LoadingScreen"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Card } from "../components/ui/card"
-import { Loader } from "../components/ui/loader"
 import { Plus, Pencil } from "lucide-react"
 import { Doughnut } from "react-chartjs-2"
 import "chart.js/auto"
@@ -698,14 +698,7 @@ function Profile() {
   };
 
   if (loading || !authData) {
-    return (
-      <>
-        <Header />
-        <div className="min-h-screen flex items-center justify-center">
-          <Loader size="large" />
-        </div>
-      </>
-    );
+    return <LoadingScreen />;
   }
 
 

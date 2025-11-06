@@ -6,7 +6,7 @@ import Footer from '../components/layout/Footer';
 import { Button } from '../components/ui/button';
 import axiosInstance from '../config/axios.config';
 import useAuthStore from '../store/authStore';
-import Loader from '../components/layout/Loader';
+import LoadingScreen from '../components/common/LoadingScreen';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Clock, Award, Calendar, CheckCircle2, Wallet, BookOpen, Users, Shield, AlertCircle, Stars, GraduationCap, BookMarked } from 'lucide-react';
@@ -158,7 +158,7 @@ export default function CourseDetails() {
   };
 
   if (loading) {
-    return <Loader text="Loading course details" fullScreen={true} />;
+    return <LoadingScreen />;
   }
 
   if (!course) {

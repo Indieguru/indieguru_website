@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Footer from "../components/layout/Footer";
 import Header from "../components/layout/Header";
 import BlogModal from "../components/modals/BlogModal";
-import { Loader } from "../components/ui/loader";
+import LoadingScreen from "../components/common/LoadingScreen";
 import axiosInstance from '../config/axios.config';
 import useUserTypeStore from '../store/userTypeStore';
 import { Plus } from 'lucide-react';
@@ -113,11 +113,7 @@ export default function BlogPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fffaea]">
-        <Loader size="large" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

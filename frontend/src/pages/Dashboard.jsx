@@ -11,7 +11,7 @@ import GoalsCard from "../components/sections/GoalsCard"
 import ProgressSection from "../components/sections/ProgressSection"
 import ReferSection from "../components/sections/ReferSection"
 import PreviousSessionsSection from "../components/sections/PreviousSessionsSection"
-import { Loader } from "../components/ui/loader"
+import LoadingScreen from "../components/common/LoadingScreen"
 import useUserStore from "../store/userStore";
 import UpcomingCohorts from '../components/sections/upcomingCourses';
 import useUserTypeStore from '../store/userTypeStore';
@@ -58,11 +58,7 @@ function Dashboard() {
   }, [fetchUser, userType, navigate, authData, redirectUrl, clearRedirectUrl]);
 
   if (loading || !authData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader size="large" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   const containerVariants = {
