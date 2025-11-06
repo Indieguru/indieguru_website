@@ -4,16 +4,49 @@ import useUserStore from '../../store/userStore';
 import useExpertStore from '../../store/expertStore';
 import useUserTypeStore from '../../store/userTypeStore';
 import checkAuth from '../../utils/checkAuth';
+import LoadingScreen from '../common/LoadingScreen';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useUserStore();
-  const { expertData } = useExpertStore();
+  const [isLoading, setIsLoading] = useState(true);
+  const [minLoadingComplete, setMinLoadingComplete] = useState(false);
+  const { user, fetchUser } = useUserStore();
+  const { expertData, fetchExpertData } = useExpertStore();
   const { userType, setUserType } = useUserTypeStore();
 
   useEffect(() => {
-    checkAuth(setUserType);
+    const initAuth = async () => {
+      await checkAuth(setUserType);
+    };
+    initAuth();
   }, [setUserType]);
+
+  // Set minimum loading time
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMinLoadingComplete(true);
+    }, 1000); // Minimum 1 second loading time
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Fetch user/expert data when userType changes
+  useEffect(() => {
+    const fetchData = async () => {
+      if (userType === 'student') {
+        await fetchUser();
+        // Small delay to ensure state is updated
+        setTimeout(() => setIsLoading(false), 300);
+      } else if (userType === 'expert') {
+        await fetchExpertData();
+        // Small delay to ensure state is updated
+        setTimeout(() => setIsLoading(false), 300);
+      } else if (userType === 'not_signed_in') {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, [userType, fetchUser, fetchExpertData]);
 
   const getDashboardLink = () => {
     return userType === 'expert' ? '/expert' : '/dashboard';
@@ -28,6 +61,11 @@ const Header = () => {
   };
 
   const isAuthenticated = userType !== "not_signed_in";
+
+  // Show loading screen while fetching user data or minimum time not elapsed
+  if (isLoading || !minLoadingComplete) {
+    return <LoadingScreen />;
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 md:top-4 md:left-20 md:right-20 z-50 bg-white/90 backdrop-blur-sm md:rounded-full shadow-lg px-4 md:px-6">

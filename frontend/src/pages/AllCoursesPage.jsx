@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../components/ui/button";
 import { Users, ArrowRight, Calendar, X, Filter } from "lucide-react";
 import Header from "../components/layout/Header";
+import LoadingScreen from "../components/common/LoadingScreen";
 import { Modal } from "../components/modals/modal";
 import { BookingModal } from "../components/modals/BookingModal";
 import useAuthStore from "../store/authStore";
@@ -626,14 +627,7 @@ const AllCoursesPage = () => {
   };
 
   if (isLoading) {
-    return (
-      <>
-        <Header />
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-        </div>
-      </>
-    );
+    return <LoadingScreen />;
   }
 
   return (

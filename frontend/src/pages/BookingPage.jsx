@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
+import LoadingScreen from "../components/common/LoadingScreen";
 import { Button } from "../components/ui/button";
-import { Loader } from "../components/ui/loader";
 import { Calendar, CheckCircle2, ChevronRight, Star, Clock, User, Award, DollarSign, X, Phone } from "lucide-react";
 import axiosInstance from "../config/axios.config";
 import { toast, ToastContainer } from "react-toastify";
@@ -24,6 +24,7 @@ const BookingPage = () => {
   const [selectedTime, setSelectedTime] = useState("");
   const [sessionTitle, setSessionTitle] = useState("");
   const [loading, setLoading] = useState(true);
+  const [processingPayment, setProcessingPayment] = useState(false);
   const [showTitleModal, setShowTitleModal] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -201,6 +202,7 @@ const BookingPage = () => {
       bookingType: "Session",
       id: selectedSession._id,
     });
+    
     if (res){
       if (res?.status === "failed") {
           toast.error(res.message || "Failed while generating payment link", {
@@ -211,6 +213,10 @@ const BookingPage = () => {
           return;
         }
       try {
+        // Show loading screen while processing booking
+        setShowTitleModal(false);
+        setProcessingPayment(true);
+        
         console.log(res);
         console.log(":::::::::::::::::::::::::::::::::::::::::::")
         console.log(res.data)
@@ -222,9 +228,11 @@ const BookingPage = () => {
           paymentId: res.data.payment._id
         });
         if (response.status === 200) {
+          setProcessingPayment(false);
           setShowSuccessModal(true);
         }
       } catch (error) {
+        setProcessingPayment(false);
         toast.error(error.response?.data?.message || "Failed to book session. Please try again later.", {
           icon: "❌",
           position: "top-center",
@@ -243,12 +251,8 @@ const BookingPage = () => {
     navigate("/dashboard");
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-gray-50">
-        <Loader size="large" />
-      </div>
-    );
+  if (loading || processingPayment) {
+    return <LoadingScreen />;
   }
 
   const sessionsByDate = sessions.reduce((acc, session) => {

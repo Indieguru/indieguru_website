@@ -8,6 +8,7 @@ import RefundRequestsSection from '../components/admin/RefundRequestsSection';
 import useExpertStore from '../store/expertStore';
 import useUserTypeStore from '../store/userTypeStore';
 import checkAuth from '../utils/checkAuth';
+import LoadingScreen from '../components/common/LoadingScreen';
 
 const RejectionModal = ({ isOpen, onClose, onReject, type }) => {
   const [reason, setReason] = useState('');
@@ -1307,11 +1308,7 @@ export default function AdminDashboard() {
   );
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-900"></div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

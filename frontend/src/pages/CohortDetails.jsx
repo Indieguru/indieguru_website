@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Calendar, Users, ArrowRight, AlertTriangle, AlertCircle } from "lucide-react";
 import { Button } from "../components/ui/button";
+import LoadingScreen from "../components/common/LoadingScreen";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import axiosInstance from "../config/axios.config";
@@ -116,7 +117,11 @@ const CohortDetails = () => {
         console.log(":::::::::::::::::::::::::::::::::::::::::::")
         console.log(res.data.payment._id)
         console.log(":::::::::::::::::::::::::::::::::::::::::::")
+        
+        // Close phone modal and show loading screen
+        setShowPhoneModal(false);
         setIsJoining(true);
+        
         const response = await axiosInstance.post(`/cohort/${cohortId}/purchase`,{
         paymentId: res.data.payment._id
         });
@@ -138,15 +143,8 @@ const CohortDetails = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <>
-        <Header />
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-        </div>
-      </>
-    );
+  if (loading || isJoining) {
+    return <LoadingScreen />;
   }
 
   if (error || !cohort) {

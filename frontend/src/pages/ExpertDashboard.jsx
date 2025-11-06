@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
+import LoadingScreen from '../components/common/LoadingScreen';
 import useExpertStore from '../store/expertStore';
 import useExpertCoursesStore from '../store/expertCoursesStore';
 import useExpertCohortsStore from '../store/expertCohortsStore';
@@ -319,11 +320,7 @@ function ExpertDashboard() {
   }, [isLoading, expertData, navigate]);
 
   if (authLoading || !authData || isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-900"></div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (error) {
