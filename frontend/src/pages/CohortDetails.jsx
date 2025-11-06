@@ -117,7 +117,11 @@ const CohortDetails = () => {
         console.log(":::::::::::::::::::::::::::::::::::::::::::")
         console.log(res.data.payment._id)
         console.log(":::::::::::::::::::::::::::::::::::::::::::")
+        
+        // Close phone modal and show loading screen
+        setShowPhoneModal(false);
         setIsJoining(true);
+        
         const response = await axiosInstance.post(`/cohort/${cohortId}/purchase`,{
         paymentId: res.data.payment._id
         });
@@ -139,7 +143,7 @@ const CohortDetails = () => {
     }
   };
 
-  if (loading) {
+  if (loading || isJoining) {
     return <LoadingScreen />;
   }
 
