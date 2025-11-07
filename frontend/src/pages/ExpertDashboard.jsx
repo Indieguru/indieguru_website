@@ -39,6 +39,7 @@ function ExpertDashboard() {
   const [showBlogModal, setShowBlogModal] = useState(false);
   const [blogs, setBlogs] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [dataInitialized, setDataInitialized] = useState(false);
 
   const [availableSlots, setAvailableSlots] = useState([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
@@ -303,13 +304,16 @@ function ExpertDashboard() {
             fetchExpertRatings(),
             fetchCompletedSessions()
           ]);
+          setDataInitialized(true);
         } catch (err) {
           console.error('Error initializing data:', err);
+          setDataInitialized(true); // Set to true even on error to prevent infinite loading
         }
       };
       initializeData();
     }
-  }, [userType, navigate, fetchExpertData, fetchExpertCourses, fetchExpertCohorts, authData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userType, navigate, authData]);
 
   // Add effect to check expert approval status after data is loaded
   useEffect(() => {
@@ -319,7 +323,7 @@ function ExpertDashboard() {
     }
   }, [isLoading, expertData, navigate]);
 
-  if (authLoading || !authData || isLoading) {
+  if (authLoading || !authData || !dataInitialized) {
     return <LoadingScreen />;
   }
 
