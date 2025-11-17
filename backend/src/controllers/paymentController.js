@@ -42,7 +42,10 @@ export const createOrder = async (req, res) => {
       currency: order.currency,
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    return res.status(500).json({ 
+      success: false,
+      message: err
+    });
   }
 };
 
