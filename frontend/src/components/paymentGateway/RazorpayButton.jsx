@@ -23,9 +23,6 @@ const initiateRazorpayPayment = async ({ amount,bookingType,id}) => {
   }
 
   try {
-    console.log(amount)
-    console.log(bookingType)
-    console.log(id)
     const order_response = await axiosInstance.post("/payment/create-order", {
       amount,bookingType,id});      
     const order_data = order_response.data
@@ -36,7 +33,7 @@ const initiateRazorpayPayment = async ({ amount,bookingType,id}) => {
     } 
     return new Promise( (resolve, reject) => {
       const options = {
-        key: "rzp_test_MVbXb0Dlze7Suw", // KEY IN ENV
+        key: import.meta.env.VITE_RAZORPAY_KEY, // KEY IN ENV
         amount: order_data.amount,
         currency: order_data.currency,
         name: "Indieguru",
