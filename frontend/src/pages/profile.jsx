@@ -113,7 +113,7 @@ function Profile() {
     "Career Discovery/ Career Councelling",
     "Study Abroad Guidance",
     "Soft Skills & Interview Prep",
-    "Resume Building & LinkedIn & Job search",
+    "Resume & LinkedIn Profile Building and Job Search",
     "PHD admission mentorship",
     "Stream Selection"
   ];
@@ -505,8 +505,6 @@ function Profile() {
 
   const handleUpdateProfilePicture = async (file) => {
     try {
-      console.log('Uploading file:', file.name, file.size, file.type);
-      
       const formData = new FormData();
       formData.append('image', file);
   

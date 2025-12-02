@@ -21,12 +21,10 @@ const PaymentSuccessPage = () => {
 
       try {
         const registrationId = localStorage.getItem('registrationId');
-        console.log(localStorage.getItem('registrationId'));
         await confirmPaymentSuccess(registrationId);
         // Clear the registration ID from local storage after successful confirmation
         localStorage.removeItem('registrationId');
       } catch (error) {
-        console.log("not found")
         console.error("Payment confirmation failed:", error);
         alert("Failed to confirm payment. Please contact support.");
       }

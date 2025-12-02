@@ -64,7 +64,7 @@ const EXPERTISE_OPTIONS = [
   "Career Discovery/Career Counselling",
   "Study Abroad Guidance",
   "Soft Skills & Interview Prep",
-  "Resume Building & LinkedIn & Job search",
+  "Resume & LinkedIn Profile Building and Job Search",
   "PHD admission mentorship",
   "Stream Selection"
 ];

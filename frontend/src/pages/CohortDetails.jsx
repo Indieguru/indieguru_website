@@ -94,7 +94,6 @@ const CohortDetails = () => {
   };
 
   const proceedWithJoining = async () => {
-    console.log("Initiating payment for cohort:", cohortId,cohort.pricing?.total);
       const res = await initiateRazorpayPayment({   
               amount: cohort.pricing?.total,
               bookingType: "Cohort",
@@ -111,13 +110,6 @@ const CohortDetails = () => {
       return;
     } 
       try {
-        console.log(res);
-        console.log(":::::::::::::::::::::::::::::::::::::::::::")
-        console.log(res.data)
-        console.log(":::::::::::::::::::::::::::::::::::::::::::")
-        console.log(res.data.payment._id)
-        console.log(":::::::::::::::::::::::::::::::::::::::::::")
-        
         // Close phone modal and show loading screen
         setShowPhoneModal(false);
         setIsJoining(true);
@@ -137,9 +129,6 @@ const CohortDetails = () => {
       } finally {
         setIsJoining(false);
       }
-    }
-    else{
-      console.log("Something Went Wrong")
     }
   };
 

@@ -109,7 +109,6 @@ function ExpertProfile() {
 
   useEffect(() => {
     if (expertData) {
-      console.log("Expert status from API:", expertData.status);
       setProfileData(prev => ({
         ...prev,
         name: expertData.name || "",
@@ -804,7 +803,7 @@ const renderBasicInfoField = (field, label, type = "text", placeholder = "") => 
                   'Career Discovery/Career Counselling',
                   'Study Abroad Guidance',
                   'Soft Skills & Interview Prep',
-                  'Resume Building & LinkedIn & Job search',
+                  'Resume & LinkedIn Profile Building and Job Search',
                   'PHD admission mentorship',
                   'Stream Selection'
                 ].filter(exp => !profileData.expertise?.includes(exp))

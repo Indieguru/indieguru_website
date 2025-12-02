@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
 import axiosInstance from '../../config/axios.config';
-import { Users, FileText, Video, DollarSign, Calendar, X } from 'lucide-react';
+import { Users, FileText, Video, IndianRupee, Calendar, X } from 'lucide-react';
 
 export default function AddCohortModal({ isOpen, onClose }) {
   const [cohortData, setCohortData] = useState({
@@ -159,7 +159,7 @@ export default function AddCohortModal({ isOpen, onClose }) {
               {/* Expert Fee */}
               <div>
                 <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 mb-3">
-                  <DollarSign className="w-4 h-4 text-green-600" />
+                  <IndianRupee className="w-4 h-4 text-green-600" />
                   <span>Expert Fee (INR)</span>
                 </label>
                 <div className="relative">

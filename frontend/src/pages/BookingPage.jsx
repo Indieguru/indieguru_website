@@ -4,7 +4,7 @@ import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import LoadingScreen from "../components/common/LoadingScreen";
 import { Button } from "../components/ui/button";
-import { Calendar, CheckCircle2, ChevronRight, Star, Clock, User, Award, DollarSign, X, Phone } from "lucide-react";
+import { Calendar, CheckCircle2, ChevronRight, Star, Clock, User, Award, IndianRupee, X, Phone } from "lucide-react";
 import axiosInstance from "../config/axios.config";
 import { toast, ToastContainer } from "react-toastify";
 import useUserTypeStore from '../store/userTypeStore';
@@ -216,13 +216,6 @@ const BookingPage = () => {
         // Show loading screen while processing booking
         setShowTitleModal(false);
         setProcessingPayment(true);
-        
-        console.log(res);
-        console.log(":::::::::::::::::::::::::::::::::::::::::::")
-        console.log(res.data)
-        console.log(":::::::::::::::::::::::::::::::::::::::::::")
-        console.log(res.data.payment._id)
-        console.log(":::::::::::::::::::::::::::::::::::::::::::")
         const response = await axiosInstance.post(`/session/${selectedSession._id}/book`, {
           title: sessionTitle,
           paymentId: res.data.payment._id
@@ -241,9 +234,6 @@ const BookingPage = () => {
       } finally {
         setShowTitleModal(false);
       }
-    }
-    else{
-      console.log("Something Went Wrong")
     }
   };
 
@@ -291,16 +281,16 @@ const BookingPage = () => {
               </div>
 
               <div className="space-y-6">
-                <div className="bg-blue-50 rounded-lg p-4 flex items-center">
+                {/* <div className="bg-blue-50 rounded-lg p-4 flex items-center">
                   <div className="flex items-center text-amber-400">
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} className="w-5 h-5 fill-current" />
                     ))}
                   </div>
                   <span className="ml-3 text-gray-700 font-medium">
-                    {expert?.ratings?.overall || "4.5"} ({expert?.ratings?.total || "0"} sessions)
+                    {expert?.ratings?.overall} ({expert?.ratings?.total} sessions)
                   </span>
-                </div>
+                </div> */}
 
                 <div className="border-t border-gray-100 pt-6">
                   <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
@@ -321,7 +311,7 @@ const BookingPage = () => {
 
                 <div className="border-t border-gray-100 pt-6">
                   <h3 className="font-semibold text-gray-800 mb-4 flex items-center">
-                    <DollarSign className="w-5 h-5 text-blue-600 mr-2" />
+                    <IndianRupee className="w-5 h-5 text-blue-600 mr-2" />
                     Session Rate
                   </h3>
                   <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg">

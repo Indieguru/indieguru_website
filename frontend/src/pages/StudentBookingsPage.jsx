@@ -80,7 +80,6 @@ function StudentBookingsPage() {
       setCohorts(cohortsRes.data || []);
       setCourses(coursesRes.data || []);
       setSessions(sessionsRes.data || []);
-      console.log(sessions)
       
     } catch (error) {
       console.error('Error fetching bookings:', error);

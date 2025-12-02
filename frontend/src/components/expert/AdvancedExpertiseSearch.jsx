@@ -82,7 +82,7 @@ const EXPERTISE_CATEGORIES = {
     "Career Discovery/ Career Councelling",
     "Study Abroad Guidance",
     "Soft Skills & Interview Prep",
-    "Resume Building & LinkedIn & Job search",
+    "Resume & LinkedIn Profile Building and Job Search",
     "PHD admission mentorship",
     "Stream Selection"
   ]

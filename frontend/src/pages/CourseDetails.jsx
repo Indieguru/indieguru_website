@@ -118,12 +118,6 @@ export default function CourseDetails() {
         return;
       }   
         try {
-          console.log(res);
-          console.log(":::::::::::::::::::::::::::::::::::::::::::")
-          console.log(res.data)
-          console.log(":::::::::::::::::::::::::::::::::::::::::::")
-          console.log(res.data.payment._id)
-          console.log(":::::::::::::::::::::::::::::::::::::::::::")
           setPurchasing(true);
           const response = await axiosInstance.post(`/course/${courseId}/purchase`,{
             paymentId: res.data.payment._id
@@ -144,9 +138,6 @@ export default function CourseDetails() {
         } finally {
           setPurchasing(false);
         }
-    }
-    else{
-      console.log("Something Went Wrong")
     }
   };
   

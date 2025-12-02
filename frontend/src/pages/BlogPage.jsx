@@ -37,9 +37,7 @@ export default function BlogPage() {
   const fetchBlogs = async () => {
     try {
       setLoading(true);
-      console.log('Fetching blogs...');
       const response = await axiosInstance.get('/blog');
-      console.log('Blog response:', response.data);
       if (response.data.blogs && Array.isArray(response.data.blogs)) {
         setAllPosts(response.data.blogs); // Store all blogs
         setPosts(response.data.blogs);

@@ -15,7 +15,7 @@ import {
   BarChart3, 
   TrendingUp, 
   Calculator, 
-  DollarSign, 
+  IndianRupee, 
   Scale, 
   FileText, 
   Megaphone, 
@@ -107,7 +107,7 @@ const industries = [
   'Career Discovery/ Career Councelling',
   'Study Abroad Guidance',
   'Soft Skills & Interview Prep',
-  'Resume Building & LinkedIn & Job search',
+  'Resume & LinkedIn Profile Building and Job Search',
   'PHD admission mentorship',
   'Stream Selection'
 ];
@@ -125,10 +125,10 @@ const industryIcons = {
   'Strategy & Operations': TrendingUp,
   'Data Analysis': BarChart3,
   'Chartered Accountancy (CA)': Calculator,
-  'CFA': DollarSign,
-  'Investment Banking': DollarSign,
+  'CFA': IndianRupee,
+  'Investment Banking': IndianRupee,
   'Financial Planning & Analysis': Calculator,
-  'FinTech Roles': DollarSign,
+  'FinTech Roles': IndianRupee,
   'Corporate & Criminal Law': Scale,
   'Company Secretary': FileText,
   'Digital Marketing': Megaphone,
@@ -171,7 +171,7 @@ const industryIcons = {
   'Career Discovery/ Career Councelling': Target,
   'Study Abroad Guidance': GraduationCap,
   'Soft Skills & Interview Prep': Users,
-  'Resume Building & LinkedIn & Job search': FileText,
+  'Resume & LinkedIn Profile Building and Job Search': FileText,
   'PHD admission mentorship': GraduationCap,
   'Stream Selection': Target
 };

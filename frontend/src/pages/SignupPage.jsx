@@ -82,7 +82,6 @@ const LoginPage = () => {
       
       // In development mode, if OTP is included in the response, auto-fill it
       if (response.data.otp) {
-        console.log("Development mode: Auto-filling OTP:", response.data.otp);
         setOtp(response.data.otp);
         // Show a notice to the user
         setErrorMessage(`Dev mode: OTP auto-filled (${response.data.otp})`);
@@ -93,15 +92,12 @@ const LoginPage = () => {
   };
 
   const handleVerifyOtp = async () => {
-    console.log("verifying otp");
     if (otp.length !== 6) {
       setErrorMessage("Please enter a valid 6-digit OTP");
       return;
     }
     
     try {
-      console.log("Current userType before verification:", userType);
-      
       // Choose the correct endpoint based on userType
       const endpoint = userType === "expert" 
         ? "/expert/auth/verify-email-otp" 
@@ -112,10 +108,6 @@ const LoginPage = () => {
         otp: otp,
         role: userType,
       });
-      
-      console.log("OTP verified successfully:", response.data);
-      console.log("Navigating as userType:", userType);
-      
       // Store the userType before any async operations
       const selectedUserType = userType;
       

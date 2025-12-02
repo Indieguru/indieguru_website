@@ -435,7 +435,7 @@ const CategoryBrowser = () => {
     },
     {
       id: "resume-linkedin-job-search",
-      title: "Resume Building & LinkedIn & Job search",
+      title: "Resume & LinkedIn Profile Building and Job Search",
       color: "#f2ffcc",
       iconColor: "#ccff66",
       iconPath: "/group-2-1.png",

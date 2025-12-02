@@ -3,7 +3,6 @@ import RazorpayButton from "../components/paymentGateway/RazorpayButton";
 
 const PayTestPage = () => {
   const handleSuccess = (paymentData) => {
-    console.log("✅ Payment Verified & Stored:", paymentData);
     alert("Payment Successful!");
   };
 

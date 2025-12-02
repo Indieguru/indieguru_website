@@ -45,13 +45,9 @@ export default function BrowseExperts() {
   const fetchExperts = async (filter = '') => {
     try {
       setLoading(true);
-      console.log('Fetching experts for category:', filter);
-      
       const response = await axiosInstance.get('/expert/search', {
         params: { filter }
       });
-      
-      console.log('API response:', response.data);
       setExperts(response.data.data || []);
       setLoading(false);
     } catch (error) {

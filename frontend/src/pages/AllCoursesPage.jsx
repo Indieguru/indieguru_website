@@ -73,7 +73,7 @@ const EXPERTISE_OPTIONS = [
   "Career Discovery/ Career Councelling",
   "Study Abroad Guidance",
   "Soft Skills & Interview Prep",
-  "Resume Building & LinkedIn & Job search",
+  "Resume & LinkedIn Profile Building and Job Search",
   "PHD admission mentorship",
   "Stream Selection"
 ];
@@ -376,7 +376,6 @@ const AllCoursesPage = () => {
             driveLink: course.driveLink,
             status: course.status
           }));
-          console.log('Transformed approved courses:', transformedCourses.length, 'out of', coursesRes.data.length, 'total courses');
           setCourses(transformedCourses);
         }
 
@@ -409,7 +408,6 @@ const AllCoursesPage = () => {
             pricing: cohort.pricing,
             status: cohort.status
           }));
-          console.log('Transformed approved cohorts:', transformedCohorts.length, 'out of', cohortsRes.data.length, 'total cohorts');
           setCohorts(transformedCohorts);
         }
 
@@ -443,21 +441,12 @@ const AllCoursesPage = () => {
 
   const filterItems = (items, search, expertiseFilter) => {
     let filtered = items;
-
-    console.log('Filtering items:', {
-      totalItems: items.length,
-      searchTerm: search,
-      expertiseFilter: expertiseFilter,
-      sampleItemExpertise: items[0]?.expertExpertise
-    });
-
     // Apply search filter
     if (search) {
       filtered = filtered.filter(item => 
         item.title.toLowerCase().includes(search.toLowerCase()) ||
         item.instructor?.toLowerCase().includes(search.toLowerCase())
       );
-      console.log(`After search filter: ${filtered.length} items`);
     }
 
     // Apply expertise filter with enhanced matching
@@ -465,7 +454,6 @@ const AllCoursesPage = () => {
       console.log('Applying expertise filter...');
       filtered = filtered.filter(item => {
         if (!item.expertExpertise || item.expertExpertise.length === 0) {
-          console.log(`Item "${item.title}" has no expertise data`);
           return false;
         }
         
@@ -484,21 +472,13 @@ const AllCoursesPage = () => {
               word.length > 2 && normalizedSelected.includes(word)
             );
             
-            const isMatch = exactMatch || containsMatch || wordMatch;
-            
-            if (isMatch) {
-              console.log(`Match found: "${itemExpertise}" matches "${selectedExpertise}" for item "${item.title}"`);
-            }
-            
+            const isMatch = exactMatch || containsMatch || wordMatch;            
             return isMatch;
           })
         );
         
         return matches;
       });
-      
-      console.log(`After expertise filter: ${filtered.length} items`);
-      console.log('Filtered items:', filtered.map(item => ({ title: item.title, expertise: item.expertExpertise })));
     }
 
     return filtered;

@@ -104,9 +104,6 @@ function ExpertDashboard() {
       const slotRequests = [];
 
       // Debug: Log the selected dates to see what we're working with
-      console.log('Selected dates:', selectedDates);
-      console.log('Selected time slots:', selectedTimeSlots);
-
       for (const date of selectedDates) {
         // Ensure we have a valid date object
         const dateObj = new Date(date);
@@ -129,15 +126,9 @@ function ExpertDashboard() {
             endTime,
             duration: 60
           };
-
-          console.log('Adding slot request:', slotRequest);
           slotRequests.push(slotRequest);
         }
       }
-
-      console.log('Total slot requests to send:', slotRequests.length);
-      console.log('Slot requests:', slotRequests);
-
       const response = await axiosInstance.post('/expert/addsession/batch', {
         slots: slotRequests
       });
@@ -160,7 +151,6 @@ function ExpertDashboard() {
   };
 
   const handlePrepare = (session) => {
-    console.log(session);
     if (session.meetLink) {
       window.open(session.meetLink, '_blank');
     } else {
@@ -787,8 +777,6 @@ function ExpertDashboard() {
                     if (devType === 'production') {
                       baseUrl = "https://myindieguru.com";
                     }
-
-                    console.log(baseUrl);
                     navigator.clipboard.writeText(`${baseUrl}/booking/${expertData.expert_id}`);
                     alert("Profile link copied!");
                   }}

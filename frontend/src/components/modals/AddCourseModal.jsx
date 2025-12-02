@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
 import axiosInstance from '../../config/axios.config';
-import { BookOpen, FileText, Link, DollarSign, Eye, X } from 'lucide-react';
+import { BookOpen, FileText, Link, IndianRupee, Eye, X } from 'lucide-react';
 
 export default function AddCourseModal({ isOpen, onClose }) {
   const [courseData, setCourseData] = useState({
@@ -176,7 +176,7 @@ export default function AddCourseModal({ isOpen, onClose }) {
               {/* Expert Fee */}
               <div className="group">
                 <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 mb-3">
-                  <DollarSign className="w-4 h-4 text-green-600" />
+                  <IndianRupee className="w-4 h-4 text-green-600" />
                   <span>Your Expert Fee (INR)</span>
                 </label>
                 <div className="relative">
