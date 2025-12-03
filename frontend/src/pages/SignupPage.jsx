@@ -19,6 +19,8 @@ const LoginPage = () => {
   const { isAuthenticated, fetchIsAuthenticated } = useAuthStore();
   const { userType, setUserType } = useUserTypeStore();
   const [assessmentData, setAssessmentData] = useState(null);
+  const [isInApp, setIsInApp] = useState(false);
+  const message = "Google Sign-In is disabled inside in-app browsers. Please open in Safari/Chrome.";
 
   useEffect(() => {
     // Load saved assessment data if it exists
@@ -39,6 +41,20 @@ const LoginPage = () => {
     }
     return () => clearInterval(interval);
   }, [timer, showOtpInput]);
+
+  
+  useEffect(() => {
+    setIsInApp(isInAppBrowser());
+  }, []);
+
+  const isInAppBrowser = () => {
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    return (
+      /FBAN|FBAV|Instagram|LinkedInApp|Twitter/i.test(ua) ||
+      (ua.includes("wv") && ua.includes("Android")) ||
+      ua.includes("GSA")
+    );
+  };
 
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
@@ -298,31 +314,40 @@ const LoginPage = () => {
                 <div className="flex-1 h-px bg-gray-300"></div>
               </div>
 
-              <button
-                type="button"
-                onClick={handleGoogleSigninClick}
-                className="w-full flex items-center bg-white justify-center gap-2 border border-gray-300 py-3 rounded-md hover:bg-gray-50 transition-colors"
-              >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M18.1711 8.36788H17.5V8.33329H10V11.6666H14.6422C13.9272 13.6916 12.1155 15.0833 10 15.0833C7.23891 15.0833 5.00002 12.8444 5.00002 10.0833C5.00002 7.32218 7.23891 5.08329 10 5.08329C11.2745 5.08329 12.4344 5.54385 13.3419 6.30274L15.7094 3.93524C14.1039 2.5241 12.1149 1.66663 10 1.66663C5.3978 1.66663 1.66669 5.39774 1.66669 9.99996C1.66669 14.6022 5.3978 18.3333 10 18.3333C14.6022 18.3333 18.3334 14.6022 18.3334 9.99996C18.3334 9.44107 18.2756 8.89718 18.1711 8.36788Z"
-                    fill="#FFC107"
-                  />
-                  <path
-                    d="M2.62744 6.12445L5.36522 8.12557C6.10744 6.29501 7.90078 5.08334 10 5.08334C11.2745 5.08334 12.4344 5.5439 13.3419 6.30279L15.7094 3.93529C14.1039 2.52415 12.1149 1.66668 10 1.66668C6.79168 1.66668 4.02255 3.47112 2.62744 6.12445Z"
-                    fill="#FF3D00"
-                  />
-                  <path
-                    d="M10 18.3333C12.0755 18.3333 13.9389 17.5041 15.3372 16.1458L12.7228 13.9375C11.8539 14.5875 10.8061 14.9792 10 14.9792C7.89725 14.9792 6.09393 13.6 5.37226 11.5917L2.58337 13.7125C3.96393 16.4125 6.76948 18.3333 10 18.3333Z"
-                    fill="#4CAF50"
-                  />
-                  <path
-                    d="M18.1711 8.36777H17.5V8.33319H10V11.6665H14.6422C14.2956 12.6315 13.6652 13.472 12.8517 14.0748L12.8522 14.0743L15.4667 16.2826C15.2356 16.4959 18.3333 14.1665 18.3333 9.99986C18.3333 9.44097 18.2756 8.89708 18.1711 8.36777Z"
-                    fill="#1976D2"
-                  />
-                </svg>
-                <span>Sign In with Google</span>
-              </button>
+              <div className="signIn relative group">
+                <button
+                  type="button"
+                  onClick={() => !isInApp && handleGoogleSigninClick()}
+                  disabled={isInApp}
+                  className={`w-full flex items-center bg-white justify-center gap-2 border border-gray-300 py-3 rounded-md transition-colors ${isInApp ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50"}`}
+                >
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M18.1711 8.36788H17.5V8.33329H10V11.6666H14.6422C13.9272 13.6916 12.1155 15.0833 10 15.0833C7.23891 15.0833 5.00002 12.8444 5.00002 10.0833C5.00002 7.32218 7.23891 5.08329 10 5.08329C11.2745 5.08329 12.4344 5.54385 13.3419 6.30274L15.7094 3.93524C14.1039 2.5241 12.1149 1.66663 10 1.66663C5.3978 1.66663 1.66669 5.39774 1.66669 9.99996C1.66669 14.6022 5.3978 18.3333 10 18.3333C14.6022 18.3333 18.3334 14.6022 18.3334 9.99996C18.3334 9.44107 18.2756 8.89718 18.1711 8.36788Z"
+                      fill="#FFC107"
+                    />
+                    <path
+                      d="M2.62744 6.12445L5.36522 8.12557C6.10744 6.29501 7.90078 5.08334 10 5.08334C11.2745 5.08334 12.4344 5.5439 13.3419 6.30279L15.7094 3.93529C14.1039 2.52415 12.1149 1.66668 10 1.66668C6.79168 1.66668 4.02255 3.47112 2.62744 6.12445Z"
+                      fill="#FF3D00"
+                    />
+                    <path
+                      d="M10 18.3333C12.0755 18.3333 13.9389 17.5041 15.3372 16.1458L12.7228 13.9375C11.8539 14.5875 10.8061 14.9792 10 14.9792C7.89725 14.9792 6.09393 13.6 5.37226 11.5917L2.58337 13.7125C3.96393 16.4125 6.76948 18.3333 10 18.3333Z"
+                      fill="#4CAF50"
+                    />
+                    <path
+                      d="M18.1711 8.36777H17.5V8.33319H10V11.6665H14.6422C14.2956 12.6315 13.6652 13.472 12.8517 14.0748L12.8522 14.0743L15.4667 16.2826C15.2356 16.4959 18.3333 14.1665 18.3333 9.99986C18.3333 9.44097 18.2756 8.89708 18.1711 8.36777Z"
+                      fill="#1976D2"
+                    />
+                  </svg>
+                  <span>Sign In with Google</span>
+                </button>
+                {isInApp && (
+                <div className="absolute left-1/2 -translate-x-1/2 mt-2 hidden group-hover:block 
+                  bg-black text-white text-xs px-3 py-2 rounded-md w-max shadow-lg z-20">
+                  {message}
+                </div>
+              )}
+              </div>
             </form>
 
             <p className="text-sm text-gray-600 mt-8 text-center">
