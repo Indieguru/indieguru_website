@@ -22,13 +22,6 @@ export const Footer = () => {
                 <Linkedin className="w-5 h-5" />
               </a>
               <a
-                href="#"
-                className="bg-gray-100 hover:bg-indigo-100 text-indigo-700 p-2 rounded-full transition-colors duration-200"
-                aria-label="Twitter"
-              >
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a
                 href="https://www.instagram.com/myindieguru/"
                 className="bg-gray-100 hover:bg-indigo-100 text-indigo-700 p-2 rounded-full transition-colors duration-200"
                 aria-label="Instagram"
