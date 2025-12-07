@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../config/axios.config';
 import { toast } from 'react-toastify';
 import { Dialog, Transition } from '@headlessui/react';
-import { X } from 'lucide-react';
+import {  Search, X } from 'lucide-react';
 import RefundRequestsSection from '../components/admin/RefundRequestsSection';
 import useExpertStore from '../store/expertStore';
 import useUserTypeStore from '../store/userTypeStore';
@@ -74,6 +74,11 @@ export default function AdminDashboard() {
 
   const [activeTab, setActiveTab] = useState('pending-experts');
   const [pendingExperts, setPendingExperts] = useState([]);
+  const [expertsList, setExpertsList] = useState([]);
+  const [searchExpertInput, setsearchExpertInput] = useState(""); 
+  const [searchExpertQuery, setsearchExpertQuery] = useState("");
+  const [selectedExpertDetail, setSelectedExpertDetail] = useState(null);
+  const [showExpertModal, setShowExpertModal] = useState(false);
   const [expertsWithOutstanding, setExpertsWithOutstanding] = useState([]);
   const [pendingCourses, setPendingCourses] = useState([]);
   const [pendingCohorts, setPendingCohorts] = useState([]);
@@ -149,9 +154,17 @@ export default function AdminDashboard() {
       fetchExpertsWithOutstanding();
       fetchPendingContent();
       fetchPendingBlogs();
+      fetchAllExperts();
       fetchCancelledSessions();
     }
   }, [expertLoading, expertData]);
+  
+  const filteredExperts = expertsList.filter((expert) => {
+    const fullName = `${expert.firstName} ${expert.lastName}`.toLowerCase();
+    const email = expert.email.toLowerCase();
+    const query = searchExpertQuery.toLowerCase();
+    return fullName.includes(query) || email.includes(query);
+  });
 
   const fetchPendingExperts = async () => {
     try {
@@ -192,6 +205,17 @@ export default function AdminDashboard() {
       setPendingBlogs(response.data.blogs);
     } catch (error) {
       toast.error('Failed to fetch pending blogs');
+    }
+  };
+
+  const fetchAllExperts = async () => {
+    try {
+      // backend exposes a search route that returns approved experts when no query provided
+      const response = await axiosInstance.get('/admin/all-experts')
+      setExpertsList(response.data.data || []);
+    } catch (error) {
+      toast.error('Failed to fetch experts list');
+      console.error('Error fetching experts list:', error);
     }
   };
 
@@ -1118,6 +1142,8 @@ export default function AdminDashboard() {
 
   const renderTabContent = () => {
     switch (activeTab) {
+      case 'experts':
+        return renderExpertsTab();
       case 'earnings':
         return renderEarningsTab();
       case 'pending-experts':
@@ -1135,6 +1161,267 @@ export default function AdminDashboard() {
       default:
         return renderPendingExperts();
     }
+  };
+
+  const renderExpertsTab = () => {
+    return (
+    <div className="bg-white rounded-lg shadow p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold text-gray-800">Experts</h2>
+
+        <div className="flex items-center gap-2 w-full max-w-md">
+          <input
+            type="text"
+            placeholder="Search by Name or Email"
+            value={searchExpertInput || ""}
+            onChange={(e) => setsearchExpertInput(e.target.value)}
+            className="border rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+
+          <button
+            onClick={() => setsearchExpertQuery(searchExpertInput)}
+            className="flex items-center gap-1 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+          >
+          <Search size={16} /></button>
+
+          <button
+            onClick={() => { setsearchExpertInput(""); setsearchExpertQuery("");}}
+            className="flex items-center gap-1 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      </div>
+
+      {filteredExperts.length === 0 ? (
+        <p className="text-gray-600">No experts to show</p>
+      ) : (
+        
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredExperts.map((expert) => (
+                <tr key={expert._id} className="hover:bg-gray-50 transition">
+                  {/* NAME */}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
+                      {expert.firstName} {expert.lastName}
+                    </div>
+                  </td>
+
+                  {/* EMAIL */}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-500">
+                      {expert.email}
+                    </div>
+                  </td>
+
+                  {/* TITLE */}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {expert.title || expert.expertName}
+                    </div>
+                  </td>
+
+                  {/* STATUS */}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full
+                      bg-blue-50 text-blue-700">
+                      {expert.status || "N/A"}
+                    </span>
+                  </td>
+
+                  {/* ACTION BUTTON */}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <button
+                      onClick={() => {
+                        setSelectedExpert(expert);
+                        setShowExpertModal(true);
+                      }}
+                      className="px-4 py-1.5 text-sm bg-indigo-600 text-white rounded-md shadow-sm 
+                                hover:bg-indigo-700 transition"
+                    >
+                      View Details
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ADD THIS BELOW YOUR TABLE (only once) */}
+      {showExpertModal && <ExpertDetailsModal expert={selectedExpert} onClose={() => setShowExpertModal(false)} />}
+    </div>
+  );
+  }
+
+  const ExpertDetailsModal = () => {
+    if (!selectedExpert) return null;
+
+    const infoBox = "border p-4 rounded-lg bg-gray-50";
+
+    const safe = (value, fallback = "Not yet submitted") => {
+      if (value === null || value === undefined || value === "") return fallback;
+      return value;
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white w-full max-w-4xl rounded-xl shadow-xl p-6 overflow-y-auto max-h-[90vh]">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <img
+                src={safe(selectedExpert.profilePicture, "/placeholder-user.jpg")}
+                alt="Profile"
+                className="w-24 h-24 rounded-full object-cover border"
+              />
+              <div>
+                <h2 className="text-2xl font-bold">
+                  {safe(selectedExpert.firstName)} {safe(selectedExpert.lastName, "")}
+                </h2>
+                <p className="text-gray-600">{safe(selectedExpert.email)}</p>
+                <p className="text-sm text-gray-500 mt-1">Status: {safe(selectedExpert.status)}</p>
+              </div>
+            </div>
+
+            {/* CLOSE BUTTON */}
+            <button
+              onClick={() => setShowExpertModal(false)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500"
+            >
+              Close
+            </button>
+          </div>
+          {/* BASIC DETAILS */}
+          <div className={infoBox}>
+            <h3 className="text-lg font-semibold mb-2">Basic Details</h3>
+            <p><b>Title:</b> {safe(selectedExpert.title)}</p>
+            <p><b>Phone:</b> {safe(selectedExpert.phoneNo)}</p>
+            <p><b>Auth Type:</b> {safe(selectedExpert.authType)}</p>
+            <p><b>Email Verified:</b> {selectedExpert.emailVerified ? "Yes" : "No"}</p>
+          </div>
+
+          {/* EXPERTISE */}
+          <div className={`${infoBox} mt-4`}>
+            <h3 className="text-lg font-semibold mb-2">Expertise</h3>
+            <p>{selectedExpert.expertise?.length ? selectedExpert.expertise.join(", ") : "Not yet submitted"}</p>
+
+            <h3 className="text-lg font-semibold mt-4 mb-2">Target Audience</h3>
+            <p>{selectedExpert.targetAudience?.length ? selectedExpert.targetAudience.join(", ") : "Not yet submitted"}</p>
+          </div>
+
+          {/* LINKS */}
+          {selectedExpert.links?.length > 0 && (
+            <div className={`${infoBox} mt-4`}>
+              <h3 className="text-lg font-semibold mb-2">Links</h3>
+              {selectedExpert.links.map((link, i) => (
+                <p key={i} className="text-blue-600 underline cursor-pointer">
+                  {safe(link.name)}: {safe(link.url)}
+                </p>
+              ))}
+            </div>
+          )}
+
+          {/* EDUCATION */}
+          {selectedExpert.education?.length > 0 && (
+            <div className={`${infoBox} mt-4`}>
+              <h3 className="text-lg font-semibold mb-3">Education</h3>
+              {selectedExpert.education.map((edu, i) => (
+                <div key={i} className="mb-4 border-b pb-3">
+                  <p><b>Degree:</b> {safe(edu.degree)}</p>
+                  <p><b>Institution:</b> {safe(edu.institution)}</p>
+                  <p><b>Field:</b> {safe(edu.field)}</p>
+                  <p><b>Years:</b> {safe(edu.startYear, "-")} - {safe(edu.endYear, "-")}</p>
+                  <p><b>Status:</b> {safe(edu.status)}</p>
+
+                  {edu.documents?.length > 0 ? (
+                    <div className="mt-2">
+                      <b>Documents:</b>
+                      {edu.documents.map((doc, j) => (
+                        <p key={j} className="text-blue-600 underline cursor-pointer">
+                          {safe(doc.filename)} ({safe(doc.url)})
+                        </p>
+                      ))}
+                    </div>
+                  ) : <p><b>Documents:</b> Not yet submitted</p>}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* CERTIFICATIONS */}
+          {selectedExpert.certifications?.length > 0 && (
+            <div className={`${infoBox} mt-4`}>
+              <h3 className="text-lg font-semibold mb-3">Certifications</h3>
+              {selectedExpert.certifications.map((cert, i) => (
+                <div key={i} className="mb-3 border-b pb-3">
+                  <p><b>Name:</b> {safe(cert.name)}</p>
+                  <p><b>Issuer:</b> {safe(cert.issuer)}</p>
+                  <p><b>Status:</b> {safe(cert.status)}</p>
+                  <p><b>Credential ID:</b> {safe(cert.credentialId)}</p>
+                  <p><b>Expiry:</b> {cert.expiryDate ? new Date(cert.expiryDate).toLocaleDateString() : "Not yet submitted"}</p>
+
+                  {cert.certificateFile?.url ? (
+                    <a href={cert.certificateFile.url} target="_blank" className="text-blue-600 underline">
+                      View Certificate
+                    </a>
+                  ) : <p>Certificate: Not yet submitted</p>}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* EXPERIENCE */}
+          {selectedExpert.experience?.length > 0 && (
+            <div className={`${infoBox} mt-4`}>
+              <h3 className="text-lg font-semibold mb-2">Experience</h3>
+              {selectedExpert.experience.map((exp, i) => (
+                <div key={i} className="mb-3 border-b pb-3">
+                  <p><b>Title:</b> {safe(exp.title)}</p>
+                  <p><b>Company:</b> {safe(exp.company)}</p>
+                  <p><b>Duration:</b> {safe(exp.duration)}</p>
+                  <p><b>Description:</b> {safe(exp.description)}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* PRICING */}
+          <div className={`${infoBox} mt-4`}>
+            <h3 className="text-lg font-semibold mb-2">Session Pricing</h3>
+            <p><b>Expert Fee:</b> ₹{safe(selectedExpert.sessionPricing?.expertFee, 0)}</p>
+            <p><b>Platform Fee:</b> ₹{safe(selectedExpert.sessionPricing?.platformFee, 0)}</p>
+            <p><b>Total:</b> ₹{safe(selectedExpert.sessionPricing?.total, 0)}</p>
+            <p><b>Currency:</b> {safe(selectedExpert.sessionPricing?.currency, "INR")}</p>
+          </div>
+
+          {/* FEEDBACK */}
+          <div className={`${infoBox} mt-4`}>
+            <h3 className="text-lg font-semibold mb-2">Feedback Overview</h3>
+            <p><b>Rating:</b> ⭐ {safe(selectedExpert.rating, 0)}</p>
+            <p><b>Total Feedbacks:</b> {safe(selectedExpert.totalFeedbacks, 0)}</p>
+          </div>
+
+          {/* CREATED / UPDATED */}
+          <div className="mt-4 text-sm text-gray-600">
+            <p><b>Created:</b> {selectedExpert.createdAt ? new Date(selectedExpert.createdAt).toLocaleString() : "Not yet submitted"}</p>
+            <p><b>Updated:</b> {selectedExpert.updatedAt ? new Date(selectedExpert.updatedAt).toLocaleString() : "Not yet submitted"}</p>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const renderEarningsTab = () => (
@@ -1310,7 +1597,6 @@ export default function AdminDashboard() {
   if (loading) {
     return <LoadingScreen />;
   }
-
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -1327,7 +1613,8 @@ export default function AdminDashboard() {
                 { id: 'pending-blogs', label: 'Pending Blogs' },
                 { id: 'earnings', label: 'Earnings' },
                 { id: 'refunds', label: 'Refund Requests' },
-                { id: 'sessions', label: 'Sessions' }
+                { id: 'sessions', label: 'Sessions' },
+                { id: 'experts', label: 'All Experts' }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -1510,4 +1797,5 @@ export default function AdminDashboard() {
       </div>
     </div>
   );
+
 }

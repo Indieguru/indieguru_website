@@ -32,6 +32,16 @@ router.get('/pending-experts',  async (req, res) => {
     }
 });
 
+// Get all pending experts
+router.get('/all-experts',  async (req, res) => {
+    try {
+        const experts = await Expert.find();
+      return res.status(200).json({ success: true, data: experts });
+    }   catch (error) {
+        res.status(500).json({ message: 'Error fetching pending experts', error: error.message });
+    }
+});
+
 // Get experts with outstanding amounts
 router.get('/experts-outstanding',  async (req, res) => {
     try {
