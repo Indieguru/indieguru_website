@@ -206,7 +206,7 @@ const ExpertCard = ({ expert }) => {
             <img 
               src={expert.profilePicture || "/placeholder-user.jpg"} 
               alt={expert.name || `${expert.firstName} ${expert.lastName}`}
-              className="w-full h-32 rounded-xl object-cover border-2 border-gray-100"
+              className="w-full h-32 rounded-xl object-contain border-2 border-gray-100 bg-white"
             />
             <div className="absolute top-2 right-2 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
               <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
