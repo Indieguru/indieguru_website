@@ -63,13 +63,7 @@ const PaymentSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
-
-// Index for faster queries
 PaymentSchema.index({ userId: 1, itemId: 1 });
-// PaymentSchema.index({ 'razorpay.orderId': 1 });
-// PaymentSchema.index({ 'razorpay.paymentId': 1 });
 
-export default mongoose.model("Paymentsss", PaymentSchema);
-
-// ANUKUL MODEL
-// CHANGE THIS BACK TO Payment/payments and use this one delect the database used in order.js
+const Payment = mongoose.model("RegisteredPayments", PaymentSchema);
+export default Payment;

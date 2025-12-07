@@ -357,7 +357,7 @@ export const getAdminEarnings = async (req, res) => {
       }
     }
 
-    // Get payments from Paymentsss database
+    // Get payments from Payment database
     const payments = await Payment.find(filterQuery)
       .populate('userId', 'firstName lastName email')
       .populate('expertId', 'firstName lastName email')

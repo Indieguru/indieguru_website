@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const paymentSchema = new mongoose.Schema(
+const orderSchema = new mongoose.Schema(
   {
     orderId: { type: String, required: true },
     paymentId: { type: String },
@@ -22,9 +22,9 @@ const paymentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Payment = mongoose.model("Payment", paymentSchema);
+const Order = mongoose.model("Order", orderSchema);
 
-export default Payment;
+export default Order;
 
 
 // MADE BY ME FOR RAZORPAY USE PLEASE CHECK THIS

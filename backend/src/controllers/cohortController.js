@@ -1,7 +1,7 @@
 import Cohort from '../models/Cohort.js';
 import Expert from '../models/Expert.js';
 import User from '../models/User.js';
-import Paymentsss from '../models/Payment.js';
+import Payment from '../models/Payment.js';
 import { sendMail } from '../utils/sendMail.js';
 
 export const createCohort = async (req, res) => {
@@ -207,8 +207,8 @@ export const purchaseCohort = async (req, res) => {
             return res.status(400).json({ message: 'Cohort is full' });
         }
 
-        // Create payment entry in Paymentsss database
-        const payment = new Paymentsss({
+        // Create payment entry in Payment database
+        const payment = new Payment({
             userId: userId,
             itemId: cohortId,
             itemType: 'Cohort',

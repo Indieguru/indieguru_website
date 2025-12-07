@@ -4,7 +4,7 @@ import Expert from '../models/Expert.js';
 import Session from '../models/Session.js';
 import Cohort from '../models/Cohort.js';
 import { sendMail } from '../utils/sendMail.js';
-import Paymentsss from '../models/Payment.js'; // Assuming you have a Payment model for handling payments
+import Payment from '../models/Payment.js'; // Assuming you have a Payment model for handling payments
 
 export const createCourse = async (req, res) => {
     try {
@@ -179,8 +179,8 @@ export const purchaseCourse = async (req, res) => {
       return res.status(400).json({ message: 'Course already purchased' });
     }
 
-    // Create payment entry in Paymentsss database
-    const payment = new Paymentsss({
+    // Create payment entry in Payment database
+    const payment = new Payment({
       userId: userId,
       itemId: courseId,
       itemType: 'Course',

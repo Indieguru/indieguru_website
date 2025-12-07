@@ -7,7 +7,6 @@ import Withdrawal from "../models/Withdrawal.js";
 import CommunityPost from "../models/CommunityPost.js";
 import upload from '../middlewares/uploadMiddleware.js';
 import cloudinary from 'cloudinary';
-import Paymentsss from "../models/Payment.js";
 
 export const addSlot = async (req, res) => {
   try {
@@ -1182,8 +1181,8 @@ export const getExpertTransactions = async (req, res) => {
       return res.status(404).json({ message: "Expert not found" });
     }
 
-    // Get all payments from Paymentsss database for this expert
-    const allPayments = await Paymentsss.find({ expertId: expertId })
+    // Get all payments from Payment database for this expert
+    const allPayments = await Payment.find({ expertId: expertId })
       .populate('userId', 'firstName lastName email')
       .populate('itemId')
       .sort({ createdAt: -1 });
@@ -1288,7 +1287,7 @@ export const getFilteredTransactions = async (req, res) => {
     }
 
     // Get filtered payments
-    const filteredPayments = await Paymentsss.find(filterQuery)
+    const filteredPayments = await Payment.find(filterQuery)
       .populate('userId', 'firstName lastName email')
       .populate('itemId')
       .sort({ createdAt: -1 });

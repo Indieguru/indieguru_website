@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import razorpay from "../utils/razorpayInstance.js";
-import Payment from "../models/Order.js";
+import Order from "../models/Order.js";
 import User from "../models/User.js";
 import Session from "../models/Session.js";
 import Expert from "../models/Expert.js";
@@ -28,9 +28,9 @@ export const createOrder = async (req, res) => {
     };
     const order = await razorpay.orders.create(options);
     console.log(order)
-    await Payment.create({
+    await Order.create({
       orderId: order.id,
-      amount: order.amount,
+      amount: order.amount/100,
       currency: order.currency,
       itemId: id,
       itemType: bookingType,
@@ -59,7 +59,7 @@ export const verifyPayment = async (req, res) => {
       .update(body)
       .digest("hex");
     if (expectedSignature === razorpay_signature) {
-      const payment = await Payment.findOneAndUpdate(
+      const payment = await Order.findOneAndUpdate(
         { orderId: razorpay_order_id },
         {
           paymentId: razorpay_payment_id,
