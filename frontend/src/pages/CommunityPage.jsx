@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import useUserTypeStore from "../store/userTypeStore";
 import useUserStore from "../store/userStore";
 import checkAuth from "../utils/checkAuth";
+import useRedirectStore from '../store/redirectStore';
 
 export default function CommunityPage() {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ export default function CommunityPage() {
   const [postAnonymously, setPostAnonymously] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
   const [showMyPosts, setShowMyPosts] = useState(false);
-
+  const { setRedirectUrl } = useRedirectStore();
   // Animation states for page elements
   const [pageLoaded, setPageLoaded] = useState(false);
   const [headerVisible, setHeaderVisible] = useState(false);
@@ -139,11 +140,6 @@ export default function CommunityPage() {
   };
 
   const handleCreatePost = async () => {
-    if (userType === "not_signed_in") {
-      navigate("/signup");
-      return;
-    }
-
     if (!newPost.content) {
       toast.error("Please write some content for your post");
       return;
@@ -483,7 +479,14 @@ export default function CommunityPage() {
               <p className="text-lg md:text-xl font-medium drop-shadow-md mb-6">{banner.text}</p>
               <button
                 className="bg-[#ffd050] text-[#232536] px-6 py-3 rounded-md font-medium hover-shadow"
-                onClick={() => setShowPostForm(true)}
+                onClick={() =>{
+                if (userType === "not_signed_in") {
+                  setRedirectUrl(window.location.pathname);
+                  navigate("/signup");
+                  return;
+                }
+                setShowPostForm(true)
+              }}
               >
                 Create Post
               </button>
@@ -682,7 +685,14 @@ export default function CommunityPage() {
             <h2 className="text-[#232536] text-2xl font-bold">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h2>
             <button
               className="bg-[#ffd050] text-[#232536] px-6 py-2 rounded-md font-medium hover-shadow"
-              onClick={() => setShowInlinePostForm(true)}
+              onClick={() => {
+              if (userType === "not_signed_in") {
+                setRedirectUrl(window.location.pathname);
+                navigate("/signup");
+                return;
+              }
+              setShowInlinePostForm(true)
+            }}
             >
               Create Post
             </button>

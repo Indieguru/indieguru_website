@@ -1268,6 +1268,12 @@ export default function AdminDashboard() {
   }
 
   const ExpertDetailsModal = () => {
+    let baseUrl = "http://localhost:5173";
+    const devType = import.meta.env.VITE_TYPE;
+    if (devType === 'production') {
+      baseUrl = "https://myindieguru.com";
+    }
+    console.log("Selected Expert:", selectedExpert);
     if (!selectedExpert) return null;
 
     const infoBox = "border p-4 rounded-lg bg-gray-50";
@@ -1311,6 +1317,7 @@ export default function AdminDashboard() {
             <p><b>Phone:</b> {safe(selectedExpert.phoneNo)}</p>
             <p><b>Auth Type:</b> {safe(selectedExpert.authType)}</p>
             <p><b>Email Verified:</b> {selectedExpert.emailVerified ? "Yes" : "No"}</p>
+            <p><b>Profile URL:</b> {`${baseUrl}/booking/${selectedExpert._id  }`}</p>
           </div>
 
           {/* EXPERTISE */}

@@ -1,8 +1,7 @@
 import React from 'react';
 import { motion } from "framer-motion";
-import { Button } from "../ui/button";
-import { Link } from 'react-router-dom';
 import UpcomingCourses from './upcomingCourses';
+import ExpertsCarousel from './expertsCarousel';
 
 export default function EducationalPlatform() {
   return (
@@ -27,7 +26,8 @@ export default function EducationalPlatform() {
         </motion.div>
 
         {/* Course Section */}
-        <UpcomingCourses />
+        {/* <UpcomingCourses /> */}
+        <ExpertsCarousel />
       </div>
     </motion.div>
   );
