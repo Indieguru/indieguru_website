@@ -3,16 +3,11 @@ import { Modal } from '../ui/modal';
 import { Button } from '../ui/button';
 import { Copy, Share2, Users, CheckCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
-import useUserStore from '../../store/userStore';
 
-function ReferralModal({ isOpen, onClose }) {
+export default function ExpertShareProfileModal({ isOpen, onClose, referralLink }) {
   const [copied, setCopied] = useState(false);
-  const { user } = useUserStore();
 
-  const userId = user?._id || user?.id || "user123";
-  const referralLink = `https://myindieguru.com/`;
-
-  const shareText = `Join me on IndieGuru - the ultimate platform to learn from industry experts! Get personalized mentoring, exclusive courses, and grow your career. Use my referral link and let's learn together! 🎓✨`;
+  const shareText = `Find me on IndieGuru - the ultimate platform to learn from industry experts! Get personalized mentoring, exclusive courses, and grow your career. Use my booking link and let's learn together! 🎓✨`;
 
   const handleCopyLink = async () => {
     try {
@@ -28,7 +23,7 @@ function ReferralModal({ isOpen, onClose }) {
 
   const handleShare = async () => {
     const shareData = {
-      title: 'Join IndieGuru - Learn from Industry Experts',
+      title: 'Find me on Indieguru - Explore 1:1 sessions, cohorts and much more!',
       text: shareText,
       url: referralLink,
     };
@@ -46,27 +41,27 @@ function ReferralModal({ isOpen, onClose }) {
   };
 
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={onClose} 
-      title="Invite Friends to IndieGuru" 
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Get Discovered by your Network"
       className="max-w-none w-[95vw] md:w-[67vw]"
     >
       <div className="bg-white rounded-lg overflow-hidden">
         <div className="flex flex-col md:flex-row min-h-[260px]">
 
-          {/* Left Side */}
+          {/* Left Section */}
           <div className="w-full md:w-2/5 bg-blue-50 p-6 flex flex-col justify-center items-center text-center">
             <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mb-4">
               <Users className="w-8 h-8 text-white" />
             </div>
 
             <h2 className="text-xl font-bold text-gray-900 mb-3">
-              Share the Knowledge
+              Share your Profile/Booking Page
             </h2>
 
             <p className="text-gray-700 text-sm leading-relaxed max-w-xs mb-4">
-              Invite your friends to join IndieGuru and help them connect with industry experts for personalized learning and career growth.
+              Use this link to share your profile / booking page across your social networks and increase your chances of getting 1:1 mentorship sessions.
             </p>
 
             <div className="space-y-2">
@@ -74,24 +69,24 @@ function ReferralModal({ isOpen, onClose }) {
                 <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
                   <CheckCircle className="w-3 h-3 text-white" />
                 </div>
-                <span className="text-gray-700 text-sm font-medium">Expert mentorship</span>
+                <span className="text-gray-700 text-sm font-medium">LinkedIn</span>
               </div>
 
               <div className="flex items-center justify-center space-x-2">
                 <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
                   <CheckCircle className="w-3 h-3 text-white" />
                 </div>
-                <span className="text-gray-700 text-sm font-medium">Learn together</span>
+                <span className="text-gray-700 text-sm font-medium">Instagram & WhatsApp</span>
               </div>
             </div>
           </div>
 
-          {/* Right Side */}
+          {/* Right Section */}
           <div className="w-full md:w-3/5 p-6 flex flex-col justify-center">
             <div className="space-y-4">
 
               <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Your Referral Link
+                Your Booking Page Link
               </h3>
 
               <div className="space-y-3">
@@ -122,13 +117,14 @@ function ReferralModal({ isOpen, onClose }) {
                 )}
               </div>
 
+              {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   onClick={handleShare}
                   className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white py-3 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors duration-200"
                 >
                   <Share2 className="w-4 h-4" />
-                  <span>Share with Friends</span>
+                  <span>Copy Link & Share Now</span>
                 </Button>
 
                 <Button
@@ -140,7 +136,7 @@ function ReferralModal({ isOpen, onClose }) {
               </div>
 
               <p className="text-xs text-gray-500 text-center leading-relaxed">
-                Help your friends discover expert-led learning and grow their careers with IndieGuru.
+                Help your network discover your Indieguru profile and learn from your experience.
               </p>
 
             </div>
@@ -151,5 +147,3 @@ function ReferralModal({ isOpen, onClose }) {
     </Modal>
   );
 }
-
-export default ReferralModal;

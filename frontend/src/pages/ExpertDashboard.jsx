@@ -18,6 +18,7 @@ import checkAuth from '../utils/checkAuth';
 import { Calendar, Clock, X, Plus, Check, AlertCircle } from 'lucide-react';
 import ProtectedBooking from '../components/ProtectedBooking';
 import ExpertApprovalCheck from '../components/ExpertApprovalCheck';
+import ExpertShareProfileModal from '../components/sections/ShareProfileSection.jsx';
 import { toast } from 'react-toastify';
 
 function ExpertDashboard() {
@@ -44,6 +45,19 @@ function ExpertDashboard() {
   const [availableSlots, setAvailableSlots] = useState([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [showAvailableSlotsModal, setShowAvailableSlotsModal] = useState(false);
+  const [showReferralModal, setShowReferralModal] = useState(false);
+
+  const getExpertProfileUrl = () => {
+    let baseUrl = "http://localhost:5173";
+    const devType = import.meta.env.VITE_TYPE;
+
+    if (devType === "production") {
+      baseUrl = "https://myindieguru.com";
+    }
+
+    return `${baseUrl}/booking/${expertData.expert_id}`;
+  };
+
 
   const [ratings, setRatings] = useState({
     overall: 0,
@@ -769,18 +783,9 @@ function ExpertDashboard() {
 
               {/* Right Side — Buttons */}
               <div className="flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    let baseUrl = "http://localhost:5173";
-                    const devType = import.meta.env.VITE_TYPE;
-
-                    if (devType === 'production') {
-                      baseUrl = "https://myindieguru.com";
-                    }
-                    navigator.clipboard.writeText(`${baseUrl}/booking/${expertData.expert_id}`);
-                    alert("Profile link copied!");
-                  }}
-                  className="bg-green-600 hover:bg-green-700 text-white text-sm py-2 px-4 rounded-lg flex items-center transition-colors duration-300"
+                  <button
+                    onClick={() => setShowReferralModal(true)}
+                    className="bg-green-600 hover:bg-green-700 text-white text-sm py-2 px-4 rounded-lg flex items-center transition-colors duration-300"
                 >
                   <span className="mr-2">
                     <svg
@@ -855,7 +860,11 @@ function ExpertDashboard() {
               </div>
             </div>
           </section>
-
+          <ExpertShareProfileModal
+            isOpen={showReferralModal}
+            onClose={() => setShowReferralModal(false)}
+            referralLink={getExpertProfileUrl()}
+          />
           {/* Available Slots Modal */}
           {showAvailableSlotsModal && (
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">

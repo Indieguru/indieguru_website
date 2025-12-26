@@ -643,26 +643,32 @@ const renderBasicInfoField = (field, label, type = "text", placeholder = "") => 
             {profileData.links?.length > 0 ? (
               <div className="space-y-2 mb-4">
                 {profileData.links.map((link, index) => (
-                  <div key={`link-${index}`} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <LinkIcon size={16} className="text-blue-600" />
-                      <span className="font-medium">{link.name}:</span>
-                      <a 
-                        href={link.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="text-blue-600 hover:underline truncate max-w-xs sm:max-w-md"
+                <div key={`link-${index}`} className="flex items-start justify-between bg-gray-50 p-3 rounded-lg gap-3">
+                  
+                  <div className="flex items-start gap-2 w-full overflow-hidden">
+                    <LinkIcon size={16} className="text-blue-600 mt-1 shrink-0" />
+
+                    <div className="flex-1 min-w-0">
+                      <span className="font-medium block">{link.name}:</span>
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline text-sm break-all sm:break-words overflow-hidden"
                       >
                         {link.url}
                       </a>
                     </div>
-                    <button 
-                      onClick={() => handleRemoveLink(index)}
-                      className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50"
-                    >
-                      <Trash2 size={16} />
-                    </button>
                   </div>
+
+                  <button
+                    onClick={() => handleRemoveLink(index)}
+                    className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50 shrink-0"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+
+                </div>
                 ))}
               </div>
             ) : (
